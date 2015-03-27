@@ -1,131 +1,70 @@
 # Gruppkontrakt
 
-OSPP (1DT096) 2015 - Grupp XX
+OSPP (1DT096) 2015 - Grupp 5
 
-> Ändra XX till numret på gruppen.
 
-Det huvudsakliga syftet med att upprätta ett gruppkontrakt är att alla
-i gruppen ska vara överens om mål och arbetssätt för det fortsatta
-arbetet. Utarbetandet av ett gruppkontrakt leder till diskussion och
-reflektion kring frågor som är viktiga för gruppens arbete och
-trivsel. Vid utformandet av gruppkontraktet är det viktigt att alla i
-gruppen deltar aktivt och att hänsyn tas till alla gruppmedlemmars
-synpunkter och önskemål.
-
-Ett gruppkontrakt ska vara underskrivet av samtliga
-projektmedlemmar. Följande områden kan vara del av vad man kommer
-överens om i gruppkontraktet:
-
-- Målsättning och förväntningar på gruppdeltagarna.
-- Arbetsformer och arbetsfördelning.
-- Normer i projektgruppen – överenskommelse om goda gruppegenskaper.
-- Brott mot reglerna i gruppkontraktet.
-- Allmänna förutsättningar.
-
-Denna mall för gruppkontrakt är baserat på:
-
-- http://www.cemus.uu.se/dokument/hub2010/Gruppkontrakt.pdf
-
-> Kontraktet är skrivet i formatet Markdown, läs mer här:
-- https://help.github.com/articles/markdown-basics/
-
-> Gruppen skall tillsammans utgå från denna mall (ändra, ta bort eller
-> lägga till text och rubriker) för att komma fram till ett
-> gruppkontrakt som alla i gruppen är nöjda med.
 
 ## Rutiner
 
-Exempel på innehåll:
-
-- Skall gruppen i huvudsak sitta och arbeta tillsammans eller endast
-  träffas för kortare möten?
-- Hur ofta ska gruppen träffas?
-- Hur långa ska mötena vara?
-- När på dagen ska mötena läggas?
-- Vilka godtagbara skäl finns för frånvaro på möten?
+- Vi kommer att ha mist ett schemalagt möte varje vecka där vi går igenom hur vi ligger till och vad vi ska göra i nästa fas.
+- Mötena får ta den tid de tar och scemalägs med fördel på eftermidagarna.
+- Frånvaro skall anmälas i god tid så att mötet kan läggas på en ny tid.
+- Vi skall även sträva efter att ha minst två schemalagda tilfällen per vecka för gemensamt arbete. Dessa tilfällen är dock inte obligatoriska.
+- Utöver detta får varje grupmedlem jobba på det sätt och den tid som passar dem bäst.
 
 
 ## Kommunikationen i gruppen
 
-Exempel på innehåll:
+- Diskusioner och almänt "snack" kommer att ske via `slack`
+- Diskussioner om feature requests nurvarande status och så kommer att ske via `trello`
 
-- Hur ska gruppen kommunicera mellan möten?
-- Hur ska gruppen agera om någon inte kommer på ett möte?
-- Hur ska samordning och rapportering ske inom projektgruppen?
 
 ## Frånvaro
-
-Exempel på innehåll:
-
-- Hur och när skall frånvaro meddelas?
-- Hur skall man göra om någon varit frånvarande?
-- Skall frånvaro kompenseras genom annan arbetsinsats eller gäller det
-  bara viss typ av frånvaro?
+- Frånvaro skall anmälas i god tid.
+- Om en påtagen uppgift ej kan genomföras innom utsatt tid måste detta medelas snarast så att
+	omallokering av tid och resurser kan ske.
 
 ## Roller
 
-Exempel på innehåll:
+- Henrik Sommerland är "gruppchef"
+- Aleksander Lundqvist är "sekreterare"
+- Edvin Wahlberg är ansvarig för schemaläggning.
+- Roller kan tillkoma avsättas och bytas när som under projektets gång.
 
-- Ska varje person i gruppen ha en formell roll?
-- Ska ni växla formella roller vid varje möte?
-- Vilka roller behövs:
-  - Projektledare?
-  - Sekreterare?
-  - Dokumentansvarig?
 
 ## Beslutsformer
 
-Exempel på innehåll:
-- Hur ska gruppen komma överens om vad som ska göras?
-- Ska majoritetsbeslut gälla eller ska gruppen genom diskussion
-  försöka få alla att vara överens om beslutet?
-- Hur ska ni gör ifall ni är oeniga?
+- Beslut skall fattas efter öppen diskussion i gruppen. Alla beslut skall fattas genom konsensus.
+- Om konsensus ej kan uppdnås innom en rimlig tidsram så har gruppledaren veto.
 
 ## Arbetsinsats
 
-För att undvika en del missförstånd och irritation kan det vara bra
-att redan från början göra klart för varandra vilka olika typer av
-arbetsinsatser som kan förekomma.  Exempel på innehåll:
-
-- Exempel på olika former av arbetsinsatser.
-- Vilka krav kan man ställa på varandra?
-
-## Ansvar
-
-Exempel på innehåll:
-
-- Hur ska arbetet fördelas i gruppen?
-- Hur ska gruppen hantera om någon inte gör sin del av arbetet?
-- Hur mycket arbete ska göras mellan möten?
+- Arbetsuppgifter tilldelas under veckomötena och tilldelas par dock kommer vi inte ha något tvång på att tillämpa parprogramering.
+- Arbetsuppgifter kan omfördelas under veckorna om så behövs.
+- Alla arbetsupgifter förväntas vara klara till avsedd deadline.
 
 ## Konflikter
 
-Hur skall man gå tillväga om det uppstår konflikter?
+- Om man  upptäcker att någon uppvisar oönskat betende så måste detta medelas ombedelbart. Ingen "grudge holding".
 
 ## Brott mot bestämmelserna i gruppkontraktet
 
-Var och en berättar om hur man vill bli påmind om de överenskomna
-bestämmelserna. Ett sätt är att var och en inför de andra i
-projektgruppen beskriver hur man vill bli påmind om att man har brutit
-mot någon punk i gruppkontraktet. Viktigt för att underlätta för
-projektgruppen att under det kommande arbetet såväl ge som att ta
-kritik.
+- Brott mot reglerna i detta kontrakt kommer att protokollföras.
+- Vid återkommande brott kontaktas kursledningen.
+- Inga övriga åtgärder vidtas. Att hitta på massa straff och så är jättefånigt.
 
 ## Utskrift och underskrifter
 
-Kontraktet skall skrivas ut på papper, skrivas under
-(namnförtydligande och signatur av samtliga gruppmedlemmar) och lämnas
-in till ansvarig lärare på kursen. Därefter skall kontraktet hållas
-uppdaterat som en del av gruppens repository på Github.
+Detta kontrakt är inte på något sätt juridiskt bindande.
 
 Detta kontrakt har den __________________________  upprättats av:
 
 
 Förnamn | Efternamn | . . . . . . . . . . . Underskrift . . . . . . . . . . .
 --------|-----------|------------
-Anders  | Andersson |
-Britta  | Björk     |
-Cecila  | Carlsson  |
-Daniel  | Dahlqvist |
-Erik    | Eklund    |
-Fanny   | Forsberg  |
+Henrik  | Sommerland |
+Oscar  | Wallster     |
+Ludvig  | Strömberg  |
+Aleksander  | Lundqvist |
+Oliver    | Eriksson Edholm    |
+Edvin   | Wahlberg  |
