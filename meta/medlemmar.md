@@ -1,30 +1,65 @@
 # Medlemmar
 
-OSPP (1DT096) 2015 - Grupp XX
+OSPP (1DT096) 2015 - Grupp 5
 
-> Ändra XX till numret på gruppen.
-
-> Tag foton av alla medlemmar i gruppen. Varje foto skall visa
-> personen framifrån från axlarna och uppåt. Spara bilderna i mappen
-> `/meta/images/`.
-
-> Fyll sedan i tabellen nedan. Tabellen skall vara sorterad på förnamn.
 
 Bild                                       | Förnamn               | Efternamn | Personnummer | Användarnamn (Github)
 -------------------------------------------|-----------------------|-----------|--------------|----------------------
-<img src="images/user.png" width="100px">  | [Anders](#anders877)  | Andersson | YYMMDD-XXXX  | `anders877`
-<img src="images/henke.png" width="100px">  | [Henrik](#TheGrandmother)  | Sommerland | 890618-4950  | `TheGrandmother`
-<img src="images/user.png" width="100px">  | [Oscar](#oscarwallster)  | Wallster | 9106151096  | `oscarwallster`
+<img src="images/user.png" width="100px">  | [Oliver](#oler8065)  | Eriksson Edholm | 930615-5210 | `oler8065`
 <img src="images/aleksander.png" width="100px">  | [Aleksander](#tanshinan)  | Lundqvist | 900728-0317  | `tanshinan`
-> Utgå sedan från mallen nedan och skapa ett avsnitt för varje medlem
-i gruppen sorterade i bokstavsordning  <a name="anders877"></a>
+<img src="images/henke.png" width="100px">  | [Henrik](#TheGrandmother)  | Sommerland | 890618-4950  | `TheGrandmother`
+<img src="images/ludvig.jpg" width="100px">  | [Ludvig](#ludstr)  | Strömberg | 900220-5632  | `ludstr`
+<img src="images/edvin.jpg" width="100px">  | [Edvin](#oler8065)  | Wahlberg | 910721-3176 | `vuxnamannen`
+<img src="images/user.png" width="100px">  | [Oscar](#oscarwallster)  | Wallster | 9106151096  | `oscarwallster`
 
+
+##Oliver Eriksson Edholm
+
+### Okänd talang
+
+Snöskottning och reparera kebabsnurror 
+
+### Starka sidor
+
+- samarbete
+- analys/design/specifikation
+- problemlösning och algoritmer
+- rapportskrivande
+
+### Personlig utveckling
+
+- planering
+- research (söka och sammanställa information)
+- muntlig presentation
+- ledarskap
+- skriva kod utifrån färdig specifikation
+
+
+## Aleksander Lundqvist
+
+### Okänd talang
+
+Jag är en mästare på att jaga monster.
+
+### Starka sidor
+
+- analys/design/specifikation
+- problemlösning och algoritmer
+- skriva kod utifrån färdig specifikation
+- planering
+- research (söka och sammanställa information)
+
+### Personlig utveckling
+
+- samarbete
+- dokumentation
+- concurrency
 
 ## Henrik Sommerland
 
 ### Okänd talang
 
-Förutom studierna så klättrara och proggramerar jag.
+Jag har kunnat hela filmen High Fidelity utantill.
 
 ### Starka sidor
 
@@ -42,11 +77,29 @@ Förutom studierna så klättrara och proggramerar jag.
 - Utveckla och tillämpa tester.
 - Förstå mer om paralellism och concurrency. 
 
+## Ludvig Strömberg
+
+### Okänd talang
+
+Vann skol-DM i snooze.
+
+### Starka sidor
+
+- Problemlösning
+- Kreativ
+- Samarbete
+
+### Personlig utveckling
+
+- Skriva mer och bättre kod.
+- Bli mer strukturerad.
+
+
 ##Oscar Wallster
 
 ### Okänd talang
 
-> Revbensspjäll 
+ Revbensspjäll 
 
 ### Starka sidor
 
@@ -61,73 +114,23 @@ Förutom studierna så klättrara och proggramerar jag.
 - rapportskrivande
 - muntlig presentation
 
-## Aleksander Lundqvist
-
-
+## Edvin Wahlberg
 ### Okänd talang
-
-Jag är en mästare på att jaga monster.
+Jag är en riktig haj på tetris, tackar gymnasiet för det!
 
 ### Starka sidor
+- Lätt att ha att göra med oftast.
 
-> Kortfattad beskrivning över områden där du tror du har lättast att
-> bidra till projektet, till exempel:
+- Jag är rätt bra på att skriva rapporter. 
 
-- analys/design/specifikation
-- problemlösning och algoritmer
-- skriva kod utifrån färdig specifikation
-- planering
-- research (söka och sammanställa information)
+- Har inga problem med muntliga presentationer.
+
+- Har bra bakgrundsmusiksmak. 
+
+- Tar inte illa vid mig när jag blir rättad även om det är på ett otrevligt sätt. 
 
 ### Personlig utveckling
 
-> Under projektet hoppas jag förutom att bli ännu bättre på mina redan
-> starka sidor även ges möjlighet att utveckla följande färdigheter,
-> till exempel:
+- Försöka lösa problem själv mer och inte be om hjälp eller googla för mycket. 
 
-- samarbete
-- dokumentation
-- concurrency
-
-## Anders Andersson
-
-
-### Okänd talang
-
-> Beskriv kortfattad något du gillar att göra vid sidan av dina
-> studier.
-
-### Starka sidor
-
-> Kortfattad beskrivning över områden där du tror du har lättast att
-> bidra till projektet, till exempel:
-
-- analys/design/specifikation
-- problemlösning och algoritmer
-- skriva kod utifrån färdig specifikation
-- planering
-- samarbete
-- ledarskap
-- research (söka och sammanställa information)
-- dokumentation
-- rapportskrivande
-- muntlig presentation
-- lägg gärna till flera punkter ...
-
-### Personlig utveckling
-
-> Under projektet hoppas jag förutom att bli ännu bättre på mina redan
-> starka sidor även ges möjlighet att utveckla följande färdigheter,
-> till exempel:
-
-- analys/design/specifikation
-- problemlösning och algoritmer
-- skriva kod utifrån färdig specifikation
-- planering
-- samarbete
-- ledarskap
-- research (söka och sammanställa information)
-- dokumentation
-- rapportskrivande
-- muntlig presentation
-- lägg gärna till flera punkter ...
+- Få en vettig dygnsrytm och pluggrutin. 
