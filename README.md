@@ -1,6 +1,6 @@
 # Namn på projektet
 
-OSPP (1DT096) 2015 - Grupp XX
+OSPP (1DT096) 2015 - Grupp 5
 
 > Lägg till namnet på projektet och ändra XX till numret på din grupp.
 
