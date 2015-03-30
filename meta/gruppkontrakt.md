@@ -52,6 +52,7 @@ OSPP (1DT096) 2015 - Grupp 5
 - Brott mot reglerna i detta kontrakt kommer att protokollföras.
 - Vid återkommande brott kontaktas kursledningen.
 - Inga övriga åtgärder vidtas. Att hitta på massa straff och så är jättefånigt.
+- Det är okay att gråta men det är inte okay att ge upp.
 
 ## Utskrift och underskrifter
 
