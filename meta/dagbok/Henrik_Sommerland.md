@@ -15,7 +15,7 @@ Projekt planering/möte.
 ##### Tisdag
 1h bråka med Alexander om språk
 ##### Onsdag
-
+3h förberedande av presentation.
 ##### Torsdag
 
 ##### Fredag
