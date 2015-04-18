@@ -10,16 +10,45 @@
 \title{A Bug's Life}
 \author{Oliver Eriksson Edholm (XXXXXX-YYYY) \\
 		Aleksander Lundqvist (XXXXXX-YYYY) \\
-		Henrik Sommerland (XXXXXX-YYYY) \\
+		Henrik Sommerland (890618-4950) \\
 		Edvin Wahlberg (XXXXXX-YYYY) \\
-		Oscar Wallster(XXXXXX-YYYY)} 
+		Oscar Wallster(XXXXXX-YYYY)}
 
 \begin{document}
 \maketitle
 
 \section{Introduction}
+%This could be rewritten in a far more persuasive manner
+We have decided that we are going to simpulate an \emph{ant ant}. We are want to do this in order to learn
+more about both \emph{swarm intelligence} and the actor model.\\
+Our goal is not to simulate the behaviour of real world ants or to mimick the datails of any biological systems.
+We are more interested in the theorethical concepts of how complex behaviors can arise from the interaction of
+a large group of agent each possesing only limited cognitive abilites.
+
+\subsection{Chalenges}
+\subsubsection{Concurrency}
+Making heavy use of the actor model using thousands of actors will create a lot of complexity and there are many posibilities for
+problems to occur. The most obvious danger is the possibilty of deadlocks to occur. With many actors comunicating together one is
+almost certain that one will get some form of circular dependencies. So great care needs to be taken to ensure that no deadlocks will occur.
+
+There is also a risk of severe performance degradation in regions with many interacting actors. Although this is something wich is intrinsic to
+the actor model and it may be hard for us to control it.
+\subsubsection{Rules For Interaction}
+The other chalange will be to setup rules for how the ants interact with the world and jhow the world gets updated. The parameters for these rules will need to be
+finetuned and it may be hard to find rules which result in complex behaviours. It is also very hard to analytically determine these parameters so the only
+feasible alternative is to trough experimentation find rules which yields satisfactory behavious.
+
 
 \section{Concurrency Models and Programming Languages}
+\subsection{Concurrency Goals}
+As previously stated we want to create a system wich relies heavily on the actor model. Our project idea
+is well suited for this since the ants are by nature individual agents who and make decisions without any direct knowlegde
+of the global state.
+\subsubsection{No Global Locks}
+We want to make our simulation free of so called \emph{stop the world}
+sencarios. These are when we for some reason have to block al of the actors in
+the simulation in order to perform some kind of action.
+
 
 \subsection{Rust}
 
