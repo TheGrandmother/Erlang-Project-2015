@@ -19,7 +19,7 @@ Projekt planering/möte.
 ##### Torsdag
 
 ##### Fredag
-
+1.5h testn av deiverse editors för Nim
 ## Vecka 17
 
 ##### Måndag
