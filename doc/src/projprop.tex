@@ -70,12 +70,15 @@ model. Our project idea is well suited for this since the ants are by nature
 individual agents who and make decisions without any direct knowlegde of the
 global state.
 
-\subsubsection{No Global Locks}
-
 We want to make our simulation free of so called \emph{stop the world}
 sencarios. These are when we for some reason have to block al of the actors in
 the simulation in order to perform some kind of action.
 
+\subsection{Language Requirement}
+Our main requirement for the programming language we choose is that it have to meet our concurency goals.
+We have discarded c/c++ because it's to lowlevel and we would have to implement the actor model ourself. 
+Also java because it's not the proper concurrency model. We are considering python for frontend(graphics),
+but it's not suited for our backend needs.
 
 \subsection{Rust}
 
@@ -89,15 +92,59 @@ the simulation in order to perform some kind of action.
 
 \begin{figure}[h!]
 \centerline{
-\includegraphics[scale=0.5]{images/architecture.png}
+\includegraphics[scale=0.6]{images/architecture.png} 
 }
-\caption{Change in diversity} 
+\caption{A draft of a system architecture} 
+\label{fig:arch}
 \end{figure}
+Above you can see a rough draft of the architecture of the system. EAch box
+represents an agent, note that this i just a conceptual map of the
+communication between the different agents. The arrows between the a means that
+they comunicate via message passing.
+The large arrow indicates that a message will be sent between those actors in that
+direction. The smaller awrrows on the liness indicates that the sending actor
+will block untill a reply message is recieved.
 
-\section{Development Tools}
-In order to achieve this every member needs to have the same mental image over
-the finished project, therefore we need to be active with communication in the
-group so that noone is left behind and wonders what he could/should be doing.
+\subsection{Ants}
+In figure~\ref{fig:arch} the box labled \textbf{Ants} corresponds to the ant
+object.
+The ant will be an independet actor holding very little infromation about its
+own state but containing the faculties to make descisions based on recieved
+input. The ant actor will send a message to the cell querrying about the state
+of its neighbouring cells. The ant will then wait for the reply message from its
+cell and then take some action based on the reply from the cell. the actor then
+sends a message to its cell requesting to do whatever it is that the ant wanted
+to do and then awaits a reply weather or not the move was successfull.
+
+\subsection{Grid Cell}
+In figure~\ref{fig:arch} the box labled \textbf{Grid Cells} corresponds to one
+cell on the ``map''. Each of these cells contains all the information about the state of
+that cell. It also contains references to its neighbouring cells in order to
+retrive the information about its neighbourhood. The cell will wait for querrys
+from ants to recive the state of the neighbourhood and the cell will also
+process requests from ants to perform actions such as moving or picking up food.
+
+\subsection{Updater}
+In figure~\ref{fig:arch} the box labled \textbf{Updater} is something that will
+handle the background work for the cells. Such as the dissipation of the feremones.We
+are uncertain weather or not to use this approach with a seperate actor sweeping
+trough all of the cells and updating them. We could let each of the cells handle
+their own ``passive'' updates but that might result in performance degredation
+since the cells would either always be doing work or we might need to introduce
+some form of delay.
+
+\subsection{I/O}
+In figure~\ref{fig:arch} the box labled \textbf{I/O} is the actor that be
+responsible for the handling of the input and output. this actor will sweep thrugh the cells and
+querry them for their state and then process output the information in some
+suitable fashion. We may add support for some form of interactivity at a later
+state.
+
+\subsection{LOG}
+In figure~\ref{fig:arch} the box labled \textbf{LOG} will be a simple actor wich
+is just waiting for logging mesages from the ants and the grid cells. This will be
+used as a form of rudimentary output and for debugging purposes.
+
 
 \section{Development Tools}
 Communication and planning: To plan meetings and set up to-do tasks for the
