@@ -23,6 +23,10 @@ Projekt planering/möte.
 
 #### Lördag
 2h Lite random tramms med projektförslaget.
+
+#### Söndag
+5h Arbete med projektförslaget i skolan
+
 ## Vecka 17
 
 ##### Måndag
