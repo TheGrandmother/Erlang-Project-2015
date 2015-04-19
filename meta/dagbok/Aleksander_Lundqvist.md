@@ -12,16 +12,22 @@ OSPP (1DT096) 2015 - Grupp 05
 
 ##### Tisdag
 
-1h - Bråka med Henrik om språk
+1h - Bråka med Henrik om språk  
 2h - Försöka fatta hur man gör enkel user input i Rust
 
 ##### Onsdag
 
-
+3h - Förberedelse av muntlig presentation
 
 ##### Torsdag
 
 ##### Fredag
+
+##### Lördag
+
+##### Söndag
+
+1h - Skriftligt presentationsarbete
 
 ## Vecka 17
 
