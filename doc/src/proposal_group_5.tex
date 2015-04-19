@@ -5,12 +5,16 @@
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes} \usepackage[margin = 1.2in]{geometry}
 
-\title{A Bug's Life}
-\author{Oliver Eriksson Edholm (XXXXXX-YYYY) \\
+\title{A Bug's Life\\
+ Operating systems and process-oriented programming (1DT096), project proposal
+, group 5}
+\date{\today}
+\author{Oliver Eriksson Edholm (930615-5210) \\
 Aleksander Lundqvist (900728-0317) \\
 Henrik Sommerland (890618-4950) \\
-Edvin Wahlberg (XXXXXX-YYYY) \\
+Edvin Wahlberg (910721-3176) \\
 Oscar Wallster(910615-1096)}
+
 
 \begin{document}
 \maketitle
@@ -23,7 +27,7 @@ model.\\
 We choose ants in inspiration of their ability to cooperate in a very large
 scale and solve complex problems while still every ant is only following very
 simple set of rules.
-\\
+
 Our goal is not to simulate the behaviour of real world ants or to mimic the
 datails of any biological systems.
 We are more interested in the theorethical concepts of how complex behaviors can
@@ -34,8 +38,10 @@ One of the later goals is also to have two or more ant hives interact with
 eachother in a world where food is scarce, and battles are inevitable.
 
 \subsection{Challenges}
+During the course of this project we are aware that there may be many challenges
+ahead.
 
-\subsubsection{Concurrency}
+\subsubsection{Technical Challenges}
 Making heavy use of the actor model using thousands of actors will create a lot
 of complexity and there are many posibilities for problems to occur. The most
 obvious danger is the possibilty of deadlocks to occur. With many actors
@@ -63,7 +69,8 @@ the finished project, therefore we need to be active with communication in the
 group so that no one is left behind and wonders what he could/should be doing.
 
 \section{Concurrency Models and Programming Languages}
-
+This section will contain our thoughts on what form of concurrency we want to
+use and what languages will be apropriate.
 \subsection{Concurrency Goals}
 As previously stated we want to create a system wich relies heavily on the actor
 model. Our project idea is well suited for this since the ants are by nature
@@ -99,10 +106,11 @@ low thread-by-thread performance, and blocking receives for messages means extra
 trying to get around some problems that will be relevant in this project. 
 
 \subsection{Encore}
-Contributing to science is cool. 
+Encore would be a great language for this project since encore is completley
+built on the actor model. The problem with encore is that it is in its pre
+alpha stage and thus its not a viable option for this project.
 
 \section{System Architecture}
-
 \begin{figure}[h!]
 \centerline{
 \includegraphics[scale=0.6]{images/architecture.png} 
@@ -110,6 +118,7 @@ Contributing to science is cool.
 \caption{A draft of a system architecture} 
 \label{fig:arch}
 \end{figure}
+
 Above you can see a rough draft of the architecture of the system. Each box
 represents an agent, note that this is just a conceptual map of the
 communication between the different agents. The arrows between the a means that
@@ -160,20 +169,30 @@ used as a form of rudimentary output and for debugging purposes.
 
 
 \section{Development Tools}
-Communication and planning: To plan meetings and set up to-do tasks for the
-project, we have chosen to use Trello. Trello is a very user friendly and will
+Below there will folow a short discussion about what tools we decided to use.
+\subsection{Communication and planning}
+To plan meetings and set up to-do tasks
+for the project, we have chosen to use Trello. Trello is a very user friendly and will
 give us a great overview of the progress of the project. It will also be a good
 tool to keep track of who is doing what. For communication we’re going to use
 Slack to ensure that we have all communication of the project in one place. If
 we should have chosen to use Facebook it’s very easy to get distracted and talk
 about other things that isn’t related to the project. If we really need to discuss
-something urgent we’re going to use Skype. Working in a group of six fully active members
+something urgent we’re going to use Skype.Working in a group of six fully active members
 it is very important that everyone in the group keeps himself up-to-date with the progress. 
-We were therefore very careful when choosing the communication medias so that everyone would
+We were therefore very carefull when choosing the communication medias so that everyone would
 feel that they would check the media every day. Again, the problem with facebook is that 
 although everyone would check it daily, there would be a lot of other things going on.
 The communication environment needs to be strictly for work related things to keep everyone
-focused on what's important. 
+focused on what's important.
+
+\subsection{Development}
+We will be using GitHub for source control. We will try to keep track of all
+issues using GitHubs issue tracking system. We will make no restrictions or
+requirements of what IDE/editor to be used.\\
+Since we have not choosen our language yet we are not shure what build tools we
+will use. That descision is based upon what languages we will use.
+
 
 
 \section{Conclusion}
