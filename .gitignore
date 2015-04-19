@@ -1,3 +1,8 @@
 
 # Eclipse,emacs and other random stuff
 .project
+
+#Tex related files
+*.log
+*.aux
+*.synctex.gz
