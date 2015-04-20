@@ -81,12 +81,25 @@ Also java because it's not the proper concurrency model. We are considering pyth
 but it's not suited for our backend needs.
 
 \subsection{Rust}
+Rust is a very compelling language for this project. Built for concurrency, fully realised
+actor model and really fast. Sadly, it is quite difficult to do very basic things and the need
+of understanding the ownership model used in Rust will mean that a lot of time will be wasted
+on things that do not bring the project forward. 
 
 \subsection{Nim}
+Nim has a very nice and simple Python-esque syntax, and has surprising performance due to it
+transpiling to C before compilation. It has a actor model like take on threads, with message
+passing between them, and also a proper actor model in its standard library. It is however a
+very young language (v 0.1 at time of writing) with a large amount of compiler bugs. It is
+unknown how it would handle the massive concurrency that is needed for this project. 
 
 \subsection{Erlang}
+Built for massive concurrency and is the text book example of the actor model. Also extremely
+low thread-by-thread performance, and blocking receives for messages means extra work in
+trying to get around some problems that will be relevant in this project. 
 
 \subsection{Encore}
+Contributing to science is cool. 
 
 \section{System Architecture}
 
