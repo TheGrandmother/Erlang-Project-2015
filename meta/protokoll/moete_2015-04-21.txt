@@ -1,0 +1,17 @@
+Närvarande: Aleksander, Henrik, Oliver
+Anmäld frånvaro: Oscar
+
+Beslut: Oanmäld frånvaro straffas med krav att köpa öl till resten av gruppen. Man får ett free pass.
+
+Till onsdag:
+Henrik och Oliver tar peer-reviewn
+Aleksander tar reflektion
+
+Till måndag: 
+Oliver och Ludvig gör Langton's Ant, lär sig python och kollar upp hur man kommunicerar mellan Erlang och Python.
+Henrik och Aleksander gör ett fungerande framework för projektet - fungerande API till fredag natt.
+Oscar och Edvin får hitta på något... 
+
+
+
+På fredag är det arbetsmöte. Vi börjar 12. Grupprummet om det inte är fullt, annars hittar vi plats.
