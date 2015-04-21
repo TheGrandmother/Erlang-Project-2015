@@ -3,8 +3,6 @@
 OSPP (1DT096) 2015 - Grupp 5
 
 
-<img src="images/oliver.jpg" width="100px">
-
 
 Gör en kort anteckning i dagboken under aktuell vecka och dag nedan
 varje gång du arbetat på projektet.
