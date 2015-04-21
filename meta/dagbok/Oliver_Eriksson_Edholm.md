@@ -83,7 +83,7 @@ varje gång du arbetat på projektet.
 
 ##### Torsdag
 
-##### Fredag
+##### Fredag.
 
 ## Vecka 22
 
