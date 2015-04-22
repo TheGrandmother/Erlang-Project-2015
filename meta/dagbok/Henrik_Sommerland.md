@@ -30,11 +30,11 @@ Projekt planering/möte.
 ## Vecka 17
 
 ##### Måndag
-
+30min Möte med Karl
 ##### Tisdag
-
+2h Möte samt arbete med peer reviwen
 ##### Onsdag
-
+3h arbete med peer reviewen
 ##### Torsdag
 
 ##### Fredag
