@@ -33,9 +33,17 @@ OSPP (1DT096) 2015 - Grupp 05
 
 ##### Måndag
 
+1h - Random stuff och möte med Karl
+1h - Fixa enkel user input i Rust och bli ledsen att vi inte ska använda Rust
+
 ##### Tisdag
 
+2h - Gruppmöte med planering av arbetet
+2h - Reflektionsarbete
+
 ##### Onsdag
+
+1h - Reflektion
 
 ##### Torsdag
 
