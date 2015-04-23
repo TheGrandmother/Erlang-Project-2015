@@ -1,0 +1,109 @@
+%% @author grandmother
+%% @doc @todo Add description to silly.
+
+
+-module(silly).
+-import(test,[cellStarter/0]).
+
+
+%% ====================================================================
+%% API functions
+%% ====================================================================
+-export([testShit/0]).
+
+-type grid()::{Array::array:array(),{Width::integer(),Height::integer()}}.
+
+-spec testShit() -> ok.
+testShit() ->
+    Array = newGrid({5,5}),
+    Size = {5,5},
+    A0 = fillGrid(Size,Array),
+    linkup(Size, A0).
+
+-spec newGrid({Width::integer(),Height::integer()}) -> grid().
+newGrid({Width,Height}) ->
+   array:new([{size, Width}, {default, array:new( [{size, Height},{default,none}] )}]).
+    
+    
+    
+    
+-spec linkup({Width::integer(),Height::integer()},Array) -> Array.
+linkup({Width,Height},Array)->
+    linkup_aux({0,0},{Width,Height},Array).
+    
+-spec linkup_aux({X::integer(),Y::integer()},{Width::integer(),Height::integer()},Array) -> Array.
+linkup_aux({X,Y},{Width,Height},Array) when X == Width, Y == Height ->
+    Array;
+linkup_aux({X,Y},{Width,Height},Array) when X == Width ->
+    linkup_aux({0,Y+1},{Width,Height},Array);
+
+linkup_aux({X,Y},_Size,Array) ->
+    Center = testToGet({X,Y},_Size,Array),
+    %{Ul,Um,Ur,Ml,Mm,Mr,Ll,Lm,Lr}
+    Hood = {
+            testToGet({X-1, Y+1},_Size,Array),
+            testToGet({X  , Y+1},_Size,Array),
+            testToGet({X+1, Y+1},_Size,Array),
+            testToGet({X-1, Y  },_Size,Array),
+            testToGet({X ,  Y  },_Size,Array),
+            testToGet({X+1, Y  },_Size,Array),
+            testToGet({X-1, Y-1},_Size,Array),
+            testToGet({X  , Y-1},_Size,Array),
+            testToGet({X+1, Y-1},_Size,Array)       
+            },
+    Next = testToGet(getNext({X,Y},_Size),_Size,Array),
+    io:format("I want to send to ~w ~n",[Center]),
+    Center ! {self(), hood_addresses, {Hood,Next,{X,Y}} },
+    fillGrid_aux({X+1,Y},_Size,Array).
+
+
+
+-spec fillGrid({Width::integer(),Height::integer()},Array::array:array()) -> array:array().
+fillGrid({Width,Height},Array) ->
+    fillGrid_aux({0,0},{Width,Height},Array).
+
+-spec fillGrid_aux({X::integer(),Y::integer()},{Width::integer(),Height::integer()},Array::array:array()) -> array:array().
+fillGrid_aux({X,Y},{Width,Height},Array) when X == 0, Y == Height -> %This is ugly
+    io:format("Filled the entire grid ~n"),
+    Array;
+
+fillGrid_aux({X,Y},{Width,Height},Array) when X == Width ->
+    fillGrid_aux({0,Y+1},{Width,Height},Array);
+
+fillGrid_aux({X,Y},{Width,Height},Array) ->
+    A0 = set2D({X,Y},spawn(fun() -> cellStarter() end), Array),
+    io:format("Filled ~w ~n",[{X,Y}]),
+    %io:format("And at ~w we have ~w ~n ",[{X,Y},{get2D({X,Y},A0)}])
+    fillGrid_aux({X+1,Y},{Width,Height},A0).
+
+    
+testToGet({X,Y},{Width,Height},Array) when X < Width, X >= 0, Y < Height, Y >= 0 ->
+    get2D({X,Y},Array);
+
+testToGet(_,_,_)->
+    none.
+
+getNext({X,Y},{Width,Height}) when X == (Width-1),Y == (Height-1 ) ->
+    none;
+getNext({X,Y},{Width,_}) when X == (Width-1) ->
+    {0,Y+1};
+getNext({X,Y},_) ->
+    {X+1,Y}.
+    
+    
+-spec get2D({X::integer(),Y::integer()},Array::array:array()) -> _A.
+get2D({X,Y},Array) ->
+    array:get( Y, array:get(X, Array) ).
+
+-spec set2D({X::integer(),Y::integer()},_Value,Array::array:array()) -> array:array().
+set2D({X,Y},Value,Array) ->
+    io:format("Trying to set ~w with ~w ~n",[{X,Y},Value]),
+    Y_array = array:get( X, Array ),
+    New_y_array = array:set( Y, Value, Y_array ),
+    array:set( X, New_y_array, Array ).
+
+%% ====================================================================
+%% Internal functions
+%% ====================================================================
+
+

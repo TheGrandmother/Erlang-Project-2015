@@ -31,11 +31,15 @@ Projekt planering/möte.
 
 ##### Måndag
 30min Möte med Karl
+
 ##### Tisdag
 2h Möte samt arbete med peer reviwen
+
 ##### Onsdag
 3h arbete med peer reviewen
+
 ##### Torsdag
+5h Arbete med en cool liten prototyp utav hela kalaset
 
 ##### Fredag
 
