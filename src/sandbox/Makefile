@@ -8,3 +8,6 @@ silly.beam: test.beam silly.erl
 test: silly.beam test.beam
 	erl -noshell -run silly testShit
 	
+clean:
+	-rm *.beam
+	
