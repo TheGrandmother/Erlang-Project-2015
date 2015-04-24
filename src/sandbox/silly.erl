@@ -3,23 +3,31 @@
 
 
 -module(silly).
--import(test,[cellStarter/0]).
+-import(test,[cellStarter/0,spawnAnt/2]).
 
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([testShit/0]).
+-export([testShit/0,get2D/2]).
 
 -type grid()::{Array::array:array(),{Width::integer(),Height::integer()}}.
 
 -spec testShit() -> ok.
 testShit() ->
-    Array = newGrid({5,5}),
-    {Width,Height} = Size = {5,5},
+    Array = newGrid({10,10}),
+    {Width,Height} = Size = {10,10},
     A0 = fillGrid(Size,Array),
     linkup(Size, A0),
     io:format("Linkup complete ~n"),
+	DatCell = get2D({2,3},A0),
+	Ant_Pid = spawnAnt({1,3}, A0),
+	DatCell ! {self(), set_state, black},  
+	receive 
+		_ ->
+			ok
+	end,
+	timer:sleep(100),
     coolPrint(get2D({0,0},A0),[Width,0]).
 
 -spec newGrid({Width::integer(),Height::integer()}) -> grid().
@@ -34,7 +42,7 @@ linkup({Width,Height},Array)->
     linkup_aux({0,0},{Width,Height},Array).
     
 -spec linkup_aux({X::integer(),Y::integer()},{Width::integer(),Height::integer()},Array) -> Array.
-linkup_aux({X,Y},{Width,Height},Array) when X == Width, Y == Height ->
+linkup_aux({X,Y},{Width,Height},Array) when Y == Height ->
     Array;
 linkup_aux({X,Y},{Width,Height},Array) when X == Width ->
     linkup_aux({0,Y+1},{Width,Height},Array);
@@ -75,7 +83,7 @@ fillGrid({Width,Height},Array) ->
 
 
 -spec fillGrid_aux({X::integer(),Y::integer()},{Width::integer(),Height::integer()},Array::array:array()) -> array:array().
-fillGrid_aux({X,Y},{Width,Height},Array) when X == 0, Y == Height -> %This is ugly
+fillGrid_aux({X,Y},{Width,Height},Array) when Y == Height -> %This is ugly
     io:format("Filled the entire grid ~n"),
     Array;
 
@@ -106,6 +114,22 @@ coolPrint(none,_) ->
 coolPrint(Pid,[Width,I]) ->
     Pid ! {self(),state_querry},
     receive
+        {_, state_querry_reply, _, _} ->
+			if 
+                (I rem (Width)) == 0 -> 
+                    io:format("~n",[]);
+                true ->
+                    ok
+            end,
+            io:format(" ant  "),
+            Pid ! {self(),get_next},
+            receive
+                {_,next_reply,Next} ->
+                    coolPrint(Next,[Width,I+1]);
+                _B ->
+                    io:format("Received pointless message ~w ~n",[_B])
+            end;
+
         {_, state_querry_reply, State} ->
             if 
                 (I rem (Width)) == 0 -> 
@@ -118,8 +142,8 @@ coolPrint(Pid,[Width,I]) ->
             receive
                 {_,next_reply,Next} ->
                     coolPrint(Next,[Width,I+1]);
-                _ ->
-                    io:format("Received pointless message ~n",[])
+                _B ->
+                    io:format("Received pointless message ~w ~n",[_B])
             end;
         _A ->
             io:format("recieved pointless message ~w ~n",[_A])
