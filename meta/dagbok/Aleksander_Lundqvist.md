@@ -49,6 +49,8 @@ OSPP (1DT096) 2015 - Grupp 05
 
 ##### Fredag
 
+7h - Planering och arbete med prototyp.
+
 ## Vecka 18
 
 ##### Måndag
