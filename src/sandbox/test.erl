@@ -3,7 +3,8 @@
 
 
 
--export([cellStarter/0]).
+-import(silly,[get2D/2]).
+-export([cellStarter/0,spawnAnt/2]).
 
 -type color()::black|white.
 -type cell()::{Color::color(),Ant::pid()|none,{
@@ -12,13 +13,13 @@
                          LL::pid() | none ,LM::pid() | none ,LR::pid() | none
                         },Next::pid() | none,{X::integer(),Y::integer()}}.
 
--type ant()::{Pos::pid(),Dir::{up|down|left|right}}.
+-type ant()::{Pos::pid(),Dir::(up|down|left|right)}.
 
 -spec cellStarter() -> ok.
 cellStarter() ->
     receive
         {Sender, hood_addresses, {{Ul,Um,Ur,Ml,Mm,Mr,Ll,Lm,Lr},Next,{X,Y}}} ->
-            Cell = {white,false,{Ul,Um,Ur,Ml,Mm,Mr,Ll,Lm,Lr},Next,{X,Y}},
+            Cell = {white,none,{Ul,Um,Ur,Ml,Mm,Mr,Ll,Lm,Lr},Next,{X,Y}},
             io:format("Cell at ~w recieved linkup.~n",[{X,Y}]),
             cellMain(Cell);
         _A ->
@@ -38,24 +39,57 @@ cellMain(Cell={State,Ant,Hood,Next,Cordinate}) ->
         Place_Ant={Sender, place_ant,Ant_Pid} ->
             case Ant of
                 none -> 
-                    Sender ! {self(), failed},
-                    cellMain(Cell);
-                _ ->
                     Sender ! {self(), allowed},
-                    cellMain({State,Ant_Pid,Hood,Next,Cordinate})
+                    cellMain({State,Ant_Pid,Hood,Next,Cordinate});
+                _ ->
+                    Sender ! {self(), failed},
+                    cellMain(Cell)
             end;
         
+		Move_Ant={Sender, move_ant, Destination, Ant_Pid} ->
+			case Ant of
+				none ->
+					io:format("Can't move nonexistent ant~n"),
+					Sender ! {self(), failed},
+					cellMain(Cell);
+				_ ->
+					if 
+						(Ant /= Sender) or (Ant /= Ant_Pid) ->
+							io:format("Don't touch my ant ~n"),
+							Sender ! {self(), failed},
+							cellMain(Cell);
+						true ->
+							Destination ! {self(), place_ant, Ant_Pid},
+							receive
+								{_, failed} ->
+									io:format("Move failed ~n"),
+									Sender ! {self(), failed},
+									cellMain(Cell);
+								_ ->
+									Sender ! {self(), allowed},
+                    				cellMain({State,none,Hood,Next,Cordinate})
+							end
+					end
+			end;
+
         Querry_Hood={Sender,querry_hood} ->
             spawn(fun() -> querryHood(Sender, Hood) end),
             cellMain(Cell);
 
         State_Querry = {Sender,state_querry} ->
-            Sender ! {self(), state_querry_reply, State},
-            cellMain(Cell);
+			case Ant of
+				none ->
+            		Sender ! {self(), state_querry_reply, State},
+            		cellMain(Cell);
+				_ ->
+            		Sender ! {self(), state_querry_reply, State, Ant},
+            		cellMain(Cell)
+			end;
+					
         
         Set_State = {Sender, set_state,New_State} ->
             Sender ! {self(), allowed}, 
-            cellMain(Cell);
+            cellMain({New_State, Ant, Hood, Next, Cordinate});
         
         Get_Next = {Sender,get_next} ->
             Sender ! {self(),next_reply,Next},
@@ -76,7 +110,7 @@ querryHood(Reciever, _Tuple)->
 %A funtion like this could be made completley concurrent.
 -spec querryHood_aux(Reciever::pid(),_Hood,_Ack) -> ok.
 querryHood_aux(Reciever, [],_A) ->
-    Reciever ! {self(), querry_hood_reply, erlang:list_to_tupel(lists:reverse(_A))};
+    Reciever ! {self(), querry_hood_reply, erlang:list_to_tuple(lists:reverse(_A))};
 
 querryHood_aux(Reciever, [none | Tl],_A) ->
     querryHood_aux(Reciever, Tl,[none|_A]);
@@ -85,40 +119,42 @@ querryHood_aux(Reciever, [H | Tl],_A) ->
     H ! {self(), state_querry},
     receive
         {Pid,state_querry_reply,State} -> %Add saftey check so that Pid matches H
-            querryHood_aux(Reciever, Tl,[State|_A]);
+            querryHood_aux(Reciever, Tl,[{Pid,State}|_A]);
+        {Pid,state_querry_reply,State, Ant} -> %Add saftey check so that Pid matches H
+			querryHood_aux(Reciever, Tl,[{Pid,State}|_A]);
         _ ->
             ok
     end.
 
-      
+-spec spawnAnt({X::integer(),Y::integer()},Array::array:array()) -> pid().
+spawnAnt({X,Y},Array) ->
+	spawn(fun() -> antInit({X,Y},Array) end).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-spec antInit({X::integer(),Y::integer()},Array::array:array()) -> ant().
+antInit({X,Y},Array) ->
+	Cell = get2D({X,Y},Array),
+	Ant = {Cell, up},
+	Cell ! {self(), place_ant, self()},
+	receive
+		{_, failed} ->
+			io:format("Ant placement failed~n");
+		_ ->
+			ok
+	end,
+	Cell ! {self(), querry_hood},
+	receive
+		{_, querry_hood_reply, N_List} ->
+			{_,{UM,_},_,_,_,_,_,_,_} = N_List,
+			Cell ! {self(), move_ant,UM, self()},
+			receive
+				{_,failed} ->
+					io:format("Ant movement failed~n");
+				_ ->
+					ok
+			end;
+		_ ->
+			io:format("Hood query failed~n")
+	end.
 
 
 
