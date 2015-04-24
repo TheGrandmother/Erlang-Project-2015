@@ -42,7 +42,7 @@ Projekt planering/möte.
 5h Arbete med en cool liten prototyp utav hela kalaset
 
 ##### Fredag
-2h Arbete med prototypen.
+4h Arbete med prototypen (morgon och kväll).
 1h Arbetsmöte.
 ## Vecka 18
 
