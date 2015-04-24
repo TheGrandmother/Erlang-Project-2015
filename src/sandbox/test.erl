@@ -22,7 +22,8 @@ cellStarter() ->
             io:format("Cell at ~w recieved linkup.~n",[{X,Y}]),
             cellMain(Cell);
         _A ->
-            io:foramt("Recieved stupid message: ~w ~n",[_A])
+            io:format("Cell Starter Recieved stupid message: ~w. Forwarding to self ~n",[_A]),
+            self() ! _A
     end.
 
 
@@ -53,11 +54,15 @@ cellMain(Cell={State,Ant,Hood,Next,Cordinate}) ->
             cellMain(Cell);
         
         Set_State = {Sender, set_state,New_State} ->
-            Sender ! {self(), allowed},
+            Sender ! {self(), allowed}, 
+            cellMain(Cell);
+        
+        Get_Next = {Sender,get_next} ->
+            Sender ! {self(),next_reply,Next},
             cellMain(Cell);
         
         _A ->
-            io:format("recieved silly message ~w ~n ",[_A])
+            io:format("Cell ~w recieved silly message ~w ~n ",[Cordinate,_A])
     end.
 
 

@@ -16,9 +16,11 @@
 -spec testShit() -> ok.
 testShit() ->
     Array = newGrid({5,5}),
-    Size = {5,5},
+    {Width,Height} = Size = {5,5},
     A0 = fillGrid(Size,Array),
-    linkup(Size, A0).
+    linkup(Size, A0),
+    io:format("Linkup complete ~n"),
+    coolPrint(get2D({0,0},A0),[Width,0]).
 
 -spec newGrid({Width::integer(),Height::integer()}) -> grid().
 newGrid({Width,Height}) ->
@@ -38,29 +40,39 @@ linkup_aux({X,Y},{Width,Height},Array) when X == Width ->
     linkup_aux({0,Y+1},{Width,Height},Array);
 
 linkup_aux({X,Y},_Size,Array) ->
+    
+
     Center = testToGet({X,Y},_Size,Array),
-    %{Ul,Um,Ur,Ml,Mm,Mr,Ll,Lm,Lr}
-    Hood = {
-            testToGet({X-1, Y+1},_Size,Array),
-            testToGet({X  , Y+1},_Size,Array),
-            testToGet({X+1, Y+1},_Size,Array),
-            testToGet({X-1, Y  },_Size,Array),
-            testToGet({X ,  Y  },_Size,Array),
-            testToGet({X+1, Y  },_Size,Array),
-            testToGet({X-1, Y-1},_Size,Array),
-            testToGet({X  , Y-1},_Size,Array),
-            testToGet({X+1, Y-1},_Size,Array)       
-            },
-    Next = testToGet(getNext({X,Y},_Size),_Size,Array),
-    io:format("I want to send to ~w ~n",[Center]),
-    Center ! {self(), hood_addresses, {Hood,Next,{X,Y}} },
-    fillGrid_aux({X+1,Y},_Size,Array).
+    if 
+        Center == none -> 
+            ok;
+        true ->
+                %{Ul,Um,Ur,Ml,Mm,Mr,Ll,Lm,Lr}
+                Hood = {
+                        testToGet({X-1, Y+1},_Size,Array),
+                        testToGet({X  , Y+1},_Size,Array),
+                        testToGet({X+1, Y+1},_Size,Array),
+                        testToGet({X-1, Y  },_Size,Array),
+                        testToGet({X ,  Y  },_Size,Array),
+                        testToGet({X+1, Y  },_Size,Array),
+                        testToGet({X-1, Y-1},_Size,Array),
+                        testToGet({X  , Y-1},_Size,Array),
+                        testToGet({X+1, Y-1},_Size,Array)       
+                        },
+                Next = testToGet(getNext({X,Y},_Size),_Size,Array),
+                %io:format("I want to send to ~w ~n",[Center]),
+                Center ! {self(), hood_addresses, {Hood,Next,{X,Y}} },
+                linkup_aux({X+1,Y},_Size,Array)
+    end.
+
 
 
 
 -spec fillGrid({Width::integer(),Height::integer()},Array::array:array()) -> array:array().
 fillGrid({Width,Height},Array) ->
     fillGrid_aux({0,0},{Width,Height},Array).
+
+
 
 -spec fillGrid_aux({X::integer(),Y::integer()},{Width::integer(),Height::integer()},Array::array:array()) -> array:array().
 fillGrid_aux({X,Y},{Width,Height},Array) when X == 0, Y == Height -> %This is ugly
@@ -72,16 +84,55 @@ fillGrid_aux({X,Y},{Width,Height},Array) when X == Width ->
 
 fillGrid_aux({X,Y},{Width,Height},Array) ->
     A0 = set2D({X,Y},spawn(fun() -> cellStarter() end), Array),
-    io:format("Filled ~w ~n",[{X,Y}]),
+    %io:format("Filled ~w ~n",[{X,Y}]),
     %io:format("And at ~w we have ~w ~n ",[{X,Y},{get2D({X,Y},A0)}])
     fillGrid_aux({X+1,Y},{Width,Height},A0).
 
-    
+-spec mapOnGrid(Fun::fun((pid(),list()) -> ok ),Args::list(),Current::pid()|none) -> ok.
+mapOnGrid(_,_,none) -> 
+    ok;
+mapOnGrid(Fun,Args,Current) ->
+    Fun(Current,Args),
+    Current ! {self(),get_next},
+    receive
+        {_,next_reply,Next} ->
+            mapOnGrid(Fun,Args,Next);
+        _A ->
+            io:format("Map On grid received pointless ~w message ~n",[_A])
+    end.
+
+coolPrint(none,_) ->
+    ok;
+coolPrint(Pid,[Width,I]) ->
+    Pid ! {self(),state_querry},
+    receive
+        {_, state_querry_reply, State} ->
+            if 
+                (I rem (Width)) == 0 -> 
+                    io:format("~n",[]);
+                true ->
+                    ok
+            end,
+            io:format("~w ",[State]),
+            Pid ! {self(),get_next},
+            receive
+                {_,next_reply,Next} ->
+                    coolPrint(Next,[Width,I+1]);
+                _ ->
+                    io:format("Received pointless message ~n",[])
+            end;
+        _A ->
+            io:format("recieved pointless message ~w ~n",[_A])
+    end.
+
+
+
 testToGet({X,Y},{Width,Height},Array) when X < Width, X >= 0, Y < Height, Y >= 0 ->
     get2D({X,Y},Array);
 
 testToGet(_,_,_)->
     none.
+
 
 getNext({X,Y},{Width,Height}) when X == (Width-1),Y == (Height-1 ) ->
     none;
@@ -97,7 +148,7 @@ get2D({X,Y},Array) ->
 
 -spec set2D({X::integer(),Y::integer()},_Value,Array::array:array()) -> array:array().
 set2D({X,Y},Value,Array) ->
-    io:format("Trying to set ~w with ~w ~n",[{X,Y},Value]),
+    %io:format("Trying to set ~w with ~w ~n",[{X,Y},Value]),
     Y_array = array:get( X, Array ),
     New_y_array = array:set( Y, Value, Y_array ),
     array:set( X, New_y_array, Array ).
