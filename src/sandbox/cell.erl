@@ -1,10 +1,10 @@
 
--module(test). 
+-module(cell). 
 
 
 
--import(silly,[get2D/2]).
--export([cellStarter/0,spawnAnt/2]).
+-import(prototype,[get2D/2]).
+-export([cellStarter/0]).
 
 -type color()::black|white.
 -type cell()::{Color::color(),Ant::pid()|none,{
@@ -13,7 +13,7 @@
                          LL::pid() | none ,LM::pid() | none ,LR::pid() | none
                         },Next::pid() | none,{X::integer(),Y::integer()}}.
 
--type ant()::{Pos::pid(),Dir::(up|down|left|right)}.
+
 
 -spec cellStarter() -> ok.
 cellStarter() ->
@@ -77,14 +77,8 @@ cellMain(Cell={State,Ant,Hood,Next,Cordinate}) ->
             cellMain(Cell);
 
         State_Querry = {Sender,state_querry} ->
-			case Ant of
-				none ->
-            		Sender ! {self(), state_querry_reply, State},
+            		Sender ! {self(), state_querry_reply, {State, Ant}},  %I changed this to let the state be a tuple instead.
             		cellMain(Cell);
-				_ ->
-            		Sender ! {self(), state_querry_reply, State, Ant},
-            		cellMain(Cell)
-			end;
 					
         
         Set_State = {Sender, set_state,New_State} ->
@@ -120,41 +114,11 @@ querryHood_aux(Reciever, [H | Tl],_A) ->
     receive
         {Pid,state_querry_reply,State} -> %Add saftey check so that Pid matches H
             querryHood_aux(Reciever, Tl,[{Pid,State}|_A]);
-        {Pid,state_querry_reply,State, Ant} -> %Add saftey check so that Pid matches H
-			querryHood_aux(Reciever, Tl,[{Pid,State}|_A]);
         _ ->
             ok
     end.
 
--spec spawnAnt({X::integer(),Y::integer()},Array::array:array()) -> pid().
-spawnAnt({X,Y},Array) ->
-	spawn(fun() -> antInit({X,Y},Array) end).
 
--spec antInit({X::integer(),Y::integer()},Array::array:array()) -> ant().
-antInit({X,Y},Array) ->
-	Cell = get2D({X,Y},Array),
-	Ant = {Cell, up},
-	Cell ! {self(), place_ant, self()},
-	receive
-		{_, failed} ->
-			io:format("Ant placement failed~n");
-		_ ->
-			ok
-	end,
-	Cell ! {self(), querry_hood},
-	receive
-		{_, querry_hood_reply, N_List} ->
-			{_,{UM,_},_,_,_,_,_,_,_} = N_List,
-			Cell ! {self(), move_ant,UM, self()},
-			receive
-				{_,failed} ->
-					io:format("Ant movement failed~n");
-				_ ->
-					ok
-			end;
-		_ ->
-			io:format("Hood query failed~n")
-	end.
 
 
 

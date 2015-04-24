@@ -1,12 +1,15 @@
-test.beam: test.erl
-	erl -compile test.erl
+cell.beam: cell.erl
+	erl -compile cell.erl
 	
-silly.beam: test.beam silly.erl
-	erl -compile silly.erl
+ant.beam: ant.erl
+	erl -compile ant.erl
+	
+prototype.beam: cell.beam prototype.erl ant.beam
+	erl -compile prototype.erl
 	
 	
-test: silly.beam test.beam
-	erl -noshell -run silly testShit
+test: prototype.beam
+	erl -noshell -run prototype testShit
 	
 clean:
 	-rm *.beam

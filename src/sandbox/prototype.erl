@@ -2,9 +2,9 @@
 %% @doc @todo Add description to silly.
 
 
--module(silly).
--import(test,[cellStarter/0,spawnAnt/2]).
-
+-module(prototype).
+-import(cell,[cellStarter/0,spawnAnt/2]).
+-import(ant,[spawnAnt/1]).
 
 %% ====================================================================
 %% API functions
@@ -20,15 +20,24 @@ testShit() ->
     A0 = fillGrid(Size,Array),
     linkup(Size, A0),
     io:format("Linkup complete ~n"),
-	DatCell = get2D({2,3},A0),
-	Ant_Pid = spawnAnt({1,3}, A0),
-	DatCell ! {self(), set_state, black},  
-	receive 
-		_ ->
-			ok
-	end,
-	timer:sleep(100),
-    coolPrint(get2D({0,0},A0),[Width,0]).
+    Dat_Cell = get2D({2,3},A0),
+	Ant = spawnAnt(Dat_Cell),
+    Dat_Other_Cell = get2D({4,6},A0),
+    spawnAnt(Dat_Other_Cell),
+	%DatCell ! {self(), set_state, black},  
+	%receive 
+	%	_ ->
+	%		ok
+	%end,
+    printLoop(A0,Width,500).
+	
+
+
+printLoop(Array,Width,Delay)->
+    timer:sleep(Delay),
+    coolPrint(get2D({0,0},Array),[Width,0]),
+    io:format("~n"),
+    printLoop(Array,Width,Delay).
 
 -spec newGrid({Width::integer(),Height::integer()}) -> grid().
 newGrid({Width,Height}) ->
