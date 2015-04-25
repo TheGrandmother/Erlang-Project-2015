@@ -44,6 +44,9 @@ Projekt planering/möte.
 ##### Fredag
 4h Arbete med prototypen (morgon och kväll).
 1h Arbetsmöte.
+
+##### Lördag
+2h Work on prototype
 ## Vecka 18
 
 ##### Måndag
