@@ -15,15 +15,15 @@
 
 -spec testShit() -> ok.
 testShit() ->
-    Array = newGrid({10,10}),
-    {Width,Height} = Size = {10,10},
+    Array = newGrid({50,50}),
+    {Width,Height} = Size = {50,50},
     A0 = fillGrid(Size,Array),
     linkup(Size, A0),
     io:format("Linkup complete ~n"),
-    Dat_Cell = get2D({2,3},A0),
+    Dat_Cell = get2D({25,25},A0),
 	Ant = spawnAnt(Dat_Cell),
-    Dat_Other_Cell = get2D({4,6},A0),
-    spawnAnt(Dat_Other_Cell),
+    %Dat_Other_Cell = get2D({4,6},A0),
+    %spawnAnt(Dat_Other_Cell),
 	%DatCell ! {self(), set_state, black},  
 	%receive 
 	%	_ ->
@@ -35,8 +35,10 @@ testShit() ->
 
 printLoop(Array,Width,Delay)->
     timer:sleep(Delay),
+    io:format("\x1b[2J\x1b[1;1H"),
     coolPrint(get2D({0,0},Array),[Width,0]),
-    io:format("~n"),
+    %io:format("~n"),
+
     printLoop(Array,Width,Delay).
 
 -spec newGrid({Width::integer(),Height::integer()}) -> grid().
@@ -146,7 +148,16 @@ coolPrint(Pid,[Width,I]) ->
                 true ->
                     ok
             end,
-            io:format("~w ",[State]),
+            %io:format("~w ",[State]),
+            case State of
+                {white,none} -> 
+                    io:format("  ");
+                {black,none} ->
+                    io:format("<>");
+                _ -> 
+                    io:format("!!")
+            end,
+
             Pid ! {self(),get_next},
             receive
                 {_,next_reply,Next} ->

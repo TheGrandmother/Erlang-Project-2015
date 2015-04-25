@@ -32,8 +32,11 @@ antMain(Ant={Cell,Direction}) ->
     
     case process_info(self(), message_queue_len) of
         {_,0} -> 
+            %take little nap ^^
+            timer:sleep(200),
             takeAction(Ant);
-        _ -> 
+        _ ->
+            io:format("Ant has messages in mailbox ~n"),
             receive
                 _ ->
                     io:format("Ant recieved cool message"),
@@ -52,14 +55,36 @@ takeAction(Ant={Cell,Direction})->
             Cell ! {self(),set_state,black},
             waitForSetReply(Cell),
             %io:format("Changed color to black but movement is not yet implemented.~n"),
-            antMain({Cell,New_Direction});
+            Cell ! {self(), move_ant, New_Direction, self()},
+            %io:format("Ant waiting for move reply~n"),
+            New_Cell = receive
+                {_,allowed,New_Cell0} ->
+                    New_Cell0;
+                {_,failed} ->
+                    %io:format("Ant was not allowed to move.~n"),
+                    exit(fail),
+                    Cell
+            end,
+            %io:format("Ant moved to ~w ~n",[New_Cell]),
+            antMain({New_Cell,New_Direction});
             
         black -> 
             New_Direction = turnLeft(Direction),
             Cell ! {self(),set_state,white},
             waitForSetReply(Cell),
             %io:format("Changed color to white but movement is not yet implemented.~n"),
-            antMain({Cell,New_Direction})
+            Cell ! {self(), move_ant, New_Direction, self()},
+            %io:format("Ant waiting for move reply~n"),
+            New_Cell = receive
+                {_,allowed,New_Cell1} ->
+                    New_Cell1;
+                {_,failed} ->
+                    %io:format("Ant was not allowed to move.~n"),
+                    exit(fail),
+                    Cell
+            end,
+            %io:format("Ant moved to ~w ~n",[New_Cell]),
+            antMain({New_Cell,New_Direction})
     end.
 
 
@@ -77,7 +102,9 @@ turnRight(right) -> down.
 %But it will allow other messages to arrive inbetween.
 -spec waitForStateQuery() -> _.
 waitForStateQuery() -> 
+    %io:format("Ant waiting for state_querry confirmation~n"),
     receive
+        
         {Sender,state_querry_reply,State} ->
             State;
         _A ->
@@ -87,6 +114,7 @@ waitForStateQuery() ->
     end.
 
 waitForSetReply(From) ->
+    %io:format("Ant waiting for state_set confirmation~n"),
     receive
         {From,allowed} ->
             ok;
