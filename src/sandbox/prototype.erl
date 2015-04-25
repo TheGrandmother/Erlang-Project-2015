@@ -15,12 +15,12 @@
 
 -spec testShit() -> ok.
 testShit() ->
-    Array = newGrid({50,50}),
-    {Width,Height} = Size = {50,50},
+    Array = newGrid({25,25}),
+    {Width,Height} = Size = {25,25},
     A0 = fillGrid(Size,Array),
     linkup(Size, A0),
     io:format("Linkup complete ~n"),
-    Dat_Cell = get2D({25,25},A0),
+    Dat_Cell = get2D({12,12},A0),
 	Ant = spawnAnt(Dat_Cell),
     %Dat_Other_Cell = get2D({4,6},A0),
     %spawnAnt(Dat_Other_Cell),
