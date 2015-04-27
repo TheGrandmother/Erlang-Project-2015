@@ -1,59 +1,49 @@
 # Namn på projektet
 
 OSPP (1DT096) 2015 - Grupp 5
-
-> Lägg till namnet på projektet och ändra XX till numret på din grupp.
-
 Projektarbete på kursen Operativsystem och processorienterad
 programmering (1DT096) våren 2015, Uppsala universitet.
 
-> Lägg till en kort beskrivning av projektet.
-
-> Denna fil är skrivet i formatet Markdown, läs mer här:
->
-> - https://help.github.com/articles/markdown-basics/
-
-> Det går att redigera, förhandsvisa och spara (commit) sidan direkt i
-> en webläsare via [projektsidan på github.com](./README.md).
-
 ## Kompilera
 
-> Kortfattade instruktioner för hur projektet kompileras.
+Hela simulationen kompileras igenom att köra `make` i root mappen.
+För att kompilera enskilda moduler körs `make` i respektive moduls mapp i `src`
+katalogen.
 
 ## Testa
 
-> Kortfattade instruktioner för hur automatiska testfall körs.
+Hela systemet testats igenom att köra  `make test` i root mappen
+För att testa enskilda moduler körs `make test` i dess egna mapp i `src` katalogen
+
 
 ## Starta systemet
 
-> Kortfattade instruktioner för hur systemet startas.
+TBI
 
-## Struktur
+## Git policy
 
-Projektet består av följande kataloger.
+### Branches
+Varje ny feature skall finnas i en branch under som heter `features/xxxxx`.
+alla som arbetar med en feature arbetar sen på den featurn i den branchen och när featuren
+är klar så skall ett pull request skapas.
 
-### doc
+Tänk på att det kan vara en bra ide att skapa en egen fork utav hela repot om man ska hålla på och hoppa runt mellan datorer mycket.
 
-Dokumentation, projektrapporter och andra viktiga dokument.
+#### Merges
+En merge får endast ske när:
+* En feature är "helt" klar.
+* När det finns tillfredställande tester (Som äver passar såklart ^^)
+* Efter att någon har reviewat koden
+* När koden är väl dokumenterad.
 
-### ebin
+### Commits
+Endast commits till ens egen dagbok och mötesprotokoll får göras och skall göras direkt till `master`.
 
-Erlang beam-filer.
+### Rebase
+Git komandot `rebase` är väldigt bra men väldigt läskigt.
+`rebase` används för att skriva om historiken. Detta kan användas för att få till mindre fruktansvärda commit loggar.
 
-> Ändra till `bin` eller `build` eller liknande om projektet inte
-> använder Erlang.
+Det lättaste sättet att uppnå detta är att alltif köra `git pull --rebase` istället för att bara pulla.
+Detta gör så att alla ens icke pushade commits kommer att hamna "sist" i historiken. Detta skapar en finare struktur som är mer lättläst.
 
-### meta
-
-- Presentation av gruppens medlemmar.
-- Gruppkontrakt.
-- Projektdagböcker.
-- Reflektioner på gruppens arbete.
-
-### src
-
-All källkod.
-
-## Fler rubriker
-
-> Lägg till mer information allt eftersom.
+Sen kommer själva `git rebase --interactive` kommandot in i bilden. Men vi går igenom detaljerna för det sedan då det är lätta att fucka upp totalt :)
