@@ -50,7 +50,7 @@ Projekt planering/möte.
 ## Vecka 18
 
 ##### Måndag
-
+1h Hittepåmöte
 ##### Tisdag
 
 ##### Onsdag
