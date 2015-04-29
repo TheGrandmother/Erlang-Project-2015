@@ -54,7 +54,7 @@ Projekt planering/möte.
 ##### Tisdag
 
 ##### Onsdag
-
+3h möte om git och lite grejer samt updatering av projektförslaget
 ##### Torsdag
 
 ##### Fredag
