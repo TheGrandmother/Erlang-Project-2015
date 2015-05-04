@@ -1,51 +1,29 @@
 -module(utils).
 -import(test,[cellstarter/0]).
 -import(silly,[testShit/0,get2D/2,coolPrint/2]).
+-import_type(types,[cell/0]). 
+-export([getHood/1,setHood/2,getPos/1,setPos/2, getPid/1,getNext/1,getAttributes/1,setAttributes/2,getMetadata/1,getProperty/2]).
 
--export([startupShiat/0]).
 
--spec startupShiat() -> ok.
-startupShiat() ->
-    getProperty([{red,black}, {white,yellow},{color,abuse}],color),
-    A0 = testShit(),
-    C2d = get2D({4,1}, A0),
-    coolPrint(get2D({0,0},A0),[5,0]),
-    getHood(C2d).
-
-%%-spec changeColor(Cell::cell(),Color::color()) -> ok.
-%%changeState/2
-%changes the state to color on current cell,
-changeState(Pid, Color) ->
-    Pid ! {self(), set_state, Color},
-    receive 
-	_->
-	    ok
-    end.
-
-%%getHood/1
-%gets cells around current cell(Pid)
-getHood(Pid) ->
-    Pid ! {self(), querry_hood},
-    receive
-	Cell ->
-	    Cell;
-	_ ->
-	    none
-    end.
-
-%%getNext/1
-%Returns the next cell from current Pid
-getNext(Pid) ->
-    Pid ! {self(), get_next},
-    receive
-	{_,_,NextPid} ->
-	    NextPid;
-	_ ->
-	    none
-    end.
-%
-
-    
+%%Get and setters of Cell type
+getHood(Cell = {_,_,Hood,_,_,_}) ->
+    Hood.
+setHood(Cell = {Pid, Position,_,Next_Cell,Attributes,Metadata}, New_Hood) ->
+    {Pid,Position,New_Hood, Next_Cell,Attributes,Metadata}.
+getPos(Cell = {_,Pos = {X,Y},_,_,_,_}) ->
+    Pos.
+setPos(Cell = {Pid,_,Hood, Next_Cell, Attributes, Metadata},New_Pos = {X,Y}) ->   
+    {Pid, New_Pos, Hood, Next_Cell, Attributes, Metadata}.
+getPid(Cell = {Pid,_,_,_,_,_}) ->
+    Pid.
+getNext(Cell = {_,_,_,Next_Cell,_,_}) ->
+    Next_Cell.
+getAttributes(Cell = {_,_,_,_,Attributes,_}) ->
+    Attributes.
+setAttributes(Cell = {Pid,Position,Hood, Next_Cell, _, Metadata}, New_Attr) ->
+    {Pid,Position,Hood, Next_Cell,New_Attr,Metadata}.
+getMetadata(Cell = {_,_,_,_,_,Metadata}) ->
+    Metadata.
 %%getProperty/2
 % Returns the Tuple in list that matches property.
 getProperty([],Property) ->
@@ -65,3 +43,42 @@ getProperty([(L = {Type, _Val}) | Tl],Property) ->
 	    getProperty(Tl, Property)
     end.
 
+
+
+
+
+
+
+
+%%-spec changeColor(Cell::cell(),Color::color()) -> ok.
+%%changeState/2
+%%changes the state to color on current cell,
+%changeState(Pid, Color) ->
+%    Pid ! {self(), set_state, Color},
+%    receive 
+%	_->
+%	    ok
+%    end.
+
+%%getHood/1
+%%gets cells around current cell(Pid)
+%getHood(Pid) ->
+%    Pid ! {self(), querry_hood},
+%    receive
+%	Cell ->
+%	    Cell;
+%	_ ->
+%	    none
+%    end.
+
+%%getNext/1
+%%Returns the next cell from current Pid
+%getNext(Pid) ->
+%    Pid ! {self(), get_next},
+%    receive
+%	{_,_,NextPid} ->
+%	    NextPid;
+%	_ ->
+%	    none
+%    end.
+%
