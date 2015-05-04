@@ -62,7 +62,7 @@ Projekt planering/möte.
 ## Vecka 19
 
 ##### Måndag
-
+3h arbete med typ specifikationer och en massa git krångel
 ##### Tisdag
 
 ##### Onsdag
