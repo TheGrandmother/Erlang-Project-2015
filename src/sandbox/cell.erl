@@ -33,7 +33,7 @@ cellStarter() ->
 %
 -spec cellMain(Cell::cell()) -> ok.
 cellMain(Cell={State,Ant,Hood,Next,Cordinate}) ->
-    
+    %io:format("Cell ~w awaiting message ~n",[self()]),
     receive
         
         Place_Ant={Sender, place_ant,Ant_Pid} ->
@@ -46,29 +46,44 @@ cellMain(Cell={State,Ant,Hood,Next,Cordinate}) ->
                     cellMain(Cell)
             end;
         
-		Move_Ant={Sender, move_ant, Destination, Ant_Pid} ->
+		Move_Ant={Sender, move_ant, Direction, Ant_Pid} ->
+            %io:format("Cell ~w processing move request ~n",[self()]),
 			case Ant of
 				none ->
-					io:format("Can't move nonexistent ant~n"),
+					%io:format("Can't move nonexistent ant~n"),
 					Sender ! {self(), failed},
 					cellMain(Cell);
 				_ ->
 					if 
 						(Ant /= Sender) or (Ant /= Ant_Pid) ->
-							io:format("Don't touch my ant ~n"),
+					%		io:format("Don't touch my ant ~n"),
 							Sender ! {self(), failed},
 							cellMain(Cell);
 						true ->
-							Destination ! {self(), place_ant, Ant_Pid},
-							receive
-								{_, failed} ->
-									io:format("Move failed ~n"),
-									Sender ! {self(), failed},
-									cellMain(Cell);
-								_ ->
-									Sender ! {self(), allowed},
-                    				cellMain({State,none,Hood,Next,Cordinate})
-							end
+                           
+                    %        io:format("Cell stareted reloving movy stuff ~n"),
+                            Destination = getNeighbourFromDirection(Direction,Hood ),
+                            case Destination of
+                                 
+                                none ->
+                     %               io:format("ant wants to move to unreachable cell~n"),
+                                    Sender ! {self(), failed},
+                                    cellMain(Cell);
+                                _ ->
+        							Destination ! {self(), place_ant, Ant_Pid},
+                      %              io:format("Cell waiting for place ant confirmation from ~w ~n",[Destination]),
+        							receive
+        								{_, failed} ->
+        				%					io:format("Move failed ~n"),
+        									Sender ! {self(), failed},
+                         %                   io:format("Cell finised processing move request ~n"),
+        									cellMain(Cell);
+        								_ ->
+        									Sender ! {self(), allowed,Destination},
+                            %                io:format("Cell finised processing move request ~n"),
+                            				cellMain({State,none,Hood,Next,Cordinate})
+        							end
+                            end
 					end
 			end;
 
@@ -90,7 +105,7 @@ cellMain(Cell={State,Ant,Hood,Next,Cordinate}) ->
             cellMain(Cell);
         
         _A ->
-            io:format("Cell ~w recieved silly message ~w ~n ",[Cordinate,_A])
+            io:format("Cell ~w,(~w) recieved silly message ~w ~n ",[self(),Cordinate,_A])
     end.
 
 
@@ -119,7 +134,13 @@ querryHood_aux(Reciever, [H | Tl],_A) ->
     end.
 
 
-
-
+getNeighbourFromDirection(up,{_,Um,_,_,_,_,_,_,_}) ->
+    Um;
+getNeighbourFromDirection(right,{_,_,_,_,_,Mr,_,_,_}) ->
+    Mr;
+getNeighbourFromDirection(down,{_,_,_,_,_,_,_,Lm,_}) ->
+    Lm;
+getNeighbourFromDirection(left,{_,_,_,Ml,_,_,_,_,_}) ->
+    Ml.
 
 
