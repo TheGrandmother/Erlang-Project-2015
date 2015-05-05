@@ -82,3 +82,33 @@ getProperty([(L = {Type, _Val}) | Tl],Property) ->
 %	    none
 %    end.
 %
+
+
+getAnt_Pid(_Ant = {Pid, _, _, _, _}) ->
+	Pid.
+
+getAnt_Cell(_Ant = {_, Cell, _, _, _}) ->
+	Cell.
+
+getAnt_State(_Ant = {_, _, State, _, _}) ->
+	State.
+
+getAnt_Attributes(_Ant = {_, _ , _, Attributes, _}) -> 
+	Attributes.
+
+getAnt_Metadata(_Ant = {_, _, _, _, Metadata}) ->
+	Metadata.
+
+setAnt_Cell(_Ant = {Pid, _, State, Attributes, Metadata}, NewCell) ->
+	{Pid, NewCell, State, Attributes, Metadata}.
+
+setAnt_State(_Ant = {Pid, Cell, _, Attributes, Metadata}, NewState) ->
+	{Pid, Cell, NewState, Attributes, Metadata}.
+
+setAnt_Attributes(_Ant = {Pid, Cell, State, _, Metadata}, NewAttributes) ->
+	{Pid, Cell, State, NewAttributes, Metadata}.
+	
+setAnt_Metadata(_Ant = {Pid, Cell, State, Attributes, _}, NewMetadata) ->
+	{Pid, Cell, State, Attributes, NewMetadata}.
+	
+	
