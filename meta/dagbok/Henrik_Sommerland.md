@@ -64,6 +64,7 @@ Projekt planering/möte.
 ##### Måndag
 3h arbete med typ specifikationer och en massa git krångel
 ##### Tisdag
+6.5h arbete med message_buffer, makefile och git krångel
 
 ##### Onsdag
 
