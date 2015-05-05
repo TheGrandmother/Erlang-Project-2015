@@ -1,0 +1,23 @@
+Närvarande: Aleksander, Henrik, Oskar, Edvin, Ludvig, Oliver
+
+Mötet börjar 50 minuter sent.
+
+Henrik har skrivit en type-header fil typ.
+
+Oskar och Edvin fortsätter så som de gjort.
+
+Henrik och Aleksander "börjar lite", Henrik avslutande inte meningen.
+Aleksander börjar med en init-del.
+
+Ludvig och Oliver ska fixa GUI. 
+Henrik ger information om vad Erlang-delen ska skicka till dem.
+
+Henrik lär ut om git.
+
+
+Arbetsmöten på torsdag och lördag
+	Torsdag: Efter lunch i skolan
+	Lördag:  Efter lunch hos Henrik
+
+
+Deadline torsdag: Något så när fungerande skelett på alla våra delar

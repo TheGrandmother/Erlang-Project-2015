@@ -6,3 +6,6 @@
 *.log
 *.aux
 *.synctex.gz
+
+#YCM completion files
+lextab.py
