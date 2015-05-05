@@ -9,12 +9,26 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([receiver/2]).
+-export([receiver/2,receiver/1]).
 
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
--spec receiver(Special::reference(),Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
+%% @doc see receiver/2
+%% 
+%%
+-spec receiver(Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
+receiver(Buffer) ->
+    receiver(none,Buffer).
 
+%% @doc wrapper for the recevie keyword which enables a wait untill
+%% a specific message arrives without messing up the order of the message queue.<p>
+%% 
+%% If `Special' is `none' the message wich has been waiting the longest will be returned<br>
+%% if `Special' is a reference the function will block untill that message has arrived. But other
+%% messages received by the process meanwhile will be placed on a buffer and can then retreived with this function
+%% in such a fashion that the order in which these messages arrived is not altered.
+%%
+-spec receiver(Special::reference() | none ,Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
 receiver(none,{L,[]}) ->
 	receive
 		_A ->
@@ -31,8 +45,10 @@ receiver(Reference,Buffer={L,Queue}) ->
 		A={_,_,Request_Reference,_} when Reference == Request_Reference->
 			{A,Buffer};
 		_Any ->
-			{none,{L+1,lists:append(Queue,[_Any])}}
+			receiver(Reference,{L+1,lists:append(Queue,[_Any])})
 	end.
+
+
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
@@ -66,16 +82,14 @@ tester() ->
 	PingerPid ! {self(),Reference,ok},
 	tester(Reference,{0,[]},[],PingerPid,TrollPid).
 
-tester(Reference,MB = {L,Buffer},List,PingerPid,TrollPid) ->
-	{Message,New_Buffer} = receiver(Reference,MB),
+tester(Reference,Message_Buffer,List,PingerPid,TrollPid) ->
+	{Message,New_Buffer} = receiver(Reference,Message_Buffer),
 	case Message of
-		none ->
-			tester(Reference,New_Buffer,List,PingerPid,TrollPid);
 		{die} ->
 			io:format("Recieved last message...time to die ~n"),
 			exit(PingerPid,sucsess),
 			List;
-		_A={Pid,N}->
+		_A={_,N}->
 			io:format("Cool kid troll message ~p ~n",[_A]),
 			tester(none,New_Buffer,lists:append(List,[N]),PingerPid,TrollPid);
 		_ ->
