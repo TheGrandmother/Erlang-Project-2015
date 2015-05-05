@@ -1,25 +1,44 @@
-# Makefile used to compile the project. 
-
-# If you use another build tool you should remove this file. 
-
+#
+#	One day this project will see a glorious makefile....
+#   	but today is not that day
+#
 SOURCES=$(wildcard src/*/*.erl)
 OBJECTS:=$(wildcard ebin/*.beam)
 
 BIN=ebin
 SRC=src
 
-module = none
 
-module_binary = $(BIN)/$(module).beam
-module_source = $(wildcard $(SRC)/$(module)/*.erl)
 
-build: $(module_binary)
+#
+# You shoulkd kinda copy paste this to make e make target for your module
+# Look at the cool thing commented out bellow.
+#
+message_buffer_binary = $(BIN)/message_buffer.beam
+message_buffer_source = $(wildcard $(SRC)/message_buffer/*.erl)
+
+message_buffer: $(message_buffer_binary)
 	
-$(module_binary) : $(module_source)	
+$(message_buffer_binary) : $(message_buffer_source)	
 	erlc -o $(BIN)/ $^
 
-test: $(module_binary)
-	erl -noshell -pa ebin -eval 'eunit:test(["$(module_binary)"], [verbose])' -s init stop
+test_message_buffer: $(message_buffer_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(message_buffer_binary)"], [verbose])' -s init stop
+
+
+
+
+#
+#<naem>_binary = $(BIN)/$(<name>).beam
+#<name>_source = $(wildcard $(SRC)/$(<name>)/*.erl)
+#
+#<name>: $(<name>_binary)
+#	
+#$(<name>_binary) : $(<name>_source)	
+#	erlc -o $(BIN)/ $^
+#
+#test: $(<name>_binary)
+#	erl -noshell -pa ebin -eval 'eunit:test(["$(<name>_binary)"], [verbose])' -s init stop
 
 
 #
