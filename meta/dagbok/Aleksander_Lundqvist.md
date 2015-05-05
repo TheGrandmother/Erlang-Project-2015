@@ -55,6 +55,8 @@ OSPP (1DT096) 2015 - Grupp 05
 
 ##### Måndag
 
+2h - Möte med annan grupp och sen med egen grupp
+
 ##### Tisdag
 
 ##### Onsdag
@@ -67,7 +69,11 @@ OSPP (1DT096) 2015 - Grupp 05
 
 ##### Måndag
 
+en stund - möte med Karl
+
 ##### Tisdag
+
+2h - gruppmöte
 
 ##### Onsdag
 
