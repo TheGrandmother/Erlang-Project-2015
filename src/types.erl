@@ -32,6 +32,9 @@
 -type request_type() ::   query_hood 
                         | query_state 
                         | {move_request,Direction::direction()} 
+						| {place_ant, Ant::pid()}
+						| {set_cell_attribute, Attributes::[cell_attribute()]}
+						| {set_ant_attribute, Attributes::[ant_attribute()]}
                         | {take_food}. 
                         
 
@@ -42,6 +45,9 @@
                                             [cell_attributes()],[cell_attributes()],[cell_attributes()]}}
                         | {query_state_reply,[cell_attributes()] | [ant_attributes()]}
                         | {move_reply,{sucsess | fail, none | pid()}}
+						| {place_ant_reply,sucsess | fail}
+						| {set_cell_attribute_reply, sucsess | fail}
+						| {set_ant_attribute_reply, sucsess | fail}
                         | {take_food_reply,sucsess | fail}.
                         
 
