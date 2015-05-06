@@ -11,7 +11,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([makeLog/2,initLogger/0]).
+-export([makeLog/2,initLogger/0,logMessage/2,logEvent/2,logWarning/2]).
 
 -type log()::{File::file:device(),Type::string(),Pid::pid()} | none.
 
