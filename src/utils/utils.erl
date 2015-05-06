@@ -1,5 +1,10 @@
 -module(utils).
--export([getCell_Hood/1,setCell_Hood/2,getCell_Pos/1,setCell_Pos/2, getCell_Pid/1,setCell_Pid/2,getCell_Next/1,setCell_Next/2,getCell_Attributes/1,setCell_Attributes/2,getCell_Metadata/1,setCell_Metadata/2,getProperty/2,initCell/1,getOneDirection/2]).
+-export([getCell_Hood/1, setCell_Hood/2,
+		 getCell_Pos/1, setCell_Pos/2, getCell_Pid/1, setCell_Pid/2,
+		 getCell_Next/1, setCell_Next/2, getCell_Attributes/1, setCell_Attributes/2,
+		 getCell_Metadata/1, setCell_Metadata/2, getProperty/2, initCell/1, getOneDirection/2,
+		 getAnt_Attributes/1, getAnt_State/1, getAnt_Metadata/1, getAnt_cell/1, getAnt_Pid/1,
+		 setAnt_Cell/2, setAnt_State/2, setAnt_Attributes/2, setAnt_Metadata/2]).
 
 %%initCell -> Cell
 initCell(Position = {_X,_Y}) ->
