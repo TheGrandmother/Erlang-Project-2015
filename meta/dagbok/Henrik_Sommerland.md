@@ -67,6 +67,7 @@ Projekt planering/möte.
 6.5h arbete med message_buffer, makefile och git krångel
 
 ##### Onsdag
+5h gjorde nästan klart loggern och lite annat trams. Samt en massa git krångel <3
 
 ##### Torsdag
 
