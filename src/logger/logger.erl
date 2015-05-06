@@ -10,12 +10,37 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([dumbTest/2,makeLog/2]).
+-export([dumbTest/2,makeLog/2,initLogger/0]).
 
 -type log()::{File::file:device(),Type::string(),Pid::pid()} | none.
 
 -spec makeLog(Type::string(),Pid::pid()) -> log.
 
+initLogger() ->
+	case ?LOG of
+		true ->
+			initLogger(ok);
+		_ ->
+			ok
+	end.
+
+initLogger(ok) ->
+	DirRet = file:list_dir("log"),
+	case DirRet of
+		{error,enoent} ->
+			MkdirRet = file:make_dir("log"),
+			case MkdirRet of
+				ok ->
+					ok;
+				{error,Reason} ->
+					exit(Reason)
+			end;
+		{ok,[]} ->
+			ok;
+		{ok, Files} ->
+			io:format("Found old log files, Deleting them like a boss ~n"),
+			deleteFiles(Files)
+	end.
 
 makeLog(Type,Pid) ->
     case ?LOG of
@@ -61,6 +86,20 @@ logMessage({Device,Type,Pid},Message,ok) ->
             io:format(Device, "Tried to log this wich is not a nice message:~n        ~p~n",[Message])
     end.
 
+logEvent(none,_) ->
+	ok;
+logEvent({Device,Type,Pid},Event) ->
+	case ?LOG_EVENTS of
+		true ->
+			logEvent({Device,Type,Pid},Event,ok);
+		_ ->
+			ok
+	end.
+
+logEvent({Device,Type,Pid},Event,ok) ->
+    io:format(Device, "~s :: Message ~n    ",[makeTimeStamp()]),
+    io:format(Device, "Event: ~p~n",[Event]).
+
 
 
 -spec dumbTest(String::string(),_Args) -> ok.
@@ -73,6 +112,14 @@ dumbTest(String,_A) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+
+deleteFiles([]) ->
+	ok;
+deleteFiles([File]) ->
+	io:format("~p~n",[file:delete(["log/" | File])]);
+deleteFiles([File | Tl])->
+	io:format("~p~n",[file:delete(["log/" | File])]),
+	deleteFiles(Tl).
 
 makeTimeStamp() ->
     {_,{H,M,S}} = calendar:local_time(),
