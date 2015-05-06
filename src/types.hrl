@@ -50,12 +50,14 @@
 						| {set_ant_attribute_reply, sucsess | fail}
                         | {take_food_reply,sucsess | fail}.
                         
+%% @doc Type for the logger construct
+-type log()::{File::file:device(),Type::string(),Pid::pid()} | none.
 
 %% @doc This message buffer object is used by the message buffering mechanism
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
 %% @doc This is the big type for the cell. Hopefully its self explanatory
--type cell() :: {Pid::pid(),Position::{X::integer(),Y::integer()},Hood::neighbourhood(),Next_Cell::pid(), Attributes::[cell_attributes()],Metadata::message_buffer()}.
+-type cell() :: {Pid::pid(),Position::{X::integer(),Y::integer()},Hood::neighbourhood(),Next_Cell::pid(), Attributes::[cell_attributes()],Metadata::message_buffer(),Log:log()}.
 
 %% @doc simple type for the neighbourhood
 -type neighbourhood() :: {   
@@ -84,7 +86,7 @@
 -type feremone_name() :: base_feremone | food_feremone.
 
 %%@doc A sweet type for the ant.
--type ant() :: {Pid::pid(),Cell::pid(),State::ant_state, Attributes::[ant_attributes()], Metadata::message_buffer()}.
+-type ant() :: {Pid::pid(),Cell::pid(),State::ant_state, Attributes::[ant_attributes()], Metadata::message_buffer(),Log:log()}.
 
 %%@doc The different "states" than an ant can be in.
 -type ant_state() ::     searching_for_food
