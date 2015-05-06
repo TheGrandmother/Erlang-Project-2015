@@ -6,14 +6,12 @@ programmering (1DT096) våren 2015, Uppsala universitet.
 
 ## Kompilera
 
-Hela simulationen kompileras igenom att köra `make` i root mappen.
-För att kompilera enskilda moduler körs `make` i respektive moduls mapp i `src`
-katalogen.
+Se den temporära makefilen för hur de olika targatesen ser ut.
 
 ## Testa
 
 Hela systemet testats igenom att köra  `make test` i root mappen
-För att testa enskilda moduler körs `make test` i dess egna mapp i `src` katalogen
+
 
 
 ## Starta systemet
