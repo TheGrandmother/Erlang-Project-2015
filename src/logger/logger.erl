@@ -1,6 +1,7 @@
 %% @author grandmother
 %% @doc @todo Add description to logger.
 
+-include_lib("eunit/include/eunit.hrl").
 
 -module(logger).
 -define(LOG,true).
@@ -10,7 +11,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([dumbTest/2,makeLog/2,initLogger/0]).
+-export([makeLog/2,initLogger/0]).
 
 -type log()::{File::file:device(),Type::string(),Pid::pid()} | none.
 
@@ -51,7 +52,7 @@ makeLog(Type,Pid) ->
     end.
 
 makeLog(Type,Pid,ok)->
-    R= io_lib:format("~s-~p.txt",[Type,Pid]),
+    R= io_lib:format("log/~s-~p.txt",[Type,Pid]),
     Name = lists:flatten(R),
     {Status, Device} = file:open(Name,[write,read]),
     if 
@@ -97,17 +98,16 @@ logEvent({Device,Type,Pid},Event) ->
 	end.
 
 logEvent({Device,Type,Pid},Event,ok) ->
-    io:format(Device, "~s :: Message ~n    ",[makeTimeStamp()]),
-    io:format(Device, "Event: ~p~n",[Event]).
+    io:format(Device, "~s :: Event ~n    ",[makeTimeStamp()]),
+    io:format(Device, "~p~n",[Event]).
 
 
+logWarning(none,_) ->
+	ok;
 
--spec dumbTest(String::string(),_Args) -> ok.
-dumbTest(String,_A) -> 
-    {Status, Thingy} = file:open("test.txt", [write,read]),
-    io:format("Thingy: ~w ~n",[Thingy]),
-    io:format(Thingy, "Look at me im writing a fajl :)",[]),
-    io:format(Thingy, "And now i write data ~w ~n",[[1,2,3]]).
+logWarning({Device,Type,Pid},Warning) ->
+    io:format(Device, "~s :: Warning ~n    ",[makeTimeStamp()]),
+    io:format(Device, "~p~n",[Warning]).
 
 %% ====================================================================
 %% Internal functions
@@ -123,12 +123,49 @@ deleteFiles([File | Tl])->
 
 makeTimeStamp() ->
     {_,{H,M,S}} = calendar:local_time(),
-    makeCoolString("~s:~s:~s",[H,M,S]).
+    makeCoolString("~p:~p:~p",[H,M,S]).
 
 makeCoolString(Format,Arguments) ->
     R= io_lib:format(Format,Arguments),
     lists:flatten(R).
 
+%% ====================================
+%% Cool Tests
+%% ====================================
 
+testEntity(none,Creator,_) ->
+	testEntity(makeLog("tester", self()),Creator,10);
+testEntity(Log,Creator,0) ->
+  	logWarning(Log,"Im killing myself :)"),
+	Creator ! {self(),death},
+	exit(sucsess);
+testEntity(Log,Creator,N) ->
+	logEvent(Log, "Test entity entered its loop"),
+	timer:sleep(100+random:uniform(300)),
+	logEvent(Log, "Sending message"),
+	Creator ! {self(),spamm,"Boring old message",N},
+	testEntity(Log,Creator,N-1).
 
+master(none) ->
+	MyPid = self(),
+	spawn(fun() -> testEntity(none, MyPid, 10) end),
+	master(makeLog("Master", self()));
+master(Log) ->
+	logEvent(Log,"Im chillin for a message"),
+	receive
+		Death={_,death} ->
+			logMessage(Log,Death),
+			logEvent(Log,"Time to end this shenanigans"),
+			ok;
+		_A=_ ->
+			logMessage(Log,_A),
+			master(Log)
+	after 200 ->
+		logWarning(Log,"I timed out :("),
+		master(Log)
+	end.
 
+logger_test_() ->
+	initLogger(),
+	?_assertEqual(master(none),ok).
+	
