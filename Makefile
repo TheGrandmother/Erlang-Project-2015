@@ -50,6 +50,17 @@ test_utils: $(utils_binary)
 	erl -noshell -pa ebin -eval 'eunit:test(["$(utils_binary)"], [verbose])' -s init stop
 
 
+init_binary = $(BIN)/init.beam
+init_source = $(wildcard $(SRC)/init/*.erl)
+
+init: $(init_binary)
+	
+$(init_binary) : $(init_source)	
+	erlc -o $(BIN)/ $^
+
+test_init: $(init_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(init_binary)"], [verbose])' -s init stop
+
 #
 # COPY THIS AND REPLACE <name> with module name and you have a crazy cool build target :)
 #
