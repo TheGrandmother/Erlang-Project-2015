@@ -12,31 +12,31 @@ initCell(Position = {_X,_Y}) ->
 
 %%@doc returns the Pid of the argumented direction from the neighborhood
 getOneDirection(Cell,northwest) ->
-    {NW,_,_,_,_,_,_,_,_} = getCell_Hood(Cell),
+    {NW,_,_,_,_,_,_,_,_} = getCellHood(Cell),
     NW;
 getOneDirection(Cell,north) ->
-    {_,N,_,_,_,_,_,_,_} = getCell_Hood(Cell),
+    {_,N,_,_,_,_,_,_,_} = getCellHood(Cell),
     N;
 getOneDirection(Cell,northeast) ->
-    {_,_,NE,_,_,_,_,_,_} = getCell_Hood(Cell),
+    {_,_,NE,_,_,_,_,_,_} = getCellHood(Cell),
     NE;
 getOneDirection(Cell,west) ->
-    {_,_,_,W,_,_,_,_,_} = getCell_Hood(Cell),
+    {_,_,_,W,_,_,_,_,_} = getCellHood(Cell),
     W;
 getOneDirection(Cell,center) ->
-    {_,_,_,_,C,_,_,_,_} = getCell_Hood(Cell),
+    {_,_,_,_,C,_,_,_,_} = getCellHood(Cell),
     C;
 getOneDirection(Cell, east) ->
-    {_,_,_,_,_,E,_,_,_} = getCell_Hood(Cell),
+    {_,_,_,_,_,E,_,_,_} = getCellHood(Cell),
     E;
 getOneDirection(Cell, southwest) ->
-    {_,_,_,_,_,_,SW,_,_} = getCell_Hood(Cell),
+    {_,_,_,_,_,_,SW,_,_} = getCellHood(Cell),
     SW;
 getOneDirection(Cell, south) ->
-    {_,_,_,_,_,_,_,S,_} = getCell_Hood(Cell),
+    {_,_,_,_,_,_,_,S,_} = getCellHood(Cell),
     S;
 getOneDirection(Cell, southeast) ->
-    {_,_,_,_,_,_,_,_,SE} = getCell_Hood(Cell),
+    {_,_,_,_,_,_,_,_,SE} = getCellHood(Cell),
     SE;
 getOneDirection(_Cell, _) ->
     none.
