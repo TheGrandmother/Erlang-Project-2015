@@ -1,13 +1,14 @@
 %% @author grandmother
 %% @doc This is the headerfile containg the specifactions of global types.
+
 -module(types).
 
--export([]).
 -export_type([one_way_message/0, request_message/0, reply_message/0,
               one_way_type/0, request_type/0, reply_type/0,
               message_buffer/0, cell/0, neighbourhood/0,
               direction/0, cell_attributes/0, feremone_type/0,
-              feremone_name/0, ant/0, ant_state/0, ant_attributes/0]).
+              feremone_name/0, ant/0, ant_state/0, ant_attributes/0,
+              log/0]).
 
 
 %% @doc Type specifying one way messages.
@@ -33,8 +34,8 @@
                         | query_state 
                         | {move_request,Direction::direction()} 
 						| {place_ant, Ant::pid()}
-						| {set_cell_attribute, Attributes::[cell_attribute()]}
-						| {set_ant_attribute, Attributes::[ant_attribute()]}
+						| {set_cell_attribute, Attributes::[cell_attributes()]}
+						| {set_ant_attribute, Attributes::[ant_attributes()]}
                         | {take_food}. 
                         
 
@@ -57,7 +58,8 @@
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
 %% @doc This is the big type for the cell. Hopefully its self explanatory
--type cell() :: {Pid::pid(),Position::{X::integer(),Y::integer()},Hood::neighbourhood(),Next_Cell::pid(), Attributes::[cell_attributes()],Metadata::message_buffer(),Log:log()}.
+-type cell() :: {Pid::pid(),Position::{X::integer(),Y::integer()},Hood::neighbourhood(),Next_Cell::pid(), Attributes::[cell_attributes()],Metadata::message_buffer(),Log::log()}.
+
 
 %% @doc simple type for the neighbourhood
 -type neighbourhood() :: {   
@@ -86,7 +88,8 @@
 -type feremone_name() :: base_feremone | food_feremone.
 
 %%@doc A sweet type for the ant.
--type ant() :: {Pid::pid(),Cell::pid(),State::ant_state, Attributes::[ant_attributes()], Metadata::message_buffer(),Log:log()}.
+-type ant() :: {Pid::pid(),Cell::pid(),State::ant_state, Attributes::[ant_attributes()], Metadata::message_buffer(),Log::log()}.
+
 
 %%@doc The different "states" than an ant can be in.
 -type ant_state() ::     searching_for_food

@@ -13,9 +13,7 @@
 %% ====================================================================
 -export([makeLog/2,initLogger/0,logMessage/2,logEvent/2,logWarning/2]).
 
--type log()::{File::file:device(),Type::string(),Pid::pid()} | none.
-
--spec makeLog(Type::string(),Pid::pid()) -> log.
+-spec makeLog(Type::string(),Pid::pid()) -> types:log().
 
 initLogger() ->
 	case ?LOG of
@@ -65,7 +63,7 @@ makeLog(Type,Pid,ok)->
     io:format(Device,"Logfile Created for ~s with pid ~w at ~w ~n",[Type,Pid,calendar:local_time()]),
     {Device,Type,Pid}.
 
--spec logMessage(Log::log(),_Message) -> ok.
+-spec logMessage(Log::types:log(),_Message) -> ok.
 logMessage(none,_) ->
     ok;
 
