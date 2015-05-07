@@ -113,7 +113,7 @@ fill_Grid_Aux({_,Y}, {_, Height},Array) when Y == Height ->
 fill_Grid_Aux({X,Y}, {Width, Height},Array) when X == Width ->
 	fill_Grid_Aux({0, Y+1},{Width, Height}, Array);
 fill_Grid_Aux({X,Y},{Width, Height}, Array) ->
-	New_Array = setGridElement({X,Y}, spawnlink(fun() -> PLACEHOLDER() end), Array),
+	New_Array = setGridElement({X,Y}, spawn_link(fun() -> PLACEHOLDER() end), Array),
 	%% PLACEHOLDER() to be replaced with actual cellstarting function
 	fill_Grid_Aux({X+1, Y},{Width, Height},New_Array).
 
