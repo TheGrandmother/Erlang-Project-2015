@@ -38,6 +38,18 @@ test_logger: $(logger_binary)
 	erl -noshell -pa ebin -eval 'eunit:test(["$(logger_binary)"], [verbose])' -s init stop
 
 
+utils_binary = $(BIN)/utils.beam
+utils_source = $(wildcard $(SRC)/utils/*.erl)
+
+utils: $(utils_binary)
+	
+$(utils_binary) : $(utils_source)	
+	erlc -o $(BIN)/ $^
+
+test_utils: $(utils_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(utils_binary)"], [verbose])' -s init stop
+
+
 #
 # COPY THIS AND REPLACE <name> with module name and you have a crazy cool build target :)
 #
