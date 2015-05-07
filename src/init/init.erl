@@ -81,7 +81,7 @@ linkup_Aux({X,Y},Grid_Size,Array) ->
 		true ->
 			Hood = get_Hood({X,Y},Grid_Size,Array),
 			Next = get_Next_Grid_Element({X,Y},Grid_Size),
-			Center ! {self(), hood_adressess, {Hood, Next,{X,Y}}},
+			Center ! {self(), {linkup, Hood, Next}},
 			linkup_Aux({X+1, Y}, Grid_Size, Array)
 	end.
 
