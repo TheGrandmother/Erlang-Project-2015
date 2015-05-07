@@ -11,6 +11,8 @@
 %% ====================================================================
 -export([receiver/2,receiver/1]).
 
+-define(DEFAULT_TIMEOUT,3500).
+
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
 %% @doc see receiver/2
@@ -28,7 +30,7 @@ receiver(Buffer) ->
 %% messages received by the process meanwhile will be placed on a buffer and can then retreived with this function
 %% in such a fashion that the order in which these messages arrived is not altered.
 %%
--spec receiver(Special::reference() | none ,Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
+-spec receiver(Special::reference() | none | [reference()],Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
 receiver(none,{L,[]}) ->
 	receive
 		_A ->
@@ -40,24 +42,54 @@ receiver(none,{_,[Message]}) ->
 receiver(none,{L,[Message | Tl]}) ->
 	{Message,{L-1,Tl}};
 
-receiver(Reference,Buffer={L,Queue}) -> 
+receiver(Refs,Buffer={L,Queue}) when is_list(Refs)==true -> 
+    receive
+        A={_,_,Request_Reference,_} ->
+            case lists:member(Request_Reference,Refs) of
+                true ->
+                    {A,Buffer,lists:delete(Request_Reference,Refs)};
+                false ->
+                    receiver(Refs,{L+1,lists:append(Queue,[A])})
+            end;
+        _Any ->
+            receiver(Refs,{L+1,lists:append(Queue,[_Any])})
+    after ?DEFAULT_TIMEOUT ->
+        ?debugFmt("~nReceiver(in process ~p) timed out whils awating ~p.~nDumping everything there is to dump~nMessage buffer: ~n~p~nMessage Queue:~n ~p~n",[self(),Refs,Buffer,element(2,erlang:process_info(self(), messages))]),
+        exit(failure)
+    end;
+
+
+receiver(Reference,Buffer={L,Queue}) ->
 	receive
 		A={_,_,Request_Reference,_} when Reference == Request_Reference->
 			{A,Buffer};
 		_Any ->
 			receiver(Reference,{L+1,lists:append(Queue,[_Any])})
-	end.
+    after ?DEFAULT_TIMEOUT ->
+        ?debugFmt("~nReceiver(in process ~p) timed out whils awating ~p.~nDumping everything there is to dump~n
+                   Message buffer: ~n~p~nMessage Queue:~n ~p~n",[self(),Reference,Buffer,element(2,erlang:process_info(self(), messages))]),
+        exit(failure)
+    end.
+
+
+
 
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
 
+
+
+%% ====================================================================
+%% Tests
+%% ====================================================================
+
 pinger() ->
 	receive
 		{Pid,Reference,_A} ->
 			io:format("Pinger got its cool message~n"),
-			timer:sleep(500),
+			timer:sleep(250),
 			Pid ! {self(),make_ref(),Reference,"I Love To Reply!"};
 		_B ->
 			io:format("Pinger recieved pointless message ~p ~n",[_B]),
@@ -69,7 +101,7 @@ troller(Receiver,N) when N == 20 ->
 	Receiver ! {die},
 	exit(sucsess);
 troller(Receiver,N) ->
-	timer:sleep(100),
+	timer:sleep(50),
 	Receiver ! {self(), N},
 	troller(Receiver, N+1). 
 
@@ -77,7 +109,7 @@ tester() ->
 	MyPid = self(),
 	PingerPid = spawn(fun() -> pinger() end),
 	TrollPid = spawn(fun() -> troller(MyPid,0) end),
-	timer:sleep(500),
+	timer:sleep(300),
 	Reference = make_ref(),
 	PingerPid ! {self(),Reference,ok},
 	tester(Reference,{0,[]},[],PingerPid,TrollPid).
@@ -98,11 +130,57 @@ tester(Reference,Message_Buffer,List,PingerPid,TrollPid) ->
 	
 	end.
 	
-%% ====================================================================
-%% Tests
-%% ====================================================================
 
-filter_test_() ->
+creeps(Receiver,Reference) ->
+    timer:sleep(100+random:uniform(200)),
+    Receiver ! {self(),make_ref(),Reference,self()}.
+    
+
+testerOfLists() ->
+    MyPid = self(),
+    TrollerPid = spawn(fun() -> troller(MyPid,0) end),
+    Buffer = {0,[]},
+    {Pids,Refs} = buildCoolList([],[],10),
+    testerOfLists(Pids,Refs,Buffer),
+    exit(TrollerPid,sucsess).
+
+testerOfLists([_],[],_) ->
+    exit(failure);
+testerOfLists([],[],_) ->
+    true;
+
+testerOfLists(Pids,Refs,Buffer) ->
+    {Message,New_Buffer,New_Refs} = receiver(Refs,Buffer),
+    case Message of
+        
+        {_,_,Reference,Pid} ->
+            ?_assert(lists:member(Reference,Refs)),
+            ?_assert(lists:member(Pid,Pids)),
+            testerOfLists(lists:delete(Pid,Pids),New_Refs,New_Buffer);
+        _ ->
+            ?_assert(false)
+    end.
+
+    
+
+buildCoolList(Pids,Refs,0)->
+    {Pids,Refs};
+
+buildCoolList([],[], N) ->
+    Reference = make_ref(),
+    MyPid = self(),
+    CoolPid= spawn(fun() -> creeps(MyPid,Reference) end),
+    buildCoolList([CoolPid],[Reference],N-1);
+buildCoolList(Pids,Refs, N) ->
+    Reference = make_ref(),
+    MyPid = self(),
+    CoolPid= spawn(fun() -> creeps(MyPid,Reference) end),
+    buildCoolList([CoolPid]++Pids,[Reference]++Refs,N-1).
+                         
+testListThing_test()->
+    ?_assert(testerOfLists()).
+
+basic_test() ->
     ?_assertEqual([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], tester()).
 
 		
