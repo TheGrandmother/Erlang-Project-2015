@@ -104,46 +104,6 @@ getProperty([(L = {Type, _Val}) | Tl],Property) ->
 	    getProperty(Tl, Property)
     end.
 
-
-
-
-
-
-
-
-%%-spec changeColor(Cell::cell(),Color::color()) -> ok.
-%%changeState/2
-%%changes the state to color on current cell,
-%changeState(Pid, Color) ->
-%    Pid ! {self(), set_state, Color},
-%    receive 
-%	_->
-%	    ok
-%    end.
-
-%%getHood/1
-%%gets cells around current cell(Pid)
-%getHood(Pid) ->
-%    Pid ! {self(), querry_hood},
-%    receive
-%	Cell ->
-%	    Cell;
-%	_ ->
-%	    none
-%    end.
-
-%%getNext/1
-%%Returns the next cell from current Pid
-%getNext(Pid) ->
-%    Pid ! {self(), get_next},
-%    receive
-%	{_,_,NextPid} ->
-%	    NextPid;
-%	_ ->
-%	    none
-%    end.
-%
-
 %%@doc Returns the ant pid
 getAntPid(_Ant = {Pid, _, _, _, _}) ->
 	Pid.
