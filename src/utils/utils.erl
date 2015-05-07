@@ -1,10 +1,10 @@
 -module(utils).
--export([getCell_Hood/1, setCell_Hood/2,
-		 getCell_Pos/1, setCell_Pos/2, getCell_Pid/1, setCell_Pid/2,
-		 getCell_Next/1, setCell_Next/2, getCell_Attributes/1, setCell_Attributes/2,
-		 getCell_Metadata/1, setCell_Metadata/2, getProperty/2, initCell/1, getOneDirection/2,
-		 getAnt_Attributes/1, getAnt_State/1, getAnt_Metadata/1, getAnt_cell/1, getAnt_Pid/1,
-		 setAnt_Cell/2, setAnt_State/2, setAnt_Attributes/2, setAnt_Metadata/2,getCell_Log/1,setCell_Log/2]).
+-export([getCellHood/1, setCellHood/2,
+		 getCellPos/1, setCellPos/2, getCellPid/1, setCellPid/2,
+		 getCellNext/1, setCellNext/2, getCellAttributes/1, setCellAttributes/2,
+		 getCellMetadata/1, setCellMetadata/2, getProperty/2, initCell/1, getOneDirection/2,
+		 getAntAttributes/1, getAntState/1, getAntMetadata/1, getAntCell/1, getAntPid/1,
+		 setAntCell/2, setAntState/2, setAntAttributes/2, setAntMetadata/2,getCellLog/1,setCellLog/2]).
 
 %%initCell -> Cell
 initCell(Position = {_X,_Y}) ->
@@ -42,33 +42,33 @@ getOneDirection(_Cell, _) ->
     none.
 
 %%Get and setters of Cell type
-getCell_Hood(_Cell = {_,_,Hood,_,_,_,_}) ->
+getCellHood(_Cell = {_,_,Hood,_,_,_,_}) ->
     Hood.
-setCell_Hood(_Cell = {Pid, Position,_,Next_Cell,Attributes,Metadata,Log}, New_Hood) ->
+setCellHood(_Cell = {Pid, Position,_,Next_Cell,Attributes,Metadata,Log}, New_Hood) ->
     {Pid,Position,New_Hood, Next_Cell,Attributes,Metadata,Log}.
-getCell_Pos(_Cell = {_,Pos = {_X,_Y},_,_,_,_,_}) ->
+getCellPos(_Cell = {_,Pos = {_X,_Y},_,_,_,_,_}) ->
     Pos.
-setCell_Pos(_Cell = {Pid,_,Hood, Next_Cell, Attributes, Metadata, Log},New_Pos = {_X,_Y}) ->   
+setCellPos(_Cell = {Pid,_,Hood, Next_Cell, Attributes, Metadata, Log},New_Pos = {_X,_Y}) ->   
     {Pid, New_Pos, Hood, Next_Cell, Attributes, Metadata,Log}.
-getCell_Pid(_Cell = {Pid,_,_,_,_,_,_}) ->
+getCellPid(_Cell = {Pid,_,_,_,_,_,_}) ->
     Pid.
-setCell_Pid(_Cell = {_,Position, Hood,Next_Cell, Attributes, Metadata,Log},New_Pid) ->
+setCellPid(_Cell = {_,Position, Hood,Next_Cell, Attributes, Metadata,Log},New_Pid) ->
     {New_Pid,Position,Hood,Next_Cell,Attributes, Metadata,Log}.
-getCell_Next(_Cell = {_,_,_,Next_Cell,_,_,_}) ->
+getCellNext(_Cell = {_,_,_,Next_Cell,_,_,_}) ->
     Next_Cell.
-setCell_Next(_Cell = {Pid,Position,Hood, _, Attributes, Metadata,Log},New_Nextcell) ->
+setCellNext(_Cell = {Pid,Position,Hood, _, Attributes, Metadata,Log},New_Nextcell) ->
     {Pid,Position,Hood, New_Nextcell, Attributes, Metadata,Log}.
-getCell_Attributes(_Cell = {_,_,_,_,Attributes,_,_}) ->
+getCellAttributes(_Cell = {_,_,_,_,Attributes,_,_}) ->
     Attributes.
-setCell_Attributes(_Cell = {Pid,Position,Hood, Next_Cell, _, Metadata,Log}, New_Attr) ->
+setCellAttributes(_Cell = {Pid,Position,Hood, Next_Cell, _, Metadata,Log}, New_Attr) ->
     {Pid,Position,Hood, Next_Cell,New_Attr,Metadata,Log}.
-getCell_Metadata(_Cell = {_,_,_,_,_,Metadata,_}) ->
+getCellMetadata(_Cell = {_,_,_,_,_,Metadata,_}) ->
     Metadata.
-setCell_Metadata(_Cell = {Pid,Position,Hood, Next_Cell, Attributes, _,Log}, New_metadata) ->
+setCellMetadata(_Cell = {Pid,Position,Hood, Next_Cell, Attributes, _,Log}, New_metadata) ->
     {Pid,Position,Hood,Next_Cell,Attributes,New_metadata,Log}.
-getCell_Log(_Cell = {_,_,_,_,_,_,Log}) ->
+getCellLog(_Cell = {_,_,_,_,_,_,Log}) ->
     Log.
-setCell_Log(_Cell = {Pid,Position,Hood, Next_Cell, Attributes, Metadata,_}, New_Log) ->
+setCellLog(_Cell = {Pid,Position,Hood, Next_Cell, Attributes, Metadata,_}, New_Log) ->
     {Pid,Position,Hood,Next_Cell,Attributes,Metadata,New_Log}.
 
 %%getProperty/2
@@ -131,31 +131,31 @@ getProperty([(L = {Type, _Val}) | Tl],Property) ->
 %
 
 
-getAnt_Pid(_Ant = {Pid, _, _, _, _}) ->
+getAntPid(_Ant = {Pid, _, _, _, _}) ->
 	Pid.
 
-getAnt_Cell(_Ant = {_, Cell, _, _, _}) ->
+getAntCell(_Ant = {_, Cell, _, _, _}) ->
 	Cell.
 
-getAnt_State(_Ant = {_, _, State, _, _}) ->
+getAntState(_Ant = {_, _, State, _, _}) ->
 	State.
 
-getAnt_Attributes(_Ant = {_, _ , _, Attributes, _}) -> 
+getAntAttributes(_Ant = {_, _ , _, Attributes, _}) -> 
 	Attributes.
 
-getAnt_Metadata(_Ant = {_, _, _, _, Metadata}) ->
+getAntMetadata(_Ant = {_, _, _, _, Metadata}) ->
 	Metadata.
 
-setAnt_Cell(_Ant = {Pid, _, State, Attributes, Metadata}, NewCell) ->
+setAntCell(_Ant = {Pid, _, State, Attributes, Metadata}, NewCell) ->
 	{Pid, NewCell, State, Attributes, Metadata}.
 
-setAnt_State(_Ant = {Pid, Cell, _, Attributes, Metadata}, NewState) ->
+setAntState(_Ant = {Pid, Cell, _, Attributes, Metadata}, NewState) ->
 	{Pid, Cell, NewState, Attributes, Metadata}.
 
-setAnt_Attributes(_Ant = {Pid, Cell, State, _, Metadata}, NewAttributes) ->
+setAntAttributes(_Ant = {Pid, Cell, State, _, Metadata}, NewAttributes) ->
 	{Pid, Cell, State, NewAttributes, Metadata}.
 	
-setAnt_Metadata(_Ant = {Pid, Cell, State, Attributes, _}, NewMetadata) ->
+setAntMetadata(_Ant = {Pid, Cell, State, Attributes, _}, NewMetadata) ->
 	{Pid, Cell, State, Attributes, NewMetadata}.
 	
 	
