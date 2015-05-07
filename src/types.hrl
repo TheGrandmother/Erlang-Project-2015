@@ -1,8 +1,8 @@
 %% @author grandmother
 %% @doc This is the headerfile containg the specifactions of global types.
+
 -module(types).
 
--export([]).
 -export_type([one_way_message/0, request_message/0, reply_message/0,
               one_way_type/0, request_type/0, reply_type/0,
               message_buffer/0, cell/0, neighbourhood/0,
@@ -34,8 +34,8 @@
                         | query_state 
                         | {move_request,Direction::direction()} 
 						| {place_ant, Ant::pid()}
-						| {set_cell_attribute, Attributes::[cell_attribute()]}
-						| {set_ant_attribute, Attributes::[ant_attribute()]}
+						| {set_cell_attribute, Attributes::[cell_attributes()]}
+						| {set_ant_attribute, Attributes::[ant_attributes()]}
                         | {take_food}. 
                         
 
