@@ -4,7 +4,7 @@
 		 getCell_Next/1, setCell_Next/2, getCell_Attributes/1, setCell_Attributes/2,
 		 getCell_Metadata/1, setCell_Metadata/2, getProperty/2, initCell/1, getOneDirection/2,
 		 getAnt_Attributes/1, getAnt_State/1, getAnt_Metadata/1, getAnt_cell/1, getAnt_Pid/1,
-		 setAnt_Cell/2, setAnt_State/2, setAnt_Attributes/2, setAnt_Metadata/2]).
+		 setAnt_Cell/2, setAnt_State/2, setAnt_Attributes/2, setAnt_Metadata/2,getCell_Log/1,setCell_Log/2]).
 
 %%initCell -> Cell
 initCell(Position = {_X,_Y}) ->
@@ -42,30 +42,34 @@ getOneDirection(_Cell, _) ->
     none.
 
 %%Get and setters of Cell type
-getCell_Hood(_Cell = {_,_,Hood,_,_,_}) ->
+getCell_Hood(_Cell = {_,_,Hood,_,_,_,_}) ->
     Hood.
-setCell_Hood(_Cell = {Pid, Position,_,Next_Cell,Attributes,Metadata}, New_Hood) ->
-    {Pid,Position,New_Hood, Next_Cell,Attributes,Metadata}.
-getCell_Pos(_Cell = {_,Pos = {_X,_Y},_,_,_,_}) ->
+setCell_Hood(_Cell = {Pid, Position,_,Next_Cell,Attributes,Metadata,Log}, New_Hood) ->
+    {Pid,Position,New_Hood, Next_Cell,Attributes,Metadata,Log}.
+getCell_Pos(_Cell = {_,Pos = {_X,_Y},_,_,_,_,_}) ->
     Pos.
-setCell_Pos(_Cell = {Pid,_,Hood, Next_Cell, Attributes, Metadata},New_Pos = {_X,_Y}) ->   
-    {Pid, New_Pos, Hood, Next_Cell, Attributes, Metadata}.
-getCell_Pid(_Cell = {Pid,_,_,_,_,_}) ->
+setCell_Pos(_Cell = {Pid,_,Hood, Next_Cell, Attributes, Metadata, Log},New_Pos = {_X,_Y}) ->   
+    {Pid, New_Pos, Hood, Next_Cell, Attributes, Metadata,Log}.
+getCell_Pid(_Cell = {Pid,_,_,_,_,_,_}) ->
     Pid.
-setCell_Pid(_Cell = {_,Position, Hood,Next_Cell, Attributes, Metadata},New_Pid) ->
-    {New_Pid,Position,Hood,Next_Cell,Attributes, Metadata}.
-getCell_Next(_Cell = {_,_,_,Next_Cell,_,_}) ->
+setCell_Pid(_Cell = {_,Position, Hood,Next_Cell, Attributes, Metadata,Log},New_Pid) ->
+    {New_Pid,Position,Hood,Next_Cell,Attributes, Metadata,Log}.
+getCell_Next(_Cell = {_,_,_,Next_Cell,_,_,_}) ->
     Next_Cell.
-setCell_Next(_Cell = {Pid,Position,Hood, _, Attributes, Metadata},New_Nextcell) ->
-    {Pid,Position,Hood, New_Nextcell, Attributes, Metadata}.
-getCell_Attributes(_Cell = {_,_,_,_,Attributes,_}) ->
+setCell_Next(_Cell = {Pid,Position,Hood, _, Attributes, Metadata,Log},New_Nextcell) ->
+    {Pid,Position,Hood, New_Nextcell, Attributes, Metadata,Log}.
+getCell_Attributes(_Cell = {_,_,_,_,Attributes,_,_}) ->
     Attributes.
-setCell_Attributes(_Cell = {Pid,Position,Hood, Next_Cell, _, Metadata}, New_Attr) ->
-    {Pid,Position,Hood, Next_Cell,New_Attr,Metadata}.
-getCell_Metadata(_Cell = {_,_,_,_,_,Metadata}) ->
+setCell_Attributes(_Cell = {Pid,Position,Hood, Next_Cell, _, Metadata,Log}, New_Attr) ->
+    {Pid,Position,Hood, Next_Cell,New_Attr,Metadata,Log}.
+getCell_Metadata(_Cell = {_,_,_,_,_,Metadata,_}) ->
     Metadata.
-setCell_Metadata(_Cell = {Pid,Position,Hood, Next_Cell, Attributes, _}, New_metadata) ->
-    {Pid,Position,Hood,Next_Cell,Attributes,New_metadata}.
+setCell_Metadata(_Cell = {Pid,Position,Hood, Next_Cell, Attributes, _,Log}, New_metadata) ->
+    {Pid,Position,Hood,Next_Cell,Attributes,New_metadata,Log}.
+getCell_Log(_Cell = {_,_,_,_,_,_,Log}) ->
+    Log.
+setCell_Log(_Cell = {Pid,Position,Hood, Next_Cell, Attributes, Metadata,_}, New_Log) ->
+    {Pid,Position,Hood,Next_Cell,Attributes,Metadata,New_Log}.
 
 %%getProperty/2
 % Returns the Tuple in list that matches property.
