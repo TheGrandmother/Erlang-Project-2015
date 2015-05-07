@@ -4,7 +4,8 @@
 		 getCellNext/1, setCellNext/2, getCellAttributes/1, setCellAttributes/2,
 		 getCellMetadata/1, setCellMetadata/2, getProperty/2, initCell/1, getOneDirection/2,
 		 getAntAttributes/1, getAntState/1, getAntMetadata/1, getAntCell/1, getAntPid/1,
-		 setAntCell/2, setAntState/2, setAntAttributes/2, setAntMetadata/2,getCellLog/1,setCellLog/2,getAntProperty/2]).
+		 setAntCell/2, setAntState/2, setAntAttributes/2, setAntMetadata/2,getCellLog/1,setCellLog/2, getAntLog/1, 
+		 setAntLog/2,getAntProperty/2]).
 
 %%@doc initiates a new cell with the position coordinates
 -spec initCell(Position::types:position()) -> types:cell().
@@ -148,33 +149,38 @@ getProperty([(L = {Type, _Val}) | Tl],Property) ->
 %
 
 %%@doc Returns the ant pid
-getAntPid(_Ant = {Pid, _, _, _, _}) ->
+getAntPid(_Ant = {Pid, _, _, _, _, _}) ->
 	Pid.
 %%@doc Returns the Ants cell
-getAntCell(_Ant = {_, Cell, _, _, _}) ->
+getAntCell(_Ant = {_, Cell, _, _, _, _}) ->
 	Cell.
 %%@doc Returns the state of ant
-getAntState(_Ant = {_, _, State, _, _}) ->
+getAntState(_Ant = {_, _, State, _, _, _}) ->
 	State.
 %%@doc Returns the ant attributes
-getAntAttributes(_Ant = {_, _ , _, Attributes, _}) -> 
+getAntAttributes(_Ant = {_, _ , _, Attributes, _, _}) -> 
 	Attributes.
 %%@doc Returns the ants metadata
-getAntMetadata(_Ant = {_, _, _, _, Metadata}) ->
+getAntMetadata(_Ant = {_, _, _, _, Metadata, _}) ->
 	Metadata.
+%%@doc Returns the ants log
+getAntLog(_Ant = {_, _, _, _, _, Log}) ->
+	Log.
 %%@doc Sets the cell of ant, and returns the new ant
-setAntCell(_Ant = {Pid, _, State, Attributes, Metadata}, NewCell) ->
-	{Pid, NewCell, State, Attributes, Metadata}.
+setAntCell(_Ant = {Pid, _, State, Attributes, Metadata, Log}, NewCell) ->
+	{Pid, NewCell, State, Attributes, Metadata, Log}.
 %%@doc Sets the state of ant, and returns the new ant
-setAntState(_Ant = {Pid, Cell, _, Attributes, Metadata}, NewState) ->
-	{Pid, Cell, NewState, Attributes, Metadata}.
+setAntState(_Ant = {Pid, Cell, _, Attributes, Metadata, Log}, NewState) ->
+	{Pid, Cell, NewState, Attributes, Metadata, Log}.
 %%@doc Sets the ants atributes, and returns the new ant
-setAntAttributes(_Ant = {Pid, Cell, State, _, Metadata}, NewAttributes) ->
-	{Pid, Cell, State, NewAttributes, Metadata}.
+setAntAttributes(_Ant = {Pid, Cell, State, _, Metadata, Log}, NewAttributes) ->
+	{Pid, Cell, State, NewAttributes, Metadata, Log}.
 %%@doc Sets the ants metadata, and returns the new ant	
-setAntMetadata(_Ant = {Pid, Cell, State, Attributes, _}, NewMetadata) ->
-	{Pid, Cell, State, Attributes, NewMetadata}.
-
-
+setAntMetadata(_Ant = {Pid, Cell, State, Attributes, _, Log}, NewMetadata) ->
+	{Pid, Cell, State, Attributes, NewMetadata, Log}.
+%%@doc sets a new Log for the ant
+setAntLog(_Ant = {Pid, Cell, State, Attributes, Metadata, _}, NewLog) ->
+	{Pid, Cell, State, Attributes, Metadata, NewLog}.
+%%@doc returns the matching attribute for keyword
 getAntProperty(_Ant = {_, _, _, Attributes, _, _},Keyword) ->	
     maps:get(Keyword,Attributes).
