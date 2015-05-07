@@ -70,6 +70,7 @@ Projekt planering/möte.
 5h gjorde nästan klart loggern och lite annat trams. Samt en massa git krångel <3
 
 ##### Torsdag
+5h arbete med allt möjligt
 
 ##### Fredag
 
