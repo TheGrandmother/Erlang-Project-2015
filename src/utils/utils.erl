@@ -5,7 +5,7 @@
 		 getCellMetadata/1, setCellMetadata/2, getProperty/2, initCell/1, getOneDirection/2,
 		 getAntAttributes/1, getAntState/1, getAntMetadata/1, getAntCell/1, getAntPid/1,
 		 setAntCell/2, setAntState/2, setAntAttributes/2, setAntMetadata/2,getCellLog/1,setCellLog/2, getAntLog/1, 
-		 setAntLog/2,getAntProperty/2]).
+		 setAntLog/2,getAntProperty/2, getCellAttributeProperty/2]).
 
 %%@doc initiates a new cell with the position coordinates
 -spec initCell(Position::types:position()) -> types:cell().
@@ -184,3 +184,6 @@ setAntLog(_Ant = {Pid, Cell, State, Attributes, Metadata, _}, NewLog) ->
 %%@doc returns the matching attribute for keyword
 getAntProperty(_Ant = {_, _, _, Attributes, _, _},Keyword) ->	
     maps:get(Keyword,Attributes).
+%%@doc returns the desired attribute based on keyword
+getCellAttributeProperty(_Cell = {_, _, _, _, Attributes, _, _}, Keyword) ->
+	maps:get(Keyword, Attributes).
