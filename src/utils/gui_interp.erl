@@ -1,5 +1,5 @@
 -module(gui_interp).
 
-test(Test = {gui_update, [{food, Amount}]}) -> 
+test(Test = {gui_update, AttributesList}, GuiArray) -> 
 	Amount.
 
