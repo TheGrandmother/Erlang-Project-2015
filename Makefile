@@ -60,6 +60,21 @@ $(init_binary) : $(init_source)
 
 test_init: $(init_binary)
 	erl -noshell -pa ebin -eval 'eunit:test(["$(init_binary)"], [verbose])' -s init stop
+	
+	
+
+cell_binary = $(BIN)/cell.beam
+cell_source = $(wildcard $(SRC)/cell/*.erl) $(message_buffer_binary) $(logger_binary) $(utils_binary)
+
+cell: $(cell_binary)
+	
+$(cell_binary) : $(cell_source)	
+	erlc -o $(BIN)/ $^
+
+test_cell: $(cell_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(cell_binary)"], [verbose])' -s init stop
+
+	
 
 #
 # COPY THIS AND REPLACE <name> with module name and you have a crazy cool build target :)
