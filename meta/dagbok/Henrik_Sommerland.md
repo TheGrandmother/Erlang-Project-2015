@@ -77,6 +77,9 @@ Projekt planering/möte.
 ##### Lördag
 5h Arbete med cell modulen.
 
+##### Söndag
+6h implementerade place ant och move ant
+
 ## Vecka 20
 
 ##### Måndag
