@@ -26,7 +26,6 @@
 
 %% @doc This is the different types of one way messages
 -type one_way_type() ::   {deposit_feremone,Type::feremone_name()}
-                        | {linkup,Hood::neighbourhood(),Next::pid(),{X::integer(),Y::integer()}}
                         | {gui_update,[cell_attributes()]}.
 
 %% @doc These are the different types of request messages
@@ -36,7 +35,9 @@
 						| {place_ant, Ant::pid()}
 						| {set_cell_attribute, Attributes::#{}}
 						| {set_ant_attribute, Attributes::#{}}
-                        | {take_food}. 
+                        | {linkup,Hood::neighbourhood(),Next::pid()}
+                        | take_food 
+                        | ping.
                         
 
 %% @doc These are the different types of reply messages.
@@ -49,7 +50,9 @@
 						| {place_ant_reply,sucsess | fail}
 						| {set_cell_attribute_reply, sucsess | fail}
 						| {set_ant_attribute_reply, sucsess | fail}
-                        | {take_food_reply,sucsess | fail}.
+                        | {linkup_reply, sucess | fail}
+                        | {take_food_reply,sucsess | fail}
+                        | pong.
                         
 %% @doc Type for the logger construct
 -type log()::{File::file:device(),Type::string(),Pid::pid()} | none.
@@ -72,12 +75,10 @@
                         west        |   center  |   east      |
                         southwest   |   south   |   southeast.
 
-%% @doc These are the different attributes a cell can have.
--type cell_attributes() ::    plain
-                            | nest
-                            | block 
-                            | {ant,Pid::pid()} 
-                            | {feremones,none | list(feremone_type())} 
+%% @doc These are the different key value pairs that a cells attributes map can have
+-type cell_attributes() ::    {type, plain | nest | block}
+                            | {ant, Pid::pid()} 
+                            | {feremones, none | list(feremone_type())} 
                             | {food, Ammount::integer()}.
 
 %% @doc This is a definition of the types of freremone on a cell.
@@ -92,7 +93,7 @@
 %%@doc The different "states" than an ant can be in.
 -type ant_state() ::     searching_for_food
                         |returning_with_food.
-%%@doc All of the crazy cool attributes an ant can have.
+%%@doc These are the different key value pairs that a cells attributes map can have.
 -type ant_attributes() ::    {time_to_live, integer()}
                             |{carrying_food, Amount::integer()}.
                     
