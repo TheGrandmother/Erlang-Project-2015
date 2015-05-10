@@ -50,16 +50,16 @@ test_utils: $(utils_binary)
 	erl -noshell -pa ebin -eval 'eunit:test(["$(utils_binary)"], [verbose])' -s init stop
 
 
-init_binary = $(BIN)/init.beam
-init_source = $(wildcard $(SRC)/init/*.erl)
+grid_init_binary = $(BIN)/grid_init.beam
+grid_init_source = $(wildcard $(SRC)/grid_init/*.erl)
 
-init: $(init_binary)
+grid_init: $(grid_init_binary) $(message_buffer_binary) $(logger_binary) $(utils_binary)
 	
-$(init_binary) : $(init_source)	
+$(grid_init_binary) : $(grid_init_source)	
 	erlc -o $(BIN)/ $^
 
-test_init: $(init_binary)
-	erl -noshell -pa ebin -eval 'eunit:test(["$(init_binary)"], [verbose])' -s init stop
+test_grid_init: $(grid_init_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(grid_init_binary)"], [verbose])' -s init stop
 	
 	
 
