@@ -1,5 +1,7 @@
 %% @author grandmother
-%% @doc @todo Add description to cell.
+%% @doc Well. This is the humongous file for the cell actor.
+%% Most of these functions are internal and will only be given brief comments.
+%% Se the logging messsages for a more "natuaral" documentation and to understand how the program, works.
 
 
 -module(cell).
@@ -9,17 +11,28 @@
 %% ====================================================================
 -export([spawnCell/1]).
 
+
+%%  @doc Trivial and boring function used to start the cell.
+%%  The cell will jump into its await linkup state before it enteres its main loop.
+%%  In this state no other messages except pings and linkups make sense.
+-spec spawnCell({X::integer,Y::integer()}) -> ok.
 spawnCell({X,Y}) -> 
-	%C0 = utils:initCell({0,0}),
-	%C1 = utils:setCellLog(C0,logger:makeLog("Cell",self())),
-    C1 = {self(),{X,Y},none,none,none,none,logger:makeLog(logger:makeCoolString("Cell(~p)",[{X,Y}]),self())},
-	logger:logEvent(utils:getCellLog(C1),"Cell spawned."),
-    awaitLinkup(C1).
+    Cell = {self(),{X,Y},none,none,none,none,logger:makeLog(logger:makeCoolString("Cell(~p)",[{X,Y}]),self())},
+	logger:logEvent(utils:getCellLog(Cell),"Cell spawned."),
+    awaitLinkup(Cell).
 
 
+
+
+%% ====================================================================
+%% Internal functions
+%% ====================================================================
+
+
+%% @doc State function for awating linkup. Accepts ping messages. Goes into cellMain when linkup is complete
+-spec awaitLinkup(Cell::types:cell()) -> ok.
 awaitLinkup(Cell) ->
     logger:logEvent(utils:getCellLog(Cell), "Awaiting linkup"),
-    C1 = Cell, %Stupid
     receive
         
         {Sender,Reference,ping} ->
@@ -29,17 +42,15 @@ awaitLinkup(Cell) ->
             awaitLinkup(Cell);
         
         Link = {Sender,Reference, Payload} ->
-            logger:logMessage(utils:getCellLog(C1),Link),
+            logger:logMessage(utils:getCellLog(Cell),Link),
             case Payload of 
                 {linkup,Hood,Next} ->
                     
-                    C2 = utils:setCellHood(C1,Hood),
+                    C2 = utils:setCellHood(Cell,Hood),
                     C3 = utils:setCellNext(C2,Next),
                     C4 = utils:setCellMetadata(C3,{0,[]}),
                     C5 = utils:setCellAttributes(C4,#{type => plain}),
-                    %C5 = utils:setCellPos(C4,{X,Y}),
-                    %C5=C4,
-                    logger:logEvent(utils:getCellLog(C1),"Cell initialization complete!"),
+                    logger:logEvent(utils:getCellLog(Cell),"Cell initialization complete!"),
                     Msg = Sender ! {self(),make_ref(),Reference,{linkup_reply, sucsess}},
                     logger:logMessageSent(utils:getCellLog(C5),Msg,Sender),
                     cellMain(C5);
@@ -55,16 +66,14 @@ awaitLinkup(Cell) ->
         All= _ ->
             ?debugFmt("Cell received wierd message while awaiting linkup(~p).Chrashing the system.~n",[All]),
             
-            logger:logWarning(utils:getCellLog(C1),"Cell recieved wrong message while waiting linkup. Crashing system~n"),
+            logger:logWarning(utils:getCellLog(Cell),"Cell recieved wrong message while waiting linkup. Crashing system~n"),
             timer:sleep(100),
             exit(failure)
 
     end.
 
-%% ====================================================================
-%% Internal functions
-%% ====================================================================
-
+%% @doc Main state function. This is the "idle" state where the cell awaits a request or a one way message
+-spec cellMain(Cell::types:cell()) -> ok.
 cellMain(In_Cell) ->
 	logger:logEvent(utils:getCellLog(In_Cell),"Enterd main loop"),
 	{Message,New_Buffer} = message_buffer:receiver(utils:getCellMetadata(In_Cell)),
@@ -72,6 +81,12 @@ cellMain(In_Cell) ->
 	logger:logMessage(utils:getCellLog(Cell),Message),
 	case Message of
 		
+        OneWay = {_,Payload} ->
+            logger:logEvent(utils:getCellLog(Cell),"Received oneway message"),
+            New_Cell = handleOneWayMessage(Cell, Payload),
+            logger:logEvent(utils:getCellLog(New_Cell),"Finished with one way message"),
+            cellMain(New_Cell);
+        
 		Request = {_,_,_} ->
             
 			logger:logEvent(utils:getCellLog(Cell),"Got request message"),
@@ -86,9 +101,20 @@ cellMain(In_Cell) ->
     end.
 	
 
+%% @doc Transition function for handling one way messages.
+-spec handleOneWayMessage(Cell::types:cell(), Payload::types:one_way_type()) -> types:cell().
+handleOneWayMessage(Cell, Payload) ->
+    case Payload of
+        dump ->
+            logger:logEvent(utils:getCellLog(Cell),"Got dump message. Dumping everything....."),
+            dump(Cell),
+            Cell
+    end.
+            
+    
 
-
-%%THIS FUCTION CORRESPONDS TO A STATE
+%% @doc Transition function for handling one way messages.
+-spec handleRequest(Cell::types:cell(), {Snder::pid(),Reference::reference(),Payload::types:request_type()}) -> types:cell().
 handleRequest(Cell,{Sender,Reference,Payload}) ->
 	case Payload of
 		{set_cell_attribute, Attribute} ->
@@ -145,6 +171,8 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 						
 	end.
 
+%% @doc Cell corresponding to the move ant state.
+-spec moveAnt(Cell::types:cell(),Sender::pid(),Refernce::reference(), Direction::types:direction()) -> types:cell().
 moveAnt(Cell,Sender,Reference,Direction) ->
     Ant = maps:get(ant,utils:getCellAttributes(Cell),none),
     if 
@@ -169,6 +197,7 @@ moveAnt(Cell,Sender,Reference,Direction) ->
                     logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
                     Cell;
                 _ ->
+                    %% Await move reply state
                     New_Ref = make_ref(),
                     Msg = Destination ! {self(),New_Ref,{place_ant,Ant}},
                     {Message, New_Buffer} = message_buffer:receiver(New_Ref,utils:getCellMetadata(Cell)),
@@ -194,8 +223,8 @@ moveAnt(Cell,Sender,Reference,Direction) ->
 
     
     
-    
-
+%% @doc Corresponds to the place ant state
+-spec placeAnt(Cell::types:cell(),Sender::pid(),Reference::reference(),Ant::pid()) -> types:cell().
 placeAnt(Cell,Sender,Reference,New_Ant) ->
     logger:logEvent(utils:getCellLog(Cell),"Attempting to place ant"),
     Ant = maps:get(ant,utils:getCellAttributes(Cell),none),
@@ -221,9 +250,11 @@ placeAnt(Cell,Sender,Reference,New_Ant) ->
     end.
 
             
-            
-            
 
+            
+%% @doc Corresponds to the query hood state.
+%%  Will brodcast querry_state messages to all other cells in the neighbouthood.
+-spec hoodQuerry(Cell::types:cell(),Sender::pid(), Reference::reference()) -> types:cell().
 hoodQuerry(Cell,Sender,Reference) ->
     logger:logEvent(utils:getCellLog(Cell), "Processing hood request"),
     {Attributes,Refs} = buildHoodThing(Cell,tuple_to_list(utils:getCellHood(Cell)),[],[]),
@@ -234,11 +265,11 @@ hoodQuerry(Cell,Sender,Reference) ->
     New_Cell.
 
 
-
+%% @doc Corresponds to the await query hood replies.
+%% Will wait for the replies to the requests sent to all the neighbouring cells.
+-spec hoodQuerryAux([reference()],Cell::types:cell(),Attributes::types:cell_atributes()) -> {Cell::types:cell(),[types:cel_attributes()]}.
 hoodQuerryAux([],Cell,Attributes) ->
     {Cell,element(2,lists:unzip(Attributes))};
-
-
 
 hoodQuerryAux(Refs,In_Cell,Attributes) ->  
     {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,utils:getCellMetadata(In_Cell)),
@@ -256,6 +287,23 @@ hoodQuerryAux(Refs,In_Cell,Attributes) ->
     end.
     
     
+
+%% ====================================================================
+%% Auxfunction. Not documented
+%% ====================================================================
+
+dump({Pid,Position,Hood,Next_Cell, Attributes,{Length,Buffer},Log}) ->
+    S0 = "~n=======================================~nDUMP OF CELL ~p at coordinates ~p~n",
+    S1 = "NEIGHBOURHOOD = ~n~p~n",
+    S2 = "ATTRIBUTES = ~n~p~n",
+    S3 = "MESSAGE BUFFER (~p waiting messages) = ~n~p~n",
+    S4 = "=======================================~n",
+    Big_String = string:join([S0,S1,S2,S3,S4],""),
+    Args = [Pid,Position,Hood,Attributes,Length,Buffer],
+    %logger:logEvent(Log, logger:makeCoolString(Big_String, Args)),
+    ?debugFmt(Big_String,Args).
+    %logger:logEvent(Log,re:replace(logger:makeCoolString("~ts~ts~ts~ts~ts",[S0,S1,S2,S3,S4])),"\\","~").
+
 findAndReplace(_,_,[],Acc) ->
     lists:reverse(Acc);
 findAndReplace(Reference,Val,[Hd|Tl],Acc)->
@@ -295,6 +343,7 @@ buildHoodThing(Cell,[Hd|Tl],CoolList,Refs) ->
             buildHoodThing(Cell,Tl,[{Ref,none}]++CoolList,[Ref]++Refs)
     end.
 
+
 %% ====================================================================
 %% TESTS.... of doom!
 %% ====================================================================
@@ -324,30 +373,30 @@ buildTestWorld() ->
     {Center_Cell,Next_Cell,Hood}.
 
 spawnTest() ->
-    ?debugMsg("Testing Spawner"),
+    %?debugMsg("Testing Spawner"),
     logger:initLogger(),
     CellPid = spawn(fun () -> spawnCell({0,0})end),
-    ?debugMsg("Spawned cell"),
+    %?debugMsg("Spawned cell"),
     Reference = make_ref(),
     CellPid ! {self(),Reference,ping},
-    ?debugMsg("Sent message"),
+    %?debugMsg("Sent message"),
     receive
         {Pid,_,New_Ref,pong} ->
-            ?debugMsg("Received reply message"),
+            %?debugMsg("Received reply message"),
             ?assertEqual(New_Ref,Reference),
             
             timer:sleep(250),
             exit(CellPid,sucsess),
-            ?debugMsg("Slept and returning"),
+            %?debugMsg("Slept and returning"),
             true;
         
         _ ->
-            ?debugMsg("Received wrong message whilst testing"),
+            %?debugMsg("Received wrong message whilst testing"),
             exit(CellPid,failure),
             false
     
     after 1000 ->
-        ?debugMsg("Ping timed out"),
+        %?debugMsg("Ping timed out"),
         false
     
     end.
@@ -525,6 +574,9 @@ moveAntTest() ->
             ?assert(false)
     end,
     
+    %Center_Cell ! {self(), dump},
+    %Next ! {self(), dump},
+    %timer:sleep(200),
     
     true.
     

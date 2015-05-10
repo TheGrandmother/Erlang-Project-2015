@@ -26,7 +26,8 @@
 
 %% @doc This is the different types of one way messages
 -type one_way_type() ::   {deposit_feremone,Type::feremone_name()}
-                        | {gui_update,[cell_attributes()]}.
+                        | {gui_update,[cell_attributes()]}
+                        | dump.
 
 %% @doc These are the different types of request messages
 -type request_type() ::   query_hood 
