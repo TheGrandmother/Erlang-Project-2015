@@ -21,7 +21,14 @@ awaitLinkup(Cell) ->
     logger:logEvent(utils:getCellLog(Cell), "Awaiting linkup"),
     C1 = Cell, %Stupid
     receive
-        Link = {Sender, Payload} ->
+        
+        {Sender,Reference,ping} ->
+            logger:logEvent(utils:getCellLog(Cell), "Received ping before initializtion"),
+            Msg = Sender ! {self(),make_ref(),Reference,pong},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            awaitLinkup(Cell);
+        
+        Link = {Sender,Reference, Payload} ->
             logger:logMessage(utils:getCellLog(C1),Link),
             case Payload of 
                 {linkup,Hood,Next} ->
@@ -32,6 +39,8 @@ awaitLinkup(Cell) ->
                     %C5 = utils:setCellPos(C4,{X,Y}),
                     C5=C4,
                     logger:logEvent(utils:getCellLog(C1),"Cell initialization complete!"),
+                    Msg = Sender ! {self(),make_ref(),Reference,{linkup_reply, sucsess}},
+                    logger:logMessageSent(utils:getCellLog(C5),Msg,Sender),
                     cellMain(C5);
                 _A ->
                     ?debugFmt("Cell received wierd Payload(~p).Chrashing the system.~n",[Payload]),
@@ -40,11 +49,7 @@ awaitLinkup(Cell) ->
                     exit(failure)
             end;
         
-        {Sender,Reference,ping} ->
-            logger:logEvent(utils:getCellLog(Cell), "Received ping before initializtion"),
-            Msg = Sender ! {self(),make_ref(),Reference,pong},
-            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
-            awaitLinkup(Cell);
+        
         
         All= _ ->
             ?debugFmt("Cell received wierd message while awaiting linkup(~p).Chrashing the system.~n",[All]),
@@ -240,12 +245,19 @@ linkupTest() ->
            },
     Center_Cell = element(5,Hood),
     Next_Cell = element(6,Hood),
-    Center_Cell ! {self(), {linkup,Hood,Next_Cell}},
+    Reference = make_ref(),
+    Center_Cell ! {self(),Reference,{linkup,Hood,Next_Cell}},
     
-    timer:sleep(500),
-    lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
-    
-    true.
+    {Msg,_} = message_buffer:receiver(Reference,{0,[]}),
+    case Msg of
+        {Pid,_,Key_Ref,{linkup_reply,sucsess}} when Pid == Center_Cell, Key_Ref == Reference ->
+            timer:sleep(500),
+            lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
+            true;
+        _->
+            ?debugMsg("Received maformed message,Fail"),
+            false    
+    end.
 
 queryHoodTest() ->
     logger:initLogger(),
@@ -256,13 +268,20 @@ queryHoodTest() ->
            },
     Center_Cell = element(5,Hood),
     Next_Cell = element(6,Hood),
-    Center_Cell ! {self(), {linkup,Hood,Next_Cell}},
+    Ref = make_ref(),
+    Center_Cell ! {self(), Ref,{linkup,Hood,Next_Cell}},
+    receive
+        _ ->
+            ok
+    end,
     My_Pid = self(),
-    lists:map(fun(X) -> X ! {My_Pid, {linkup,none,none}} end, [
+    lists:map(fun(X) -> X ! {My_Pid, Ref,{linkup,none,none}} end, [
                                                                element(1,Hood),element(2,Hood),element(3,Hood),
                                                                element(4,Hood),                element(6,Hood),
                                                                element(7,Hood),element(8,Hood),element(9,Hood)
                                                               ]),
+    ignoreMessages(8),
+    
     Reference = make_ref(),
     Center_Cell ! {self(),Reference,query_hood},
     receive
@@ -274,6 +293,14 @@ queryHoodTest() ->
             false
     end.
 
+ignoreMessages(0) ->
+    ok;
+ignoreMessages(N) ->
+    receive
+        _ ->
+            ignoreMessages(N-1)
+    end.
+    
 
 spawnTest_test() ->
     [?assert(spawnTest())].
