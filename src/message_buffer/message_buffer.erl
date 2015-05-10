@@ -11,7 +11,7 @@
 %% ====================================================================
 -export([receiver/2,receiver/1]).
 
--define(DEFAULT_TIMEOUT,3500).
+-define(DEFAULT_TIMEOUT,2000).
 
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
@@ -34,7 +34,8 @@ receiver(Buffer) ->
 receiver(none,{L,[]}) ->
 	receive
 		_A ->
-			{_A,{L,[]}}
+			{_A,{L,[]}}   
+    
 	end;
 receiver(none,{_,[Message]}) ->
 	{Message,{0,[]}};
@@ -55,6 +56,7 @@ receiver(Refs,Buffer={L,Queue}) when is_list(Refs)==true ->
             receiver(Refs,{L+1,lists:append(Queue,[_Any])})
     after ?DEFAULT_TIMEOUT ->
         ?debugFmt("~nReceiver(in process ~p) timed out whils awating ~p.~nDumping everything there is to dump~nMessage buffer: ~n~p~nMessage Queue:~n ~p~n",[self(),Refs,Buffer,element(2,erlang:process_info(self(), messages))]),
+        timer:sleep(100),
         exit(failure)
     end;
 
@@ -66,8 +68,8 @@ receiver(Reference,Buffer={L,Queue}) ->
 		_Any ->
 			receiver(Reference,{L+1,lists:append(Queue,[_Any])})
     after ?DEFAULT_TIMEOUT ->
-        ?debugFmt("~nReceiver(in process ~p) timed out whils awating ~p.~nDumping everything there is to dump~n
-                   Message buffer: ~n~p~nMessage Queue:~n ~p~n",[self(),Reference,Buffer,element(2,erlang:process_info(self(), messages))]),
+        ?debugFmt("~nReceiver(in process ~p) timed out whils awating ~p.~nDumping everything there is to dump~n Message buffer: ~n~p~nMessage Queue:~n ~p~n",[self(),Reference,Buffer,element(2,erlang:process_info(self(), messages))]),
+        timer:sleep(100),
         exit(failure)
     end.
 
