@@ -36,8 +36,9 @@ awaitLinkup(Cell) ->
                     C2 = utils:setCellHood(C1,Hood),
                     C3 = utils:setCellNext(C2,Next),
                     C4 = utils:setCellMetadata(C3,{0,[]}),
+                    C5 = utils:setCellAttributes(C4,#{type => plain}),
                     %C5 = utils:setCellPos(C4,{X,Y}),
-                    C5=C4,
+                    %C5=C4,
                     logger:logEvent(utils:getCellLog(C1),"Cell initialization complete!"),
                     Msg = Sender ! {self(),make_ref(),Reference,{linkup_reply, sucsess}},
                     logger:logMessageSent(utils:getCellLog(C5),Msg,Sender),
@@ -57,6 +58,7 @@ awaitLinkup(Cell) ->
             logger:logWarning(utils:getCellLog(C1),"Cell recieved wrong message while waiting linkup. Crashing system~n"),
             timer:sleep(100),
             exit(failure)
+
     end.
 
 %% ====================================================================
@@ -81,10 +83,8 @@ cellMain(In_Cell) ->
 			logger:logWarning(utils:getCellLog(Cell),"Received pointless message! Crashing system"),
 			?debugFmt("Cell(~p) Received pointless message ~p ~n Crashing system",[self(),_Any]),
 			exit(failure)
-			
-	end,
-	%should never happen
-	exit(failure).
+    end.
+	
 
 
 
@@ -114,13 +114,27 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 			Cell;
         query_hood ->
             logger:logEvent(utils:getCellLog(Cell),"Received hood querry"),
-            hoodQuerry(Cell, Sender, Reference);
+            hoodQuerry(Cell, Sender, Reference),
+            logger:logEvent(utils:getCellLog(Cell),"Completed Hood querry"),
+            Cell;
         ping ->
             logger:logEvent(utils:getCellLog(Cell),"Received ping"),
             Msg = Sender ! {self(), make_ref(),Reference,pong},
             logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
             logger:logEvent(utils:getCellLog(Cell),"Replied with a pong"),
             Cell;
+        {place_ant,Ant} ->
+            logger:logEvent(utils:getCellLog(Cell),"Recevied place ant request"),
+            New_Cell = placeAnt(Cell,Sender,Reference,Ant),
+            logger:logEvent(utils:getCellLog(New_Cell),"Completed place ant request"),
+            New_Cell;
+        
+        {move_ant,Direction} ->
+            logger:logEvent(utils:getCellLog(Cell),"Recevied move ant request"),
+            New_Cell = moveAnt(Cell,Sender,Reference,Direction),
+            logger:logEvent(utils:getCellLog(New_Cell),"Completed move ant request"),
+            New_Cell;
+            
             
 		_Any ->
 			logger:logWarning(utils:getCellLog(Cell),"Received pointless Request! Crashing system"),
@@ -130,6 +144,85 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 			
 						
 	end.
+
+moveAnt(Cell,Sender,Reference,Direction) ->
+    Ant = maps:get(ant,utils:getCellAttributes(Cell),none),
+    if 
+        Ant == none -> 
+            logger:logEvent(utils:getCellLog(Cell),"Cell has no ant!"),
+            Msg = Sender ! {self(), make_ref(), Reference,{move_ant_reply,{fail,none}}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            Cell;
+        Ant /= Sender ->
+            logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("It's the wrong ant! Cell has ant ~p  but got request from ant ~p ", [Ant, Sender])),
+            Msg = Sender ! {self(), make_ref(), Reference,{move_ant_reply,{fail,none}}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            Cell;
+        
+        true ->
+            logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Atempting to move ant to the ~p", [Direction])),
+            Destination = utils:getOneDirection(Cell,Direction),
+            case Destination of
+                none -> 
+                    logger:logEvent(utils:getCellLog(Cell),"Cant move ant to empty cell"),
+                    Msg = Sender ! {self(), make_ref(), Reference,{move_ant_reply,{fail,none}}},
+                    logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+                    Cell;
+                _ ->
+                    New_Ref = make_ref(),
+                    Msg = Destination ! {self(),New_Ref,{place_ant,Ant}},
+                    {Message, New_Buffer} = message_buffer:receiver(New_Ref,utils:getCellMetadata(Cell)),
+                    New_Cell0 = utils:setCellMetadata(Cell,New_Buffer),
+                    logger:logMessage(utils:getCellLog(Cell),Message),
+        
+                    case Message of
+                        {_,_,_,{place_ant_reply,fail}} ->
+                            logger:logEvent(utils:getCellLog(Cell),"Ant was not alowed to move to cell"),
+                            Msg3 = Sender ! {self(), make_ref(), Reference,{move_ant_reply,{fail,none}}},
+                            logger:logMessageSent(utils:getCellLog(Cell),Msg3,Sender),
+                            New_Cell0;
+                        {_,_,_,{place_ant_reply,sucsess}} ->
+                            logger:logEvent(utils:getCellLog(Cell),"Ant was not allowed to move!"),
+                            New_Map = maps:put(ant,none,utils:getCellAttributes(Cell)),
+                            New_Cell1 = utils:setCellAttributes(New_Cell0,New_Map),
+                            Msg1 = Sender ! {self(), make_ref(), Reference,{move_ant_reply,{sucsess,Destination}}},
+                            logger:logMessageSent(utils:getCellLog(Cell),Msg1,Sender),
+                            New_Cell1
+                    end
+            end
+    end.
+
+    
+    
+    
+
+placeAnt(Cell,Sender,Reference,New_Ant) ->
+    logger:logEvent(utils:getCellLog(Cell),"Attempting to place ant"),
+    Ant = maps:get(ant,utils:getCellAttributes(Cell),none),
+    Type = maps:get(type,utils:getCellAttributes(Cell),none),
+    case {Ant,Type} of
+        {_,block} ->
+            logger:logEvent(utils:getCellLog(Cell),"Could not place ant. Cell is block"),
+            Msg = Sender ! {self(),make_ref(),Reference,{place_ant_reply,fail}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            Cell;
+        {none,_} ->
+            logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Placing ant ~p", [New_Ant])),
+            New_Map = maps:put(ant,New_Ant,utils:getCellAttributes(Cell)),
+            New_Cell = utils:setCellAttributes(Cell,New_Map),
+            Msg = Sender ! {self(),make_ref(),Reference,{place_ant_reply,sucsess}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            New_Cell;
+        {_,_} ->
+            logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Could not place ant since ant is ~p.", [Ant])),
+            Msg = Sender ! {self(),make_ref(),Reference,{place_ant_reply,fail}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            Cell
+    end.
+
+            
+            
+            
 
 hoodQuerry(Cell,Sender,Reference) ->
     logger:logEvent(utils:getCellLog(Cell), "Processing hood request"),
@@ -205,6 +298,30 @@ buildHoodThing(Cell,[Hd|Tl],CoolList,Refs) ->
 %% ====================================================================
 %% TESTS.... of doom!
 %% ====================================================================
+
+buildTestWorld() ->
+    logger:initLogger(),
+        Hood = {
+            spawn(fun () -> spawnCell({-1,1}) end),spawn(fun () -> spawnCell({0,1}) end),spawn(fun () -> spawnCell({1,1}) end),
+            spawn(fun () -> spawnCell({-1,0}) end),spawn(fun () -> spawnCell({0,0}) end),spawn(fun () -> spawnCell({1,0}) end),
+            spawn(fun () -> spawnCell({-1,-1}) end),spawn(fun () -> spawnCell({0,-1}) end),spawn(fun () -> spawnCell({1,-1}) end)
+           },
+    Center_Cell = element(5,Hood),
+    Next_Cell = element(6,Hood),
+    Ref = make_ref(),
+    Center_Cell ! {self(), Ref,{linkup,Hood,Next_Cell}},
+    receive
+        _ ->
+            ok
+    end,
+    My_Pid = self(),
+    lists:map(fun(X) -> X ! {My_Pid, Ref,{linkup,none,none}} end, [
+                                                               element(1,Hood),element(2,Hood),element(3,Hood),
+                                                               element(4,Hood),                element(6,Hood),
+                                                               element(7,Hood),element(8,Hood),element(9,Hood)
+                                                              ]),
+    ignoreMessages(8),
+    {Center_Cell,Next_Cell,Hood}.
 
 spawnTest() ->
     ?debugMsg("Testing Spawner"),
@@ -287,11 +404,131 @@ queryHoodTest() ->
     receive
         Message = {Pid,_,Key_Reference,{query_hood_reply,_}} when Pid == Center_Cell, Key_Reference == Reference ->
             %?debugFmt("Received reqply message  ~p ~n",[Message]),
+            lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             true;
         _A ->
             ?debugFmt("Received wrong message  ~p ~nWas Expecting reference ~p from ~p ~n ",[_A,Reference,Center_Cell]),
             false
     end.
+
+dumbAnt() ->
+    dumbAnt().
+    
+
+placeAntTest()->
+    {Center_Cell,Next,Hood} = buildTestWorld(),
+    Ant = spawn(fun() -> dumbAnt() end),
+    Reference = make_ref(),
+    
+    Center_Cell ! {self(),Reference,{place_ant,Ant}},
+    {Message,_} = message_buffer:receiver(Reference,{0,[]}),
+    case Message of
+        {Pid,_,Key_Reference,{place_ant_reply,sucsess}} when Pid == Center_Cell, Key_Reference == Reference ->
+            timer:sleep(100),
+            %lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
+            %exit(Ant,succsess),
+            true;
+        _A ->
+            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A,Reference,Center_Cell]),
+            false
+    end,
+    
+    Ant2 = spawn(fun() -> dumbAnt() end),
+    Ref2 = make_ref(),
+    Center_Cell ! {self(),Ref2,{place_ant,Ant2}},
+    timer:sleep(100),
+    %{Message,_} = message_buffer:receiver(Ref2,{0,{}}),
+    receive
+        {Pid2,_,Key_Ref,{place_ant_reply,fail}} when Pid2 == Center_Cell, Key_Ref == Ref2 ->
+            timer:sleep(100),
+            lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
+            exit(Ant2,succsess),
+            true;
+        _AA ->
+            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_AA,Reference,Center_Cell]),
+            false
+    end.
+            
+coolAnt(Mainy) ->
+    receive
+        _A ->
+            Mainy ! _A
+    end,
+    coolAnt(Mainy).
+                     
+moveAntTest() ->
+    {Center_Cell,Next,Hood} = buildTestWorld(),
+    My_Pid = self(),
+    Ant1 = spawn(fun() -> coolAnt(My_Pid) end),
+    Ant2 = spawn(fun() -> coolAnt(My_Pid) end),
+    
+    
+    %place first ant in the center
+    Place_Ref1 = make_ref(), 
+    Center_Cell ! {Ant1,Place_Ref1,{place_ant,Ant1}},
+    {Message,_} = message_buffer:receiver(Place_Ref1,{0,[]}),
+    case Message of
+        {_,_,_,{place_ant_reply,sucsess}} ->
+            timer:sleep(100);
+        _A0 ->
+            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A0,Place_Ref1,Ant1]),
+            ?assert(false)
+    end,
+    
+    
+    %move ant to the east
+    Move_Ref1 = make_ref(), 
+    Center_Cell ! {Ant1,Move_Ref1,{move_ant,east}},
+    {Message1,_} = message_buffer:receiver(Move_Ref1,{0,[]}),
+    case Message1 of
+        {_,_,_,{move_ant_reply,{sucsess,Pid}}} when Pid == Next->
+            timer:sleep(100);
+        _A1 ->
+            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A1,Move_Ref1,Ant1]),
+            ?assert(false)
+    end,
+
+    
+    %place second ant in the center
+    Place_Ref2 = make_ref(), 
+    Center_Cell ! {Ant2,Place_Ref2,{place_ant,Ant2}},
+    {Message2,_} = message_buffer:receiver(Place_Ref2,{0,[]}),
+    case Message2 of
+        {_,_,_,{place_ant_reply,sucsess}} ->
+            timer:sleep(100);
+        _A2 ->
+            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A2,Place_Ref2,Ant2]),
+            ?assert(false)
+    end,
+    
+    %try to move second ant to the east. which should not be allowed.
+    Move_Ref2 = make_ref(), 
+    Center_Cell ! {Ant2,Move_Ref2,{move_ant,east}},
+    {Message3,_} = message_buffer:receiver(Move_Ref2,{0,[]}),
+    case Message3 of
+        {_,_,_,{move_ant_reply,{fail, none}}} ->
+            timer:sleep(100);
+        _A3 ->
+            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A3,Move_Ref2,Ant2]),
+            ?assert(false)
+    end,
+    
+    %try to move second ant "from" the east wich should not be allowed due to wrong ant
+    Move_Ref3 = make_ref(), 
+    Next ! {Ant2,Move_Ref3,{move_ant,east}},
+    {Message4,_} = message_buffer:receiver(Move_Ref3,{0,[]}),
+    case Message4 of
+        {_,_,_,{move_ant_reply,{fail, none}}} ->
+            timer:sleep(100);
+        _A4 ->
+            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A4,Move_Ref3,Ant2]),
+            ?assert(false)
+    end,
+    
+    
+    true.
+    
+
 
 ignoreMessages(0) ->
     ok;
@@ -310,6 +547,12 @@ linkupTest_test() ->
 
 queryHood_test()->
     [?assert(queryHoodTest())].
+
+testPlaceAnt_test()->
+    [?assert(placeAntTest())].
+
+testMoveAnt_test()->
+    [?assert(moveAntTest())].
 
 
 
