@@ -8,7 +8,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
--export([init_Grid/1,set_Grid_Element/3]).
+-export([initGrid/1,setGridElement/3]).
 
 %% =====================================================================================
 %% Exported functions
@@ -17,12 +17,12 @@
 -type grid()::{Array::array:array(), {Width::integer(), Height::integer()}}.
 
 
--spec init_Grid({Width::integer(),Height::integer()}) -> ok.
+-spec initGrid({Width::integer(),Height::integer()}) -> ok.
 %% Initializes the grid on which the simulation is run
-init_Grid(Size) ->
+initGrid(Size) ->
     logger:initLogger(),
-    Grid = new_Grid(Size),
-    Filled_Grid = fill_Grid(Size, Grid),
+    Grid = newGrid(Size),
+    Filled_Grid = fillGrid(Size, Grid),
     {Array,Refs} = linkup(Size,Filled_Grid),
     awaitReplies(Refs,{0,[]}).
 
@@ -31,9 +31,9 @@ init_Grid(Size) ->
 
 
 %% set_Grid_Element should be moved to another module
--spec set_Grid_Element({X::integer(), Y::integer()},_Value, Array::array:array()) -> array:array().
+-spec setGridElement({X::integer(), Y::integer()},_Value, Array::array:array()) -> array:array().
 %% Sets an element in the provided two-dimensional array to given value
-set_Grid_Element({X, Y}, Value, Array) ->
+setGridElement({X, Y}, Value, Array) ->
     Y_Array = array:get(X, Array),
     New_Y_Array = array:set(Y, Value, Y_Array),
     array:set(X, New_Y_Array, Array).
@@ -43,31 +43,31 @@ set_Grid_Element({X, Y}, Value, Array) ->
 %% =====================================================================================
 
 
--spec new_Grid({Width::integer(), Height::integer()}) -> grid().
+-spec newGrid({Width::integer(), Height::integer()}) -> grid().
 %% Creates a two-dimensional array with given size
-new_Grid({Width, Height}) ->
+newGrid({Width, Height}) ->
     array:new([{size, Width}, {default, array:new([{size, Height}, {default, none}])}]).
 
 
--spec fill_Grid({Width::integer(), Height::integer()}, Array::array:array()) -> array:array().
+-spec fillGrid({Width::integer(), Height::integer()}, Array::array:array()) -> array:array().
 %% Fills the grid with PIDs to their workers
-fill_Grid({Width, Height}, Array) ->
-    fill_Grid_Aux({0,0}, {Width,Height}, Array).
+fillGrid({Width, Height}, Array) ->
+    fillGridAux({0,0}, {Width,Height}, Array).
 
 
 
--spec get_Grid_Element({X::integer(), Y::integer()},{Width::integer(),Height::integer()}, Array::array:array()) -> _A.
+-spec getGridElement({X::integer(), Y::integer()},{Width::integer(),Height::integer()}, Array::array:array()) -> _A.
 %% Gets the value in a given coordinate in given two-dimensional array, if given coordinate exists
-get_Grid_Element({X,Y},{Width,Height},Array) when X < Width, X >= 0, Y < Height, Y >= 0 ->
+getGridElement({X,Y},{Width,Height},Array) when X < Width, X >= 0, Y < Height, Y >= 0 ->
     array:get(Y, array:get(X,Array));
-get_Grid_Element(_,_,_) ->
+getGridElement(_,_,_) ->
     none.
 
 
 -spec linkup({Width::integer(), Height::integer()},Array) -> {Array,_Refs}.
 %% Makes sure that every worker in given two-dimensional array is up and running
 linkup({Width, Height},Array) ->
-    {Array,Refs } = linkup_Aux({0,0},{Width, Height},Array,[]).
+    {Array,Refs } = linkupAux({0,0},{Width, Height},Array,[]).
 
 
 %% =====================================================================================
@@ -89,54 +89,54 @@ awaitReplies(Refs,Buffer) ->
 
 
 %% Recursive help function for linkup()
-linkup_Aux({_,Y},{_,Height}, Array,Refs) when Y == Height ->
+linkupAux({_,Y},{_,Height}, Array,Refs) when Y == Height ->
     {Array,Refs};
-linkup_Aux({X, Y},{Width, Height}, Array,Refs) when X == Width ->
-    linkup_Aux({0, Y+1},{Width,Height}, Array, Refs);
-linkup_Aux({X,Y},Grid_Size,Array,Refs) ->
-    Center = get_Grid_Element({X,Y},Grid_Size,Array),
+linkupAux({X, Y},{Width, Height}, Array,Refs) when X == Width ->
+    linkupAux({0, Y+1},{Width,Height}, Array, Refs);
+linkupAux({X,Y},Grid_Size,Array,Refs) ->
+    Center = getGridElement({X,Y},Grid_Size,Array),
     if 
         Center == none ->
             ok;
         true ->
-            Hood = get_Hood({X,Y},Grid_Size,Array),
-            Next = get_Next_Grid_Element({X,Y},Grid_Size),
+            Hood = getHood({X,Y},Grid_Size,Array),
+            Next = getNextGridElement({X,Y},Grid_Size),
             Ref = make_ref(),
             Center ! {self(),Ref, {linkup, Hood, Next}},
-            linkup_Aux({X+1, Y}, Grid_Size, Array, [Ref]++Refs)
+            linkupAux({X+1, Y}, Grid_Size, Array, [Ref]++Refs)
     end.
 
 
 %% Returns a tuple with PIDs to a workers neighborhood
-get_Hood({X,Y},Grid_Size,Array) ->
-    {get_Grid_Element({X-1, Y+1},Grid_Size,Array),
-     get_Grid_Element({X  , Y+1},Grid_Size,Array),
-     get_Grid_Element({X+1, Y+1},Grid_Size,Array),
-     get_Grid_Element({X-1, Y  },Grid_Size,Array),
-     get_Grid_Element({X  , Y  },Grid_Size,Array),
-     get_Grid_Element({X+1, Y  },Grid_Size,Array),
-     get_Grid_Element({X-1, Y-1},Grid_Size,Array),
-     get_Grid_Element({X  , Y-1},Grid_Size,Array),
-     get_Grid_Element({X+1, Y-1},Grid_Size,Array)}.
+getHood({X,Y},Grid_Size,Array) ->
+    {getGridElement({X-1, Y+1},Grid_Size,Array),
+     getGridElement({X  , Y+1},Grid_Size,Array),
+     getGridElement({X+1, Y+1},Grid_Size,Array),
+     getGridElement({X-1, Y  },Grid_Size,Array),
+     getGridElement({X  , Y  },Grid_Size,Array),
+     getGridElement({X+1, Y  },Grid_Size,Array),
+     getGridElement({X-1, Y-1},Grid_Size,Array),
+     getGridElement({X  , Y-1},Grid_Size,Array),
+     getGridElement({X+1, Y-1},Grid_Size,Array)}.
 
 %% Returns "next" position in two-dimensional array, in a bottom to top, left to right order
-get_Next_Grid_Element({X,Y},{Width,Height}) when X == (Width-1), Y == (Height-1) ->
+getNextGridElement({X,Y},{Width,Height}) when X == (Width-1), Y == (Height-1) ->
     none;
-get_Next_Grid_Element({X,Y},{Width,_}) when X == (Width-1) ->
+getNextGridElement({X,Y},{Width,_}) when X == (Width-1) ->
     {0, Y+1};
-get_Next_Grid_Element({X,Y},_) ->
+getNextGridElement({X,Y},_) ->
     {X+1, Y}.
 
 
 %% Recursive helper function to fill_Grid
-fill_Grid_Aux({_,Y}, {_, Height},Array) when Y == Height ->
+fillGridAux({_,Y}, {_, Height},Array) when Y == Height ->
     Array;
-fill_Grid_Aux({X,Y}, {Width, Height},Array) when X == Width ->
-    fill_Grid_Aux({0, Y+1},{Width, Height}, Array);
-fill_Grid_Aux({X,Y},{Width, Height}, Array) ->
-    New_Array = set_Grid_Element({X,Y}, spawn_link(fun() -> cell:spawnCell({X,Y}) end), Array),
+fillGridAux({X,Y}, {Width, Height},Array) when X == Width ->
+    fillGridAux({0, Y+1},{Width, Height}, Array);
+fillGridAux({X,Y},{Width, Height}, Array) ->
+    New_Array = setGridElement({X,Y}, spawn_link(fun() -> cell:spawnCell({X,Y}) end), Array),
     %% PLACEHOLDER() to be replaced with actual cellstarting function
-    fill_Grid_Aux({X+1, Y},{Width, Height},New_Array).
+    fillGridAux({X+1, Y},{Width, Height},New_Array).
 
 
 %% =====================================================================================
@@ -144,6 +144,6 @@ fill_Grid_Aux({X,Y},{Width, Height}, Array) ->
 %% =====================================================================================
 
 linkupTest_test() ->
-    init_Grid({10,10}).
+    initGrid({10,10}).
 
 
