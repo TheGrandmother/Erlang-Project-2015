@@ -74,6 +74,9 @@ Projekt planering/möte.
 
 ##### Fredag
 
+##### Lördag
+5h Arbete med cell modulen.
+
 ## Vecka 20
 
 ##### Måndag
