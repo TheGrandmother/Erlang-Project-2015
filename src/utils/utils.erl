@@ -7,10 +7,12 @@
 		 setAntCell/2, setAntState/2, getAntLog/1, setAntLog/2, setAntAttributes/2, setAntMetadata/2,getCellLog/1,setCellLog/2]).
 
 %%@doc initiates a new cell with the position coordinates
+-spec initCell(Position::types:position()) -> types:cell().
 initCell(Position = {_X,_Y}) ->
     {self(), Position,none,none,none,none}.
 
 %%@doc returns the Pid of the argumented direction from the neighborhood
+-spec getOneDirection(Cell::types:cell(),Direction::types:direction()) -> types:pid().
 getOneDirection(Cell,northwest) ->
     {NW,_,_,_,_,_,_,_,_} = getCellHood(Cell),
     NW;
@@ -42,6 +44,7 @@ getOneDirection(_Cell, _) ->
     none.
 
 %%@doc Returns the neighborhood of the cell
+-spec getCellHood(Cell::types:cell()) -> types:neighbourhood().
 getCellHood(_Cell = {_,_,Hood,_,_,_,_}) ->
     Hood.
 %%@doc sets the neighborhood in cell, and returns the cell
@@ -104,6 +107,46 @@ getProperty([(L = {Type, _Val}) | Tl],Property) ->
 	    getProperty(Tl, Property)
     end.
 
+
+
+
+
+
+
+
+%%-spec changeColor(Cell::cell(),Color::color()) -> ok.
+%%changeState/2
+%%changes the state to color on current cell,
+%changeState(Pid, Color) ->
+%    Pid ! {self(), set_state, Color},
+%    receive 
+%	_->
+%	    ok
+%    end.
+
+%%getHood/1
+%%gets cells around current cell(Pid)
+%getHood(Pid) ->
+%    Pid ! {self(), querry_hood},
+%    receive
+%	Cell ->
+%	    Cell;
+%	_ ->
+%	    none
+%    end.
+
+%%getNext/1
+%%Returns the next cell from current Pid
+%getNext(Pid) ->
+%    Pid ! {self(), get_next},
+%    receive
+%	{_,_,NextPid} ->
+%	    NextPid;
+%	_ ->
+%	    none
+%    end.
+%
+
 %%@doc Returns the ant pid
 getAntPid(_Ant = {Pid, _, _, _, _, _}) ->
 	Pid.
@@ -121,7 +164,7 @@ getAntMetadata(_Ant = {_, _, _, _, Metadata, _}) ->
 	Metadata.
 %%@doc Returns the ants log
 getAntLog(_Ant = {_, _, _, _, _, Log}) ->
-    Log.
+	Log.
 
 %%@doc Sets the cell of ant, and returns the new ant
 setAntCell(_Ant = {Pid, _, State, Attributes, Metadata, Log}, NewCell) ->
@@ -131,6 +174,7 @@ setAntState(_Ant = {Pid, Cell, _, Attributes, Metadata, Log}, NewState) ->
 	{Pid, Cell, NewState, Attributes, Metadata, Log}.
 %%@doc Sets the ants atributes, and returns the new ant
 setAntAttributes(_Ant = {Pid, Cell, State, _, Metadata, Log}, NewAttributes) ->
+
 	{Pid, Cell, State, NewAttributes, Metadata , Log}.
 %%@doc Sets the ants metadata, and returns the new ant	
 setAntMetadata(_Ant = {Pid, Cell, State, Attributes, _, Log}, NewMetadata) ->
@@ -138,5 +182,4 @@ setAntMetadata(_Ant = {Pid, Cell, State, Attributes, _, Log}, NewMetadata) ->
 %%@doc Sets the ants log, and returns the new ant  
 setAntLog(_Ant = {Pid, Cell, State, Attributes, Metadata, _}, Log) ->
     {Pid, Cell, State, Attributes, Metadata, Log}.
-	
-	
+
