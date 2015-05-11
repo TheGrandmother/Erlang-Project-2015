@@ -25,8 +25,9 @@
 -type reply_message() :: {Sender::pid(),Reference::reference(),Request_Reference::reference(),Payload::reply_type()}.
 
 %% @doc This is the different types of one way messages
--type one_way_type() ::   {deposit_feremone,Type::feremone_name()}
-                        | {gui_update,[cell_attributes()]}
+-type one_way_type() ::   
+                        | {gui_update,[#{}]}
+						| {gui_init,{X::integer(),Y::integer()}}
                         | dump.
 
 %% @doc These are the different types of request messages
@@ -38,6 +39,7 @@
 						| {set_ant_attribute, Attributes::#{}}
                         | {linkup,Hood::neighbourhood(),Next::pid()}
                         | take_food 
+						| {deposit_feremone,Type::feremone_name()}
                         | ping.
                         
 
@@ -53,6 +55,7 @@
 						| {set_ant_attribute_reply, sucsess | fail}
                         | {linkup_reply, sucess | fail}
                         | {take_food_reply,sucsess | fail}
+						| {deposit_feremone_reply,sucsess | fail}
                         | pong.
                         
 %% @doc Type for the logger construct
