@@ -6,6 +6,8 @@
 
 -module(cell).
 -include_lib("eunit/include/eunit.hrl").
+-define(DEFAULT_FEREMONE_INCREASE,1).
+
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -49,7 +51,8 @@ awaitLinkup(Cell) ->
                     C2 = utils:setCellHood(Cell,Hood),
                     C3 = utils:setCellNext(C2,Next),
                     C4 = utils:setCellMetadata(C3,{0,[]}),
-                    C5 = utils:setCellAttributes(C4,#{type => plain}),
+                    Map = #{type => plain, feremones => #{base_feremone => {0,2},food_feremone=> {0,2}}},
+					C5 = utils:setCellAttributes(C4,Map),
                     logger:logEvent(utils:getCellLog(Cell),"Cell initialization complete!"),
                     Msg = Sender ! {self(),make_ref(),Reference,{linkup_reply, sucsess}},
                     logger:logMessageSent(utils:getCellLog(C5),Msg,Sender),
@@ -160,6 +163,12 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
             New_Cell = moveAnt(Cell,Sender,Reference,Direction),
             logger:logEvent(utils:getCellLog(New_Cell),"Completed move ant request"),
             New_Cell;
+		{deposit_feremone,Feremone_Name} ->
+			logger:logEvent(utils:getCellLog(Cell),"Recevied deposit feremone request"),
+            New_Cell = depositFeremone(Cell,Sender,Reference,Feremone_Name),
+            logger:logEvent(utils:getCellLog(New_Cell),"Processed deposit feremone request"),
+            New_Cell;
+			
             
             
 		_Any ->
@@ -170,6 +179,21 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 			
 						
 	end.
+
+-spec depositFeremone(Cell::types:cell(),Sender::pid(),Refernce::reference(), Feremone_Name::types:feremone_name()) -> types:cell().
+depositFeremone(Cell,Sender,Reference,Feremone_Name) ->
+	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to increase feremone ~p",[Feremone_Name])),
+	Map = utils:getCellAttributes(Cell),
+	Old_Feremone_Map = maps:get(feremones,Map),
+	{Old_Strength,Dissipation_Rate} = maps:get(Feremone_Name,Old_Feremone_Map),
+  	New_Strength = Old_Strength + ?DEFAULT_FEREMONE_INCREASE,
+	New_Feremone_Map = maps:put(Feremone_Name,{New_Strength,Dissipation_Rate},Old_Feremone_Map),
+	New_Map = maps:put(feremones,New_Feremone_Map,Map),
+	New_Cell = utils:setCellAttributes(Cell,New_Map),
+	Msg = Sender ! {self(),make_ref(),Reference,{deposit_feremone_reply,sucsess}},
+	logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+	New_Cell.
+	
 
 %% @doc Cell corresponding to the move ant state.
 -spec moveAnt(Cell::types:cell(),Sender::pid(),Refernce::reference(), Direction::types:direction()) -> types:cell().
@@ -200,8 +224,6 @@ moveAnt(Cell,Sender,Reference,Direction) ->
                     %% Await move reply state
                     New_Ref = make_ref(),
                     Msg = Destination ! {self(),New_Ref,{place_ant,Ant}},
-					logger:logMessageSent(utils:getCellLog(Cell),Msg,Destination),
-					logger:logEvent(utils:getCellLog(Cell),"Awaiting place ant reply during move"),
                     {Message, New_Buffer} = message_buffer:receiver(New_Ref,utils:getCellMetadata(Cell)),
                     New_Cell0 = utils:setCellMetadata(Cell,New_Buffer),
                     logger:logMessage(utils:getCellLog(Cell),Message),
@@ -576,13 +598,21 @@ moveAntTest() ->
             ?assert(false)
     end,
     
-   	%Center_Cell ! {self(), dump},
+    %Center_Cell ! {self(), dump},
     %Next ! {self(), dump},
     %timer:sleep(200),
     
     true.
     
-
+depositFeremoneTest() ->
+	{Center_Cell,Next,Hood} = buildTestWorld(),
+	Center_Cell ! {self(),dump},
+	timer:sleep(200),
+	Reference = make_ref(),
+	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
+	Center_Cell ! {self(),dump},
+	timer:sleep(200),
+	true.
 
 ignoreMessages(0) ->
     ok;
@@ -608,13 +638,5 @@ testPlaceAnt_test()->
 testMoveAnt_test()->
     [?assert(moveAntTest())].
 
-
-
-
-
-
-
-
-
-
-
+depositFeremone_test()->
+    [?assert(depositFeremoneTest())].
