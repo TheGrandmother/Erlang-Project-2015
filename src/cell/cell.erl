@@ -606,12 +606,31 @@ moveAntTest() ->
     
 depositFeremoneTest() ->
 	{Center_Cell,Next,Hood} = buildTestWorld(),
-	Center_Cell ! {self(),dump},
-	timer:sleep(200),
+	%Center_Cell ! {self(),dump},
+	%timer:sleep(200),
 	Reference = make_ref(),
 	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
-	Center_Cell ! {self(),dump},
-	timer:sleep(200),
+	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
+	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
+	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
+	
+	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
+	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
+	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
+	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
+
+	Cool_Ref = make_ref(),
+	Center_Cell ! {self(),Cool_Ref,query_state},
+	{Message,_} = message_buffer:receiver(Cool_Ref,{0,[]}),
+	case Message of
+		{_,_,_,{query_state_reply,Attributes}} ->
+			Feremone_Map = maps:get(feremones,Attributes),
+			{Base_Strength,_} = maps:get(base_feremone,Feremone_Map),
+			?assertEqual(Base_Strength,4),
+			{Food_Strength,_} = maps:get(food_feremone,Feremone_Map),
+			?assertEqual(Food_Strength,4)
+	end,
+	
 	true.
 
 ignoreMessages(0) ->
