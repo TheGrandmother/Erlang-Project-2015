@@ -20,8 +20,10 @@ Idag har jag suttit med personlig utveckling vilket har inneburit att lära mig 
 (5/5/2015)
 Vi hade möte för att bestämma hur arbetet skulle fortgå i gruppen, vi bestämde att jag och oscar skulle fortsätta att arbeta på utils modulen vilket vi gjorde resterande tiden av den dagen.
 
-(6/5/2015)
+(7/5/2015)
 Idag Codereviewade jag Henriks senaste inlägg och körde testen han gjort på min dator. Alles ok.
 Satt med Oskar och polerade klart koden vi jobbade med på tisdagen. 
 
+(8/5/2015)
+Satt själv och försökte få en djupare kunskap om erlang för att underlätta mitt och oscars nästa moment som vi ska börja på i helgen. Det var inte det lättaste men känner i alla fall nu att jag har fått en bättre förståelse för språkets mer avancerade användning.
 

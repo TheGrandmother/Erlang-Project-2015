@@ -11,7 +11,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([makeLog/2,initLogger/0,logMessage/2,logEvent/2,logWarning/2]).
+-export([makeLog/2,initLogger/0,logMessage/2,logEvent/2,makeCoolString/2,logWarning/2,logMessageSent/3]).
 
 -spec makeLog(Type::string(),Pid::pid()) -> types:log().
 
@@ -57,10 +57,10 @@ makeLog(Type,Pid,ok)->
         Status == ok ->
             ok;
         true ->
-            io:format("Logfile could not be created due to ~p ~n",[Status]),
+            io:format("Logfile could not be created due to ~p ~n~n",[Status]),
             exit(fail)
     end,
-    io:format(Device,"Logfile Created for ~s with pid ~w at ~w ~n",[Type,Pid,calendar:local_time()]),
+    io:format(Device,"Logfile Created for ~s with pid ~w at ~w ~n~n",[Type,Pid,calendar:local_time()]),
     {Device,Type,Pid}.
 
 -spec logMessage(Log::types:log(),_Message) -> ok.
@@ -77,13 +77,38 @@ logMessage({Device,Type,Pid},Message) ->
 
 logMessage({Device,Type,Pid},Message,ok) ->
     Sender = element(1,Message),
-    io:format(Device, "~s :: Message ~n    ",[makeTimeStamp()]),
+    io:format(Device, "~s :: MESSAGE RECEIVE ~n    ",[makeTimeStamp()]),
     case is_pid(Sender)of
         true ->
-            io:format(Device, "Received message from ~p:~n        ~p~n",[Sender,Message]);
+            io:format(Device, "Received message from ~p:~n        ~p~n~n",[Sender,Message]);
         false ->
-            io:format(Device, "Tried to log this wich is not a nice message:~n        ~p~n",[Message])
+            io:format(Device, "Tried to log this wich is not a nice message:~n        ~p~n~n",[Message])
     end.
+
+-spec logMessageSent(Log::types:log(),_Message,Recipient::pid()) -> ok.
+logMessageSent(none,_,_) ->
+    ok;
+
+logMessageSent({Device,Type,Pid},Message,Recipient) ->
+    case ?LOG_MESSAGES of
+        true ->
+            logMessageSent({Device,Type,Pid},Message,Recipient,ok);
+        _ ->
+            ok
+    end.
+
+logMessageSent({Device,Type,Pid},Message,Recipient,ok) ->
+    Sender = element(1,Message),
+    io:format(Device, "~s :: MESSAGE SENT ~n    ",[makeTimeStamp()]),
+    case is_pid(Sender)of
+        true ->
+            io:format(Device, "Sent Message To ~p:~n        ~p~n~n",[Recipient,Message]);
+        false ->
+            io:format(Device, "Tried to log this wich is not a nice message:~n        ~p~n~n",[Message])
+    end.
+
+
+
 
 logEvent(none,_) ->
 	ok;
@@ -96,16 +121,16 @@ logEvent({Device,Type,Pid},Event) ->
 	end.
 
 logEvent({Device,Type,Pid},Event,ok) ->
-    io:format(Device, "~s :: Event ~n    ",[makeTimeStamp()]),
-    io:format(Device, "~p~n",[Event]).
+    io:format(Device, "~s :: EVENT ~n    ",[makeTimeStamp()]),
+    io:format(Device, "~p~n~n",[Event]).
 
 
 logWarning(none,_) ->
 	ok;
 
 logWarning({Device,Type,Pid},Warning) ->
-    io:format(Device, "~s :: Warning ~n    ",[makeTimeStamp()]),
-    io:format(Device, "~p~n",[Warning]).
+    io:format(Device, "~s :: WARNING ~n    ",[makeTimeStamp()]),
+    io:format(Device, "~p~n~n",[Warning]).
 
 %% ====================================================================
 %% Internal functions
