@@ -200,6 +200,8 @@ moveAnt(Cell,Sender,Reference,Direction) ->
                     %% Await move reply state
                     New_Ref = make_ref(),
                     Msg = Destination ! {self(),New_Ref,{place_ant,Ant}},
+					logger:logMessageSent(utils:getCellLog(Cell),Msg,Destination),
+					logger:logEvent(utils:getCellLog(Cell),"Awaiting place ant reply during move"),
                     {Message, New_Buffer} = message_buffer:receiver(New_Ref,utils:getCellMetadata(Cell)),
                     New_Cell0 = utils:setCellMetadata(Cell,New_Buffer),
                     logger:logMessage(utils:getCellLog(Cell),Message),
@@ -574,7 +576,7 @@ moveAntTest() ->
             ?assert(false)
     end,
     
-    %Center_Cell ! {self(), dump},
+   	%Center_Cell ! {self(), dump},
     %Next ! {self(), dump},
     %timer:sleep(200),
     
