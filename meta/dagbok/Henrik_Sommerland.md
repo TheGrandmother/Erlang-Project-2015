@@ -83,6 +83,7 @@ Projekt planering/möte.
 ## Vecka 20
 
 ##### Måndag
+4h arbete med cell.erl den är typ klar nu :)
 
 ##### Tisdag
 
