@@ -90,6 +90,8 @@ test_cell: $(cell_binary)
 #test_<name>: $(<name>_binary)
 #	erl -noshell -pa ebin -eval 'eunit:test(["$(<name>_binary)"], [verbose])' -s init stop
 
+clean:
+	rm ebin/*.beam
 
 #
 # This is testy stuff
@@ -98,9 +100,9 @@ test_cell: $(cell_binary)
 comma:= ,
 empty:=
 space:= $(empty) $(empty)
-THINGS := $(foreach lol,$(OBJECTS),"$(lol)")
-OBJECTS_LIST:= $(subst $(space),$(comma),$(THINGS))
-test_all: $(OBJECTS)
+THINGS = $(foreach lol,$(OBJECTS),"$(lol)")
+OBJECTS_LIST = $(subst $(space),$(comma),$(THINGS))
+test_all: $(OBJECTS) $(message_buffer_binary) $(cell_binary) $(logger_binary) $(grid_init_binary)
 	#echo $(BALLS)
 	#@echo $(OBJECT_LIST)
 	erl -noshell -pa ebin -eval 'eunit:test([$(OBJECTS_LIST)], [verbose])' -s init stop
