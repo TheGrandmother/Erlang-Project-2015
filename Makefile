@@ -103,8 +103,6 @@ space:= $(empty) $(empty)
 THINGS = $(foreach lol,$(OBJECTS),"$(lol)")
 OBJECTS_LIST = $(subst $(space),$(comma),$(THINGS))
 test_all: $(OBJECTS) $(message_buffer_binary) $(cell_binary) $(logger_binary) $(grid_init_binary)
-	#echo $(BALLS)
-	#@echo $(OBJECT_LIST)
 	erl -noshell -pa ebin -eval 'eunit:test([$(OBJECTS_LIST)], [verbose])' -s init stop
 
 test_all_quiet: $(OBJECTS)
