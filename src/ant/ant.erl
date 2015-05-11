@@ -1,4 +1,5 @@
-
+%% @author Tanshinan
+%% @todo Add further functionality of ant
 
 -module(ant).
 
@@ -11,6 +12,7 @@ spawn_Ant(Cell_Pid, Attributes) ->
 	spawn_link(fun() -> ant_Init(Cell_Pid, Attributes) end).
 
 
+%% Creates needed information for ant, and places it in given cell
 ant_Init(Cell_Pid, Attributes) ->
 	Ant_ID = self(),
 	State = searching_for_food,
@@ -18,7 +20,6 @@ ant_Init(Cell_Pid, Attributes) ->
 	Ref = make_ref(),
 	Cell_Pid ! {Ant_ID, Ref, {place_ant, Ant_ID}},
 	{{Sender, _, _, Response}, New_Buffer} = message_buffer:receiver(Ref, Buffer),
-%	{Message, New_Buffer} = message_buffer:reciever(Ref, Buffer),
 	Ant = {self(), Cell_Pid, State, Attributes, New_Buffer},
 	case Response of
 		{place_ant_reply, fail} ->
@@ -37,10 +38,14 @@ ant_Init(Cell_Pid, Attributes) ->
 			exit(fail)
 	end.
 
+%% Main loop of ant
+%% It is currently just walking around randomly
 ant_Main(Ant) ->
+	%% Start with a nap
 	timer:sleep(100),
 	State = utils:getAntState(Ant),
 	Cell = utils:getAntCell(Ant),
+	%% Tons of printout 
 	io:format("Ant in cell ~p ~n",[Cell]),
 	Buffer = utils:getAntMetadata(Ant),
 	case State of
@@ -69,6 +74,7 @@ ant_Main(Ant) ->
 
 
 
+%% Spawns a 1 by 2 grid and places an ant
 spawn_test() ->
 	Grid = grid_init:initGrid({2,1}),
 	Cell_ID = grid_init:getGridElement({0,0},{2,1},Grid),
