@@ -120,22 +120,6 @@ handleOneWayMessage(Cell, Payload) ->
 -spec handleRequest(Cell::types:cell(), {Snder::pid(),Reference::reference(),Payload::types:request_type()}) -> types:cell().
 handleRequest(Cell,{Sender,Reference,Payload}) ->
 	case Payload of
-		{set_cell_attribute, Attribute} ->
-			%%{New_Cell,Status} = setAttribute(Cell,Attribute), TBI!!!
-            {New_Cell,Status} = {Cell,fail},
-				logger:logEvent(utils:getCellLog(Cell),"Received set attributes request."),
-				case Status of
-					fail ->
-						logger:logEvent(utils:getCellLog(Cell),"Failed to Set attribute."),
-						Msg = Sender ! {self(), make_ref(),Reference,{set_cell_attribute_reply, fail}},
-                        logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
-						Cell;
-					sucess ->
-						logger:logEvent(utils:getCellLog(Cell),"Managed to set attibute"),
-						Msg = Sender ! {self(), make_ref(),Reference,{set_cell_attribute_reply, sucsess}},
-                        logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
-						New_Cell
-				end;
 		query_state ->
 			logger:logEvent(utils:getCellLog(Cell),"Received state querry"),
 			Msg = Sender ! {self(), make_ref(),Reference,{query_state_reply,utils:getCellAttributes(Cell)}},
@@ -168,7 +152,11 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
             New_Cell = depositFeremone(Cell,Sender,Reference,Feremone_Name),
             logger:logEvent(utils:getCellLog(New_Cell),"Processed deposit feremone request"),
             New_Cell;
-			
+		{set_cell_attribute,Attribute} ->
+			logger:logEvent(utils:getCellLog(Cell),"Recevied set cell attributerequest"),
+            New_Cell = setAttribute(Cell,Sender,Reference,Attribute),
+            logger:logEvent(utils:getCellLog(New_Cell),"Processed set attribute request"),
+            New_Cell;
             
             
 		_Any ->
@@ -179,6 +167,16 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 			
 						
 	end.
+
+-spec setAttribute(Cell::types:cell(),Sender::pid(),Refernce::reference(), Attribute::types:cell_attributes()) -> types:cell().
+setAttribute(Cell,Sender,Reference,{Type,Value}) ->
+	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to set state ~p to ~p."),{Type,Cell}),
+	Map = utils:getCellAttributes(Cell),
+	New_Map = maps:put(Type,Value,Map),
+	New_Cell = utils:setCellAttributes(Cell,New_Map),
+	Msg = Sender ! {self(),make_ref(),Reference,{set_cell_attribute_reply,sucsess}},
+	logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+	New_Cell.
 
 -spec depositFeremone(Cell::types:cell(),Sender::pid(),Refernce::reference(), Feremone_Name::types:feremone_name()) -> types:cell().
 depositFeremone(Cell,Sender,Reference,Feremone_Name) ->
@@ -192,6 +190,8 @@ depositFeremone(Cell,Sender,Reference,Feremone_Name) ->
 	New_Cell = utils:setCellAttributes(Cell,New_Map),
 	Msg = Sender ! {self(),make_ref(),Reference,{deposit_feremone_reply,sucsess}},
 	logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+	logger:logEvent(utils:getCellLog(Cell),"Feremone deposited."),
+
 	New_Cell.
 	
 
@@ -224,7 +224,8 @@ moveAnt(Cell,Sender,Reference,Direction) ->
                     %% Await move reply state
                     New_Ref = make_ref(),
                     Msg = Destination ! {self(),New_Ref,{place_ant,Ant}},
-                    {Message, New_Buffer} = message_buffer:receiver(New_Ref,utils:getCellMetadata(Cell)),
+					logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+                    {Message, New_Buffer} = message_buffer:receiver(New_Ref,utils:getCellMetadata(Cell)),					
                     New_Cell0 = utils:setCellMetadata(Cell,New_Buffer),
                     logger:logMessage(utils:getCellLog(Cell),Message),
         
@@ -301,7 +302,7 @@ hoodQuerryAux(Refs,In_Cell,Attributes) ->
     logger:logMessage(utils:getCellLog(Cell0),Message),
     
     case Message of
-        {Pid, _,Key_Reference,{query_state_reply,New_Attribute}} ->
+        {_, _,Key_Reference,{query_state_reply,New_Attribute}} ->
             hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,New_Attribute,Attributes,[]));
     
         _Any ->
@@ -316,14 +317,14 @@ hoodQuerryAux(Refs,In_Cell,Attributes) ->
 %% Auxfunction. Not documented
 %% ====================================================================
 
-dump({Pid,Position,Hood,Next_Cell, Attributes,{Length,Buffer},Log}) ->
-    S0 = "~n=======================================~nDUMP OF CELL ~p at coordinates ~p~n",
+dump({Pid,Position,Hood,Next_Cell, Attributes,{Length,Buffer},_}) ->
+    S0 = "~n=======================================~nDUMP OF CELL ~p(Connected to ~p) at coordinates ~p~n",
     S1 = "NEIGHBOURHOOD = ~n~p~n",
     S2 = "ATTRIBUTES = ~n~p~n",
     S3 = "MESSAGE BUFFER (~p waiting messages) = ~n~p~n",
     S4 = "=======================================~n",
     Big_String = string:join([S0,S1,S2,S3,S4],""),
-    Args = [Pid,Position,Hood,Attributes,Length,Buffer],
+    Args = [Pid,Next_Cell,Position,Hood,Attributes,Length,Buffer],
     %logger:logEvent(Log, logger:makeCoolString(Big_String, Args)),
     ?debugFmt(Big_String,Args).
     %logger:logEvent(Log,re:replace(logger:makeCoolString("~ts~ts~ts~ts~ts",[S0,S1,S2,S3,S4])),"\\","~").
@@ -339,7 +340,7 @@ findAndReplace(Reference,Val,[Hd|Tl],Acc)->
     end.
     
 
-buildHoodThing(Cell,[],CoolList,Refs) ->
+buildHoodThing(_,[],CoolList,Refs) ->
     
     {lists:reverse(CoolList),Refs};
 
@@ -405,11 +406,11 @@ spawnTest() ->
     CellPid ! {self(),Reference,ping},
     %?debugMsg("Sent message"),
     receive
-        {Pid,_,New_Ref,pong} ->
+        {_,_,New_Ref,pong} ->
             %?debugMsg("Received reply message"),
             ?assertEqual(New_Ref,Reference),
             
-            timer:sleep(250),
+            timer:sleep(10),
             exit(CellPid,sucsess),
             %?debugMsg("Slept and returning"),
             true;
@@ -441,7 +442,7 @@ linkupTest() ->
     {Msg,_} = message_buffer:receiver(Reference,{0,[]}),
     case Msg of
         {Pid,_,Key_Ref,{linkup_reply,sucsess}} when Pid == Center_Cell, Key_Ref == Reference ->
-            timer:sleep(500),
+            timer:sleep(10),
             lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             true;
         _->
@@ -450,32 +451,12 @@ linkupTest() ->
     end.
 
 queryHoodTest() ->
-    logger:initLogger(),
-    Hood = {
-            spawn(fun () -> spawnCell({-1,1}) end),spawn(fun () -> spawnCell({0,1}) end),spawn(fun () -> spawnCell({1,1}) end),
-            spawn(fun () -> spawnCell({-1,0}) end),spawn(fun () -> spawnCell({0,0}) end),spawn(fun () -> spawnCell({1,0}) end),
-            spawn(fun () -> spawnCell({-1,-1}) end),spawn(fun () -> spawnCell({0,-1}) end),spawn(fun () -> spawnCell({1,-1}) end)
-           },
-    Center_Cell = element(5,Hood),
-    Next_Cell = element(6,Hood),
-    Ref = make_ref(),
-    Center_Cell ! {self(), Ref,{linkup,Hood,Next_Cell}},
-    receive
-        _ ->
-            ok
-    end,
-    My_Pid = self(),
-    lists:map(fun(X) -> X ! {My_Pid, Ref,{linkup,none,none}} end, [
-                                                               element(1,Hood),element(2,Hood),element(3,Hood),
-                                                               element(4,Hood),                element(6,Hood),
-                                                               element(7,Hood),element(8,Hood),element(9,Hood)
-                                                              ]),
-    ignoreMessages(8),
+	{Center_Cell,_,Hood} = buildTestWorld(),
     
     Reference = make_ref(),
     Center_Cell ! {self(),Reference,query_hood},
     receive
-        Message = {Pid,_,Key_Reference,{query_hood_reply,_}} when Pid == Center_Cell, Key_Reference == Reference ->
+        {Pid,_,Key_Reference,{query_hood_reply,_}} when Pid == Center_Cell, Key_Reference == Reference ->
             %?debugFmt("Received reqply message  ~p ~n",[Message]),
             lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             true;
@@ -489,7 +470,7 @@ dumbAnt() ->
     
 
 placeAntTest()->
-    {Center_Cell,Next,Hood} = buildTestWorld(),
+    {Center_Cell,_,Hood} = buildTestWorld(),
     Ant = spawn(fun() -> dumbAnt() end),
     Reference = make_ref(),
     
@@ -497,7 +478,7 @@ placeAntTest()->
     {Message,_} = message_buffer:receiver(Reference,{0,[]}),
     case Message of
         {Pid,_,Key_Reference,{place_ant_reply,sucsess}} when Pid == Center_Cell, Key_Reference == Reference ->
-            timer:sleep(100),
+            timer:sleep(10),
             %lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             %exit(Ant,succsess),
             true;
@@ -509,11 +490,11 @@ placeAntTest()->
     Ant2 = spawn(fun() -> dumbAnt() end),
     Ref2 = make_ref(),
     Center_Cell ! {self(),Ref2,{place_ant,Ant2}},
-    timer:sleep(100),
+    timer:sleep(10),
     %{Message,_} = message_buffer:receiver(Ref2,{0,{}}),
     receive
         {Pid2,_,Key_Ref,{place_ant_reply,fail}} when Pid2 == Center_Cell, Key_Ref == Ref2 ->
-            timer:sleep(100),
+            timer:sleep(10),
             lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             exit(Ant2,succsess),
             true;
@@ -530,7 +511,7 @@ coolAnt(Mainy) ->
     coolAnt(Mainy).
                      
 moveAntTest() ->
-    {Center_Cell,Next,Hood} = buildTestWorld(),
+    {Center_Cell,Next,_} = buildTestWorld(),
     My_Pid = self(),
     Ant1 = spawn(fun() -> coolAnt(My_Pid) end),
     Ant2 = spawn(fun() -> coolAnt(My_Pid) end),
@@ -542,7 +523,7 @@ moveAntTest() ->
     {Message,_} = message_buffer:receiver(Place_Ref1,{0,[]}),
     case Message of
         {_,_,_,{place_ant_reply,sucsess}} ->
-            timer:sleep(100);
+            timer:sleep(10);
         _A0 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A0,Place_Ref1,Ant1]),
             ?assert(false)
@@ -555,7 +536,7 @@ moveAntTest() ->
     {Message1,_} = message_buffer:receiver(Move_Ref1,{0,[]}),
     case Message1 of
         {_,_,_,{move_ant_reply,{sucsess,Pid}}} when Pid == Next->
-            timer:sleep(100);
+            timer:sleep(10);
         _A1 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A1,Move_Ref1,Ant1]),
             ?assert(false)
@@ -568,7 +549,7 @@ moveAntTest() ->
     {Message2,_} = message_buffer:receiver(Place_Ref2,{0,[]}),
     case Message2 of
         {_,_,_,{place_ant_reply,sucsess}} ->
-            timer:sleep(100);
+            timer:sleep(10);
         _A2 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A2,Place_Ref2,Ant2]),
             ?assert(false)
@@ -580,7 +561,7 @@ moveAntTest() ->
     {Message3,_} = message_buffer:receiver(Move_Ref2,{0,[]}),
     case Message3 of
         {_,_,_,{move_ant_reply,{fail, none}}} ->
-            timer:sleep(100);
+            timer:sleep(10);
         _A3 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A3,Move_Ref2,Ant2]),
             ?assert(false)
@@ -592,7 +573,7 @@ moveAntTest() ->
     {Message4,_} = message_buffer:receiver(Move_Ref3,{0,[]}),
     case Message4 of
         {_,_,_,{move_ant_reply,{fail, none}}} ->
-            timer:sleep(100);
+            timer:sleep(10);
         _A4 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A4,Move_Ref3,Ant2]),
             ?assert(false)
@@ -605,7 +586,7 @@ moveAntTest() ->
     true.
     
 depositFeremoneTest() ->
-	{Center_Cell,Next,Hood} = buildTestWorld(),
+	{Center_Cell,_,_} = buildTestWorld(),
 	%Center_Cell ! {self(),dump},
 	%timer:sleep(200),
 	Reference = make_ref(),
@@ -618,7 +599,9 @@ depositFeremoneTest() ->
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
-
+	
+	ignoreMessages(8),
+	
 	Cool_Ref = make_ref(),
 	Center_Cell ! {self(),Cool_Ref,query_state},
 	{Message,_} = message_buffer:receiver(Cool_Ref,{0,[]}),
