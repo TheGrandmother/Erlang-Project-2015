@@ -26,7 +26,7 @@
 
 %% @doc This is the different types of one way messages
 -type one_way_type() ::   
-                        | {gui_update,[#{}]}
+                        | {gui_update,{X::integer(),Y::integer()},[#{}]}
 						| {gui_init,{X::integer(),Y::integer()}}
                         | dump.
 
