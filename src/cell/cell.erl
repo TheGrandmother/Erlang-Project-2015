@@ -51,7 +51,7 @@ awaitLinkup(Cell) ->
                     C2 = utils:setCellHood(Cell,Hood),
                     C3 = utils:setCellNext(C2,Next),
                     C4 = utils:setCellMetadata(C3,{0,[]}),
-                    Map = #{type => plain, feremones => #{base_feremone => {0,2},food_feremone=> {0,2}}},
+                    Map = #{type => plain,food => 0 ,feremones => #{base_feremone => {0,2},food_feremone=> {0,2}}},
 					C5 = utils:setCellAttributes(C4,Map),
                     logger:logEvent(utils:getCellLog(Cell),"Cell initialization complete!"),
                     Msg = Sender ! {self(),make_ref(),Reference,{linkup_reply, sucsess}},
@@ -84,7 +84,7 @@ cellMain(In_Cell) ->
 	logger:logMessage(utils:getCellLog(Cell),Message),
 	case Message of
 		
-        OneWay = {_,Payload} ->
+        {_,Payload} ->
             logger:logEvent(utils:getCellLog(Cell),"Received oneway message"),
             New_Cell = handleOneWayMessage(Cell, Payload),
             logger:logEvent(utils:getCellLog(New_Cell),"Finished with one way message"),
@@ -124,11 +124,12 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 			logger:logEvent(utils:getCellLog(Cell),"Received state querry"),
 			Msg = Sender ! {self(), make_ref(),Reference,{query_state_reply,utils:getCellAttributes(Cell)}},
             logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            logger:logEvent(utils:getCellLog(Cell),"Processed state querry"),
 			Cell;
         query_hood ->
             logger:logEvent(utils:getCellLog(Cell),"Received hood querry"),
             hoodQuerry(Cell, Sender, Reference),
-            logger:logEvent(utils:getCellLog(Cell),"Completed Hood querry"),
+            logger:logEvent(utils:getCellLog(Cell),"Processed hood querry"),
             Cell;
         ping ->
             logger:logEvent(utils:getCellLog(Cell),"Received ping"),
@@ -139,13 +140,13 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
         {place_ant,Ant} ->
             logger:logEvent(utils:getCellLog(Cell),"Recevied place ant request"),
             New_Cell = placeAnt(Cell,Sender,Reference,Ant),
-            logger:logEvent(utils:getCellLog(New_Cell),"Completed place ant request"),
+            logger:logEvent(utils:getCellLog(New_Cell),"Processed place ant request"),
             New_Cell;
         
         {move_ant,Direction} ->
             logger:logEvent(utils:getCellLog(Cell),"Recevied move ant request"),
             New_Cell = moveAnt(Cell,Sender,Reference,Direction),
-            logger:logEvent(utils:getCellLog(New_Cell),"Completed move ant request"),
+            logger:logEvent(utils:getCellLog(New_Cell),"Processed move ant request"),
             New_Cell;
 		{deposit_feremone,Feremone_Name} ->
 			logger:logEvent(utils:getCellLog(Cell),"Recevied deposit feremone request"),
@@ -156,6 +157,11 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 			logger:logEvent(utils:getCellLog(Cell),"Recevied set cell attributerequest"),
             New_Cell = setAttribute(Cell,Sender,Reference,Attribute),
             logger:logEvent(utils:getCellLog(New_Cell),"Processed set attribute request"),
+            New_Cell;
+        take_food ->
+            logger:logEvent(utils:getCellLog(Cell),"Recevied take food request"),
+            New_Cell = takeFood(Cell,Sender,Reference),
+            logger:logEvent(utils:getCellLog(New_Cell),"Processed take food request"),
             New_Cell;
             
             
@@ -168,9 +174,34 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 						
 	end.
 
+
+
+-spec takeFood(Cell::types:cell(),Sender::pid(),Refernce::reference()) -> types:cell().
+takeFood(Cell,Sender,Reference) ->
+    logger:logEvent(utils:getCellLog(Cell),"Attempting to take food"),
+    Map = utils:getCellAttributes(Cell),
+    Food_Amount = maps:get(food,Map),
+    case Food_Amount of
+        0 ->
+            logger:logEvent(utils:getCellLog(Cell),"Cell contains no food."),
+            Msg = Sender ! {self(),make_ref(),Reference,{take_food_reply,fail}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            Cell;
+        
+        _ ->
+            logger:logEvent(utils:getCellLog(Cell),"Ant stole some food!."),
+            Msg = Sender ! {self(),make_ref(),Reference,{take_food_reply,sucsess}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+            New_Food = Food_Amount -1,
+            New_Map = maps:put(food,New_Food,Map),
+            New_Cell = utils:setCellAttributes(Cell,New_Map),
+            New_Cell
+    end.
+
+
 -spec setAttribute(Cell::types:cell(),Sender::pid(),Refernce::reference(), Attribute::types:cell_attributes()) -> types:cell().
 setAttribute(Cell,Sender,Reference,{Type,Value}) ->
-	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to set state ~p to ~p.",[Type,Cell])),
+	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to set attribute ~p to ~p.",[Type,Value])),
 	Map = utils:getCellAttributes(Cell),
 	New_Map = maps:put(Type,Value,Map),
 	New_Cell = utils:setCellAttributes(Cell,New_Map),
@@ -409,8 +440,6 @@ spawnTest() ->
         {_,_,New_Ref,pong} ->
             %?debugMsg("Received reply message"),
             ?assertEqual(New_Ref,Reference),
-            
-            timer:sleep(10),
             exit(CellPid,sucsess),
             %?debugMsg("Slept and returning"),
             true;
@@ -442,7 +471,6 @@ linkupTest() ->
     {Msg,_} = message_buffer:receiver(Reference,{0,[]}),
     case Msg of
         {Pid,_,Key_Ref,{linkup_reply,sucsess}} when Pid == Center_Cell, Key_Ref == Reference ->
-            timer:sleep(10),
             lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             true;
         _->
@@ -472,34 +500,28 @@ dumbAnt() ->
 placeAntTest()->
     {Center_Cell,_,Hood} = buildTestWorld(),
     Ant = spawn(fun() -> dumbAnt() end),
-    Reference = make_ref(),
     
-    Center_Cell ! {self(),Reference,{place_ant,Ant}},
-    {Message,_} = message_buffer:receiver(Reference,{0,[]}),
+    Message = sendAndReceive(Center_Cell, {place_ant,Ant}),
     case Message of
-        {Pid,_,Key_Reference,{place_ant_reply,sucsess}} when Pid == Center_Cell, Key_Reference == Reference ->
-            timer:sleep(10),
+        {_,_,_,{place_ant_reply,sucsess}}->
             %lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             %exit(Ant,succsess),
             true;
         _A ->
-            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A,Reference,Center_Cell]),
+            ?debugFmt("Received wrong message  ~p ~n ",[_A]),
             false
     end,
     
     Ant2 = spawn(fun() -> dumbAnt() end),
-    Ref2 = make_ref(),
-    Center_Cell ! {self(),Ref2,{place_ant,Ant2}},
-    timer:sleep(10),
-    %{Message,_} = message_buffer:receiver(Ref2,{0,{}}),
-    receive
-        {Pid2,_,Key_Ref,{place_ant_reply,fail}} when Pid2 == Center_Cell, Key_Ref == Ref2 ->
-            timer:sleep(10),
+    
+    Message1 = sendAndReceive(Center_Cell, {place_ant,Ant2}),
+     case Message1 of
+        {_,_,_,{place_ant_reply,fail}} ->
             lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
             exit(Ant2,succsess),
             true;
         _AA ->
-            ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_AA,Reference,Center_Cell]),
+            ?debugFmt("Received wrong message  ~p ~n ",[_AA]),
             false
     end.
             
@@ -523,7 +545,7 @@ moveAntTest() ->
     {Message,_} = message_buffer:receiver(Place_Ref1,{0,[]}),
     case Message of
         {_,_,_,{place_ant_reply,sucsess}} ->
-            timer:sleep(10);
+            ok;
         _A0 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A0,Place_Ref1,Ant1]),
             ?assert(false)
@@ -536,7 +558,7 @@ moveAntTest() ->
     {Message1,_} = message_buffer:receiver(Move_Ref1,{0,[]}),
     case Message1 of
         {_,_,_,{move_ant_reply,{sucsess,Pid}}} when Pid == Next->
-            timer:sleep(10);
+            ok;
         _A1 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A1,Move_Ref1,Ant1]),
             ?assert(false)
@@ -549,7 +571,7 @@ moveAntTest() ->
     {Message2,_} = message_buffer:receiver(Place_Ref2,{0,[]}),
     case Message2 of
         {_,_,_,{place_ant_reply,sucsess}} ->
-            timer:sleep(10);
+            ok;
         _A2 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A2,Place_Ref2,Ant2]),
             ?assert(false)
@@ -561,7 +583,7 @@ moveAntTest() ->
     {Message3,_} = message_buffer:receiver(Move_Ref2,{0,[]}),
     case Message3 of
         {_,_,_,{move_ant_reply,{fail, none}}} ->
-            timer:sleep(10);
+            ok;
         _A3 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A3,Move_Ref2,Ant2]),
             ?assert(false)
@@ -573,22 +595,17 @@ moveAntTest() ->
     {Message4,_} = message_buffer:receiver(Move_Ref3,{0,[]}),
     case Message4 of
         {_,_,_,{move_ant_reply,{fail, none}}} ->
-            timer:sleep(10);
+            ok;
         _A4 ->
             ?debugFmt("Received wrong message  ~p ~n Was Expecting reference ~p from ~p ~n ",[_A4,Move_Ref3,Ant2]),
             ?assert(false)
     end,
-    
-    %Center_Cell ! {self(), dump},
-    %Next ! {self(), dump},
-    %timer:sleep(200),
-    
+
     true.
     
 depositFeremoneTest() ->
 	{Center_Cell,_,_} = buildTestWorld(),
-	%Center_Cell ! {self(),dump},
-	%timer:sleep(200),
+
 	Reference = make_ref(),
 	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
@@ -601,10 +618,8 @@ depositFeremoneTest() ->
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
 	
 	ignoreMessages(8),
-	
-	Cool_Ref = make_ref(),
-	Center_Cell ! {self(),Cool_Ref,query_state},
-	{Message,_} = message_buffer:receiver(Cool_Ref,{0,[]}),
+
+	Message = sendAndReceive(Center_Cell, query_state),
 	case Message of
 		{_,_,_,{query_state_reply,Attributes}} ->
 			Feremone_Map = maps:get(feremones,Attributes),
@@ -618,18 +633,16 @@ depositFeremoneTest() ->
 
 setAttributeTest() ->
 	{Center_Cell,_,_} = buildTestWorld(),
-	Ref = make_ref(),
-	Center_Cell ! {self(),Ref,{set_cell_attribute,{type,nest}}},
-	{Message,_} = message_buffer:receiver(Ref,{0,[]}),
+	
+	Message = sendAndReceive(Center_Cell, {set_cell_attribute,{type,nest}}),
 	case Message of
 		{_,_,_,{set_cell_attribute_reply,sucsess}} ->
 			ok;
 		_ ->
 			?assert(false)
 	end,
-	Cool_Ref = make_ref(),
-	Center_Cell ! {self(),Cool_Ref,query_state},
-	{Message1,_} = message_buffer:receiver(Cool_Ref,{0,[]}),
+    
+    Message1 = sendAndReceive(Center_Cell, query_state),
 	case Message1 of
 		{_,_,_,{query_state_reply,Attributes}} ->
 			Type = maps:get(type,Attributes,none),
@@ -641,9 +654,63 @@ setAttributeTest() ->
 	%timer:sleep(50),
 	true.
 	
+
+takeFoodTest() ->
+    {Center_Cell,_,_} = buildTestWorld(),
+    Ref = make_ref(),
+    
+    Center_Cell ! {self(),Ref,{set_cell_attribute,{food,10}}},
+    ignoreMessages(1),
+
+    Message1 = sendAndReceive(Center_Cell, take_food),
+    case Message1 of
+        {_,_,_,{take_food_reply,sucsess}} ->
+            ok;
+        _ ->
+            ?debugFmt("Received wrong message ~p ",[Message1]),
+            ?assert(fail)
+    end,
+    
+    Message2 = sendAndReceive(Center_Cell, query_state),
+    case Message2 of
+        {_,_,_,{query_state_reply,Attributes}} ->
+            Amount = maps:get(food,Attributes,none),
+            ?assertEqual(Amount,9);
+        _ ->
+            ?debugFmt("Received wrong message ~p ",[Message1]),
+            ?assert(fail)
+    end,
+    
+    Center_Cell ! {self(),Ref,{set_cell_attribute,{food,0}}},
+    ignoreMessages(1),
+    
+    Message3 = sendAndReceive(Center_Cell, take_food),
+    case Message3 of
+        {_,_,_,{take_food_reply,fail}} ->
+            ok;
+        _ ->
+            ?debugFmt("Received wrong message ~p ",[Message1]),
+            ?assert(fail)
+    end,
+    
+    Message4 = sendAndReceive(Center_Cell, query_state),
+    case Message4 of
+        {_,_,_,{query_state_reply,Attributes1}} ->
+            Amount1 = maps:get(food,Attributes1,none),
+            ?assertEqual(Amount1,0);
+        _ ->
+            ?debugFmt("Received wrong message ~p ",[Message1]),
+            ?assert(fail)
+    end,
+
+    true.
 	
-	
-	
+sendAndReceive(Destination,Message)->
+    Ref = make_ref(),
+    Destination ! {self(),Ref,Message},
+    {Received,_} = message_buffer:receiver(Ref,{0,[]}),
+    Received.
+
 ignoreMessages(0) ->
     ok;
 ignoreMessages(N) ->
@@ -671,5 +738,14 @@ testMoveAnt_test()->
 depositFeremone_test()->
     [?assert(depositFeremoneTest())].
 
-setAttibte_test()->
+setAttribute_test()->
     [?assert(setAttributeTest())].
+
+takeFood_test()->
+    [?assert(takeFoodTest())].
+
+
+
+
+
+
