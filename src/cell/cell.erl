@@ -170,7 +170,7 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 
 -spec setAttribute(Cell::types:cell(),Sender::pid(),Refernce::reference(), Attribute::types:cell_attributes()) -> types:cell().
 setAttribute(Cell,Sender,Reference,{Type,Value}) ->
-	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to set state ~p to ~p."),{Type,Cell}),
+	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to set state ~p to ~p.",[Type,Cell])),
 	Map = utils:getCellAttributes(Cell),
 	New_Map = maps:put(Type,Value,Map),
 	New_Cell = utils:setCellAttributes(Cell,New_Map),
@@ -616,6 +616,34 @@ depositFeremoneTest() ->
 	
 	true.
 
+setAttributeTest() ->
+	{Center_Cell,_,_} = buildTestWorld(),
+	Ref = make_ref(),
+	Center_Cell ! {self(),Ref,{set_cell_attribute,{type,nest}}},
+	{Message,_} = message_buffer:receiver(Ref,{0,[]}),
+	case Message of
+		{_,_,_,{set_cell_attribute_reply,sucsess}} ->
+			ok;
+		_ ->
+			?assert(false)
+	end,
+	Cool_Ref = make_ref(),
+	Center_Cell ! {self(),Cool_Ref,query_state},
+	{Message1,_} = message_buffer:receiver(Cool_Ref,{0,[]}),
+	case Message1 of
+		{_,_,_,{query_state_reply,Attributes}} ->
+			Type = maps:get(type,Attributes,none),
+			?assertEqual(Type,nest)
+	end,
+	
+	
+	%Center_Cell ! {self(),dump},
+	%timer:sleep(50),
+	true.
+	
+	
+	
+	
 ignoreMessages(0) ->
     ok;
 ignoreMessages(N) ->
@@ -642,3 +670,6 @@ testMoveAnt_test()->
 
 depositFeremone_test()->
     [?assert(depositFeremoneTest())].
+
+setAttibte_test()->
+    [?assert(setAttributeTest())].
