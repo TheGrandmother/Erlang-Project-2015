@@ -74,6 +74,18 @@ $(cell_binary) : $(cell_source)
 test_cell: $(cell_binary)
 	erl -noshell -pa ebin -eval 'eunit:test(["$(cell_binary)"], [verbose])' -s init stop
 
+ant_binary = $(BIN)/ant.beam
+ant_source = $(wildcard $(SRC)/ant/*.erl)
+
+ant: $(ant_binary)
+	
+$(ant_binary) : $(ant_source)	
+	erlc -o $(BIN)/ $^
+
+test_ant: $(ant_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(ant_binary)"], [verbose])' -s init stop
+
+
 	
 
 #

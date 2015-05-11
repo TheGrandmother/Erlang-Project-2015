@@ -8,7 +8,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
--export([initGrid/1,setGridElement/3]).
+-export([initGrid/1,setGridElement/3, getGridElement/3]).
 
 %% =====================================================================================
 %% Exported functions
@@ -24,7 +24,8 @@ initGrid(Size) ->
     Grid = newGrid(Size),
     Filled_Grid = fillGrid(Size, Grid),
     {Array,Refs} = linkup(Size,Filled_Grid),
-    awaitReplies(Refs,{0,[]}).
+    awaitReplies(Refs,{0,[]}),
+	Array.
 
 %% @todo Add ants and stuff
 
