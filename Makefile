@@ -38,6 +38,44 @@ test_logger: $(logger_binary)
 	erl -noshell -pa ebin -eval 'eunit:test(["$(logger_binary)"], [verbose])' -s init stop
 
 
+utils_binary = $(BIN)/utils.beam
+utils_source = $(wildcard $(SRC)/utils/*.erl)
+
+utils: $(utils_binary)
+	
+$(utils_binary) : $(utils_source)	
+	erlc -o $(BIN)/ $^
+
+test_utils: $(utils_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(utils_binary)"], [verbose])' -s init stop
+
+
+grid_init_binary = $(BIN)/grid_init.beam
+grid_init_source = $(wildcard $(SRC)/grid_init/*.erl)
+
+grid_init: $(grid_init_binary) $(message_buffer_binary) $(logger_binary) $(utils_binary)
+	
+$(grid_init_binary) : $(grid_init_source)	
+	erlc -o $(BIN)/ $^
+
+test_grid_init: $(grid_init_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(grid_init_binary)"], [verbose])' -s init stop
+	
+	
+
+cell_binary = $(BIN)/cell.beam
+cell_source = $(wildcard $(SRC)/cell/*.erl) $(message_buffer_binary) $(logger_binary) $(utils_binary)
+
+cell: $(cell_binary)
+	
+$(cell_binary) : $(cell_source)	
+	erlc -o $(BIN)/ $^
+
+test_cell: $(cell_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(cell_binary)"], [verbose])' -s init stop
+
+	
+
 #
 # COPY THIS AND REPLACE <name> with module name and you have a crazy cool build target :)
 #
@@ -52,6 +90,8 @@ test_logger: $(logger_binary)
 #test_<name>: $(<name>_binary)
 #	erl -noshell -pa ebin -eval 'eunit:test(["$(<name>_binary)"], [verbose])' -s init stop
 
+clean:
+	rm ebin/*.beam
 
 #
 # This is testy stuff
@@ -60,9 +100,9 @@ test_logger: $(logger_binary)
 comma:= ,
 empty:=
 space:= $(empty) $(empty)
-THINGS := $(foreach lol,$(OBJECTS),"$(lol)")
-OBJECTS_LIST:= $(subst $(space),$(comma),$(THINGS))
-test_all: $(OBJECTS)
+THINGS = $(foreach lol,$(OBJECTS),"$(lol)")
+OBJECTS_LIST = $(subst $(space),$(comma),$(THINGS))
+test_all: $(OBJECTS) $(message_buffer_binary) $(cell_binary) $(logger_binary) $(grid_init_binary)
 	#echo $(BALLS)
 	#@echo $(OBJECT_LIST)
 	erl -noshell -pa ebin -eval 'eunit:test([$(OBJECTS_LIST)], [verbose])' -s init stop

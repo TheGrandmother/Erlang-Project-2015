@@ -17,5 +17,6 @@ lextab.py
 
 #Project specific stuff
 *.beam
+*.dump
 log/
 

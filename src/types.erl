@@ -25,31 +25,38 @@
 -type reply_message() :: {Sender::pid(),Reference::reference(),Request_Reference::reference(),Payload::reply_type()}.
 
 %% @doc This is the different types of one way messages
--type one_way_type() ::   {deposit_feremone,Type::feremone_name()}
-                        | {linkup,Hood::neighbourhood(),Next::pid()}
-                        | {gui_update,[cell_attributes()]}.
+-type one_way_type() ::   
+                        | {gui_update,{X::integer(),Y::integer()},[#{}]}
+						| {gui_init,{X::integer(),Y::integer()}}
+                        | dump.
 
 %% @doc These are the different types of request messages
 -type request_type() ::   query_hood 
                         | query_state 
                         | {move_request,Direction::direction()} 
 						| {place_ant, Ant::pid()}
-						| {set_cell_attribute, Attributes::[cell_attributes()]}
-						| {set_ant_attribute, Attributes::[ant_attributes()]}
-                        | {take_food}. 
+						| {set_cell_attribute, Attributes::#{}}
+						| {set_ant_attribute, Attributes::#{}}
+                        | {linkup,Hood::neighbourhood(),Next::pid()}
+                        | take_food 
+						| {deposit_feremone,Type::feremone_name()}
+                        | ping.
                         
 
 %% @doc These are the different types of reply messages.
 -type reply_type() ::     {query_hood_reply,{
-                                            [cell_attributes()],[cell_attributes()],[cell_attributes()],
-                                            [cell_attributes()],[cell_attributes()],[cell_attributes()],
-                                            [cell_attributes()],[cell_attributes()],[cell_attributes()]}}
+                                             Attributes::#{}, Attributes::#{}, Attributes::#{},
+                                             Attributes::#{}, Attributes::#{}, Attributes::#{},
+                                             Attributes::#{}, Attributes::#{}, Attributes::#{}}}
                         | {query_state_reply,[cell_attributes()] | [ant_attributes()]}
                         | {move_reply,{sucsess | fail, none | pid()}}
 						| {place_ant_reply,sucsess | fail}
 						| {set_cell_attribute_reply, sucsess | fail}
 						| {set_ant_attribute_reply, sucsess | fail}
-                        | {take_food_reply,sucsess | fail}.
+                        | {linkup_reply, sucess | fail}
+                        | {take_food_reply,sucsess | fail}
+						| {deposit_feremone_reply,sucsess | fail}
+                        | pong.
                         
 %% @doc Type for the logger construct
 -type log()::{File::file:device(),Type::string(),Pid::pid()} | none.
@@ -58,7 +65,7 @@
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
 %% @doc This is the big type for the cell. Hopefully its self explanatory
--type cell() :: {Pid::pid(),Position::{X::integer(),Y::integer()},Hood::neighbourhood(),Next_Cell::pid(), Attributes::[cell_attributes()],Metadata::message_buffer(),Log::log()}.
+-type cell() :: {Pid::pid(),Position::{X::integer(),Y::integer()},Hood::neighbourhood(),Next_Cell::pid(), Attributes::#{},Metadata::message_buffer(),Log::log()}.
 
 %% @doc simple type for the neighbourhood
 -type neighbourhood() :: {   
@@ -72,12 +79,10 @@
                         west        |   center  |   east      |
                         southwest   |   south   |   southeast.
 
-%% @doc These are the different attributes a cell can have.
--type cell_attributes() ::    plain
-                            | nest
-                            | block 
-                            | {ant,Pid::pid()} 
-                            | {feremones,none | list(feremone_type())} 
+%% @doc These are the different key value pairs that a cells attributes map can have
+-type cell_attributes() ::    {type, plain | nest | block}
+                            | {ant, Pid::pid()} 
+                            | {feremones, none | list(feremone_type())} 
                             | {food, Ammount::integer()}.
 
 %% @doc This is a definition of the types of freremone on a cell.
@@ -87,15 +92,14 @@
 -type feremone_name() :: base_feremone | food_feremone.
 
 %%@doc A sweet type for the ant.
--type ant() :: {Pid::pid(),Cell::pid(),State::ant_state, Attributes::[ant_attributes()], Metadata::message_buffer(),Log::log()}.
+-type ant() :: {Pid::pid(),Cell::pid(),State::ant_state, Attributes::#{}, Metadata::message_buffer(),Log::log()}.
 
 %%@doc The different "states" than an ant can be in.
 -type ant_state() ::     searching_for_food
                         |returning_with_food.
-%%@doc All of the crazy cool attributes an ant can have.
+%%@doc These are the different key value pairs that a cells attributes map can have.
 -type ant_attributes() ::    {time_to_live, integer()}
                             |{carrying_food, Amount::integer()}.
                     
-
 
 

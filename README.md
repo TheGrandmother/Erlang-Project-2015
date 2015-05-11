@@ -1,4 +1,4 @@
-# Namn på projektet
+# A bug's life
 
 OSPP (1DT096) 2015 - Grupp 5
 Projektarbete på kursen Operativsystem och processorienterad
@@ -6,13 +6,12 @@ programmering (1DT096) våren 2015, Uppsala universitet.
 
 ## Kompilera
 
-Se den temporära makefilen för hur de olika targatesen ser ut.
+Skriv `make <module>` för att kompilera en modul där `<module>` är namnet på modulen.
 
 ## Testa
 
 Hela systemet testats igenom att köra  `make test` i root mappen
-
-
+Skriv `make test_<module>` för att för att testa en enskild modul där `<module>` är namnet på modulen.
 
 ## Starta systemet
 
