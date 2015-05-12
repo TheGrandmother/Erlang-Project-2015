@@ -6,7 +6,8 @@
 
 -module(cell).
 -include_lib("eunit/include/eunit.hrl").
--define(DEFAULT_FEREMONE_INCREASE,1).
+-define(DEFAULT_FEREMONE_INCREASE,1.0).
+-define(DEFAULT_FEREMONE_DECAY,1.01).
 
 %% ====================================================================
 %% API functions
@@ -21,7 +22,7 @@
 spawnCell({X,Y}) -> 
     Cell = {self(),{X,Y},none,none,none,none,logger:makeLog(logger:makeCoolString("Cell(~p)",[{X,Y}]),self())},
 	logger:logEvent(utils:getCellLog(Cell),"Cell spawned."),
-    awaitLinkup(Cell).
+     awaitLinkup(Cell).  
 
 
 
@@ -51,12 +52,12 @@ awaitLinkup(Cell) ->
                     C2 = utils:setCellHood(Cell,Hood),
                     C3 = utils:setCellNext(C2,Next),
                     C4 = utils:setCellMetadata(C3,{0,[]}),
-                    Map = #{type => plain,food => 0 ,feremones => #{base_feremone => {0,2},food_feremone=> {0,2}}},
+                    Map = #{type => plain,food => 0 ,feremones => #{base_feremone => {0.0,?DEFAULT_FEREMONE_DECAY},food_feremone=> {0.0,?DEFAULT_FEREMONE_DECAY}}},
 					C5 = utils:setCellAttributes(C4,Map),
                     logger:logEvent(utils:getCellLog(Cell),"Cell initialization complete!"),
                     Msg = Sender ! {self(),make_ref(),Reference,{linkup_reply, sucsess}},
                     logger:logMessageSent(utils:getCellLog(C5),Msg,Sender),
-                    cellMain(C5);
+                    cellMain(C5,getTimeStamp());
                 _A ->
                     ?debugFmt("Cell received wierd Payload(~p).Chrashing the system.~n",[Payload]),
                     timer:sleep(100),
@@ -76,8 +77,8 @@ awaitLinkup(Cell) ->
     end.
 
 %% @doc Main state function. This is the "idle" state where the cell awaits a request or a one way message
--spec cellMain(Cell::types:cell()) -> ok.
-cellMain(In_Cell) ->
+-spec cellMain(Cell::types:cell(),Time_Stamp::integer()) -> ok.
+cellMain(In_Cell,Time_Stamp) ->
 	logger:logEvent(utils:getCellLog(In_Cell),"Enterd main loop"),
 	{Message,New_Buffer} = message_buffer:receiver(utils:getCellMetadata(In_Cell)),
 	Cell = utils:setCellMetadata(In_Cell,New_Buffer),
@@ -88,14 +89,16 @@ cellMain(In_Cell) ->
             logger:logEvent(utils:getCellLog(Cell),"Received oneway message"),
             New_Cell = handleOneWayMessage(Cell, Payload),
             logger:logEvent(utils:getCellLog(New_Cell),"Finished with one way message"),
-            cellMain(New_Cell);
+            cellMain(New_Cell,Time_Stamp);
         
 		Request = {_,_,_} ->
-            
-			logger:logEvent(utils:getCellLog(Cell),"Got request message"),
-			New_Cell = handleRequest(Cell,Request),
+            %logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Printing pointless crap ~p", [getTimeStamp()-Time_Stamp])),
+            {Updated_Cell,New_Time_Stamp} = automaticUpdate(Cell,(getTimeStamp()-Time_Stamp)/1000000),
+            %{Updated_Cell,New_Time_Stamp} = {Cell,Time_Stamp},
+			logger:logEvent(utils:getCellLog(Updated_Cell),"Got request message"),
+			New_Cell = handleRequest(Updated_Cell,Request),
 			logger:logEvent(utils:getCellLog(New_Cell),"Completed request"),
-			cellMain(New_Cell);
+			cellMain(New_Cell,New_Time_Stamp);
   
 		_Any ->
 			logger:logWarning(utils:getCellLog(Cell),"Received pointless message! Crashing system"),
@@ -175,7 +178,7 @@ handleRequest(Cell,{Sender,Reference,Payload}) ->
 	end.
 
 
-
+%% @doc Dunction corresponding to take food state. Will remove one unit of food if any food exists
 -spec takeFood(Cell::types:cell(),Sender::pid(),Refernce::reference()) -> types:cell().
 takeFood(Cell,Sender,Reference) ->
     logger:logEvent(utils:getCellLog(Cell),"Attempting to take food"),
@@ -199,6 +202,7 @@ takeFood(Cell,Sender,Reference) ->
     end.
 
 
+%% @doc Function corresponding to set attribute. WARNING!!! Can set undefined attributes of doom!
 -spec setAttribute(Cell::types:cell(),Sender::pid(),Refernce::reference(), Attribute::types:cell_attributes()) -> types:cell().
 setAttribute(Cell,Sender,Reference,{Type,Value}) ->
 	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to set attribute ~p to ~p.",[Type,Value])),
@@ -209,6 +213,7 @@ setAttribute(Cell,Sender,Reference,{Type,Value}) ->
 	logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
 	New_Cell.
 
+%% @doc Function corresponding to deposit feremones. Increases feremone by the default increase rate
 -spec depositFeremone(Cell::types:cell(),Sender::pid(),Refernce::reference(), Feremone_Name::types:feremone_name()) -> types:cell().
 depositFeremone(Cell,Sender,Reference,Feremone_Name) ->
 	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to increase feremone ~p",[Feremone_Name])),
@@ -342,11 +347,36 @@ hoodQuerryAux(Refs,In_Cell,Attributes) ->
             exit(failure)
     end.
     
+%% @doc Function used for automatic decay of feremones and other types of time dependent updates.
+-spec automaticUpdate(Cell::types:cell(),Seconds_Diff::float()) -> {New_Cell::types:cell(),New_Time::integer()} .
+automaticUpdate(Cell,Seconds_Diff) ->
+    logger:logEvent(utils:getCellLog(Cell), logger:makeCoolString("Performing automatic decay with a time diff of ~p seconds",[Seconds_Diff])),
+    Map = utils:getCellAttributes(Cell),
+    Feremones = maps:get(feremones,Map),
+    
+    {Base_Strength,Base_Decay} = maps:get(base_feremone,Feremones),
+    New_Base_Strength = Base_Strength*(1/(math:pow(Base_Decay,Seconds_Diff))),
+    
+    {Food_Strength,Food_Decay} = maps:get(food_feremone,Feremones),
+    New_Food_Strength = Food_Strength*(1/(math:pow(Food_Decay,Seconds_Diff))),
+    
+    New_Feremones1 = maps:put(base_feremone,{New_Base_Strength,Base_Decay},Feremones),
+    New_Feremones2 = maps:put(food_feremone,{New_Food_Strength,Food_Decay},New_Feremones1),
+    
+    New_Map = maps:put(feremones,New_Feremones2,Map),
+    New_Cell = utils:setCellAttributes(Cell,New_Map),
+    logger:logEvent(utils:getCellLog(Cell), logger:makeCoolString("Performed decay. New base feremone strength is ~p and food strength is ~p.",[New_Base_Strength,New_Food_Strength])),
+    {New_Cell,getTimeStamp()}.
     
 
 %% ====================================================================
 %% Auxfunction. Not documented
 %% ====================================================================
+
+getTimeStamp() ->
+    {MegaSecs,Secs,MicroSecs} = erlang:now(),
+    (MegaSecs*1000000 + Secs)*1000000 + MicroSecs.
+
 
 dump({Pid,Position,Hood,Next_Cell, Attributes,{Length,Buffer},_}) ->
     S0 = "~n=======================================~nDUMP OF CELL ~p(Connected to ~p) at coordinates ~p~n",
@@ -611,12 +641,17 @@ depositFeremoneTest() ->
 	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,base_feremone}},
-	
+    
+    %timer:sleep(200),
+	%Center_Cell ! {123,dump},
+    
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
 	Center_Cell ! {self(),Reference,{deposit_feremone,food_feremone}},
 	
+    %Center_Cell ! {123,dump},
+    
 	ignoreMessages(8),
 
 	Message = sendAndReceive(Center_Cell, query_state),
@@ -624,9 +659,9 @@ depositFeremoneTest() ->
 		{_,_,_,{query_state_reply,Attributes}} ->
 			Feremone_Map = maps:get(feremones,Attributes),
 			{Base_Strength,_} = maps:get(base_feremone,Feremone_Map),
-			?assertEqual(Base_Strength,4),
+			?assert(Base_Strength > 3),
 			{Food_Strength,_} = maps:get(food_feremone,Feremone_Map),
-			?assertEqual(Food_Strength,4)
+			?assert(Food_Strength > 3)
 	end,
 	
 	true.
@@ -705,6 +740,30 @@ takeFoodTest() ->
 
     true.
 	
+automaticDecayTest() ->
+    {Center_Cell,_,_} = buildTestWorld(),
+    Ref = make_ref(),
+    
+    Center_Cell ! {self(),Ref,{deposit_feremone,base_feremone}},
+    Center_Cell ! {self(),Ref,{deposit_feremone,food_feremone}},
+    Center_Cell ! {self(),Ref,ping},
+    Center_Cell ! {self(),Ref,ping},
+    ignoreMessages(4),
+    
+    Message = sendAndReceive(Center_Cell, query_state),
+    case Message of
+        {_,_,_,{query_state_reply,Attributes}} ->
+            Feremone_Map = maps:get(feremones,Attributes),
+            {Base_Strength,_} = maps:get(base_feremone,Feremone_Map),
+            ?assert(Base_Strength < 1.0),
+            ?assert(Base_Strength > 0.5),
+            {Food_Strength,_} = maps:get(food_feremone,Feremone_Map),
+            ?assert(Food_Strength < 1.0),
+            ?assert(Food_Strength > 0.5)
+    end,
+    
+    true.
+
 sendAndReceive(Destination,Message)->
     Ref = make_ref(),
     Destination ! {self(),Ref,Message},
@@ -743,6 +802,9 @@ setAttribute_test()->
 
 takeFood_test()->
     [?assert(takeFoodTest())].
+
+automaticDecay_test()->
+    [?assert(automaticDecayTest())].
 
 
 
