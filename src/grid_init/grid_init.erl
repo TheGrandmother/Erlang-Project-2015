@@ -24,7 +24,7 @@ initGrid(Size) ->
     Grid = newGrid(Size),
     Filled_Grid = fillGrid(Size, Grid),
     {Array,Refs} = linkup(Size,Filled_Grid),
-    awaitReplies(Refs,{0,[]}).
+    awaitReplies(Refs,lists:map(fun(X) -> array:to_list(X) end,array:to_list(Array)),{0,[]}).
 
 %% @todo Add ants and stuff
 
@@ -75,13 +75,13 @@ linkup({Width, Height},Array) ->
 %% =====================================================================================
 
 
-awaitReplies([],_) ->
+awaitReplies([],_,_) ->
     ok;
-awaitReplies(Refs,Buffer) ->
-    {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,Buffer),
+awaitReplies(Refs,Pids,Buffer) ->
+    {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,Pids,Buffer),
     case Message of 
-        {_,_,_,{linkup_reply,sucsess}} ->
-            awaitReplies(New_Refs,New_Buffer);
+        {_,_,_,{reply,linkup,sucsess}} ->
+            awaitReplies(New_Refs,Pids,New_Buffer);
         _Any ->
             io:format("Received stupid message whilst awaiting linkup confirmation"),
             exit(failure)
