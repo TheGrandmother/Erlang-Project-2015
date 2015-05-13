@@ -16,14 +16,14 @@
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
 
--spec hasMessages(Buffer::types:buffer()) -> true | false
+-spec hasMessages(Buffer::types:buffer()) -> true | false.
 hasMessages({_,[]})->
     {_,Length} = erlang:process_info(self(), message_queue_len),
     case Length of
         0 ->
-            true;
+            false;
         _ ->
-            false
+            true
     end;
 hasMessages(_)->
     true.
