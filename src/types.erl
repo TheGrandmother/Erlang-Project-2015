@@ -44,18 +44,18 @@
                         
 
 %% @doc These are the different types of reply messages.
--type reply_type() ::     {query_hood_reply,fail | {
+-type reply_type() ::     {reply,query_hood,fail | {
                                              Attributes::#{}, Attributes::#{}, Attributes::#{},
                                              Attributes::#{}, Attributes::#{}, Attributes::#{},
                                              Attributes::#{}, Attributes::#{}, Attributes::#{}}}
-                        | {query_state_reply,fail | [cell_attributes()] | [ant_attributes()]}
-                        | {move_reply,fail | {sucsess, pid()}}
-						| {place_ant_reply,sucsess | fail}
-						| {set_cell_attribute_reply, sucsess | fail}
-						| {set_ant_attribute_reply, sucsess | fail}
-                        | {linkup_reply, sucess | fail}
-                        | {take_food_reply,sucsess | fail}
-						| {deposit_feremone_reply,sucsess | fail}
+                        | {reply,query_state,fail | [cell_attributes()] | [ant_attributes()]}
+                        | {reply,move,fail | {sucsess, pid()}}
+						| {reply,place_ant,sucsess | fail}
+						| {reply,set_cell_attribute, sucsess | fail}
+						| {reply,set_ant_attribute, sucsess | fail}
+                        | {reply,linkup, sucess | fail}
+                        | {reply,take_food,sucsess | fail}
+						| {reply,deposit_feremone,sucsess | fail}
                         | pong.
                         
 %% @doc Type for the logger construct
