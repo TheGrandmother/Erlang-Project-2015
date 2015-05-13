@@ -28,12 +28,13 @@
 -type one_way_type() ::   
                         | {gui_update,{X::integer(),Y::integer()},[#{}]}
 						| {gui_init,{X::integer(),Y::integer()}}
+                        | {draw,Gui_Pid::pid()} %Message to be sent to a cell to tell it to relay its sttate to the gui module.
                         | dump.
 
 %% @doc These are the different types of request messages
 -type request_type() ::   query_hood 
                         | query_state 
-                        | {move_request,Direction::direction()} 
+                        | {move_ant,Direction::direction()} 
 						| {place_ant, Ant::pid()}
 						| {set_cell_attribute, Attributes::#{}}
 						| {set_ant_attribute, Attributes::#{}}
@@ -49,7 +50,7 @@
                                              Attributes::#{}, Attributes::#{}, Attributes::#{},
                                              Attributes::#{}, Attributes::#{}, Attributes::#{}}}
                         | {reply,query_state,fail | [cell_attributes()] | [ant_attributes()]}
-                        | {reply,move,fail | {sucsess, pid()}}
+                        | {reply,move_ant,fail | {sucsess, pid()}}
 						| {reply,place_ant,sucsess | fail}
 						| {reply,set_cell_attribute, sucsess | fail}
 						| {reply,set_ant_attribute, sucsess | fail}
