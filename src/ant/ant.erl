@@ -6,7 +6,7 @@
 -import(message_buffer, [receiver/2]).
 -import_type([ant/0, ant_state/0, ant_attributes/0, message_buffer/0, log/0]).
 -export([spawn_Ant/2, spawn_test/0]).
-
+-include_lib("eunit/include/eunit.hrl").
 %% Attempts to spawn ant in given Cell
 spawn_Ant(Cell_Pid, Attributes) ->
 	spawn_link(fun() -> ant_Init(Cell_Pid, Attributes) end).
