@@ -86,8 +86,10 @@ Projekt planering/möte.
 4h arbete med cell.erl den är typ klar nu :)
 
 ##### Tisdag
-
+4h fortsatt arbete med cell
 ##### Onsdag
+8h arbete med ant, refaktoring och implementering av ett "deadlock free" 
+sätt att hantera medelanden
 
 ##### Torsdag
 
