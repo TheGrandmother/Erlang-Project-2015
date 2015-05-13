@@ -29,6 +29,8 @@
                         | {gui_update,{X::integer(),Y::integer()},[#{}]}
 						| {gui_init,{X::integer(),Y::integer()}}
                         | {draw,Gui_Pid::pid()} %Message to be sent to a cell to tell it to relay its sttate to the gui module.
+                        | start_ant
+                        | stop_ant
                         | dump.
 
 %% @doc These are the different types of request messages
@@ -97,10 +99,11 @@
 
 %%@doc The different "states" than an ant can be in.
 -type ant_state() ::     searching_for_food
+                        |idling
                         |returning_with_food.
 %%@doc These are the different key value pairs that a cells attributes map can have.
 -type ant_attributes() ::    {time_to_live, integer()}
-                            |{carrying_food, Amount::integer()}.
+                            |{food, Amount::integer()}.
                     
 
 
