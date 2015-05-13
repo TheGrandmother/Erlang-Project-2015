@@ -78,9 +78,9 @@ test_cell: $(cell_binary)
 ant_binary = $(BIN)/ant.beam
 ant_source = $(wildcard $(SRC)/ant/*.erl)
 
-ant: $(ant_binary)
+ant: $(ant_binary) 
 	
-$(ant_binary) : $(ant_source)	
+$(ant_binary) : $(ant_source) $(grid_init_binary) $(message_buffer_binary) $(cell_binary) $(logger_binary) src/ant/sorter.erl
 	erlc -o $(BIN)/ $^
 
 test_ant: $(ant_binary)
