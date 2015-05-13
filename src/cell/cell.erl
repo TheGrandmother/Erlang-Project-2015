@@ -18,7 +18,7 @@
 %%  @doc Trivial and boring function used to start the cell.
 %%  The cell will jump into its await linkup state before it enteres its main loop.
 %%  In this state no other messages except pings and linkups make sense.
--spec spawnCell({X::integer,Y::integer()}) -> ok.
+-spec spawnCell({X::integer(),Y::integer()}) -> ok.
 spawnCell({X,Y}) -> 
     Cell = {self(),{X,Y},none,none,none,none,logger:makeLog(logger:makeCoolString("Cell(~p)",[{X,Y}]),self())},
 	logger:logEvent(utils:getCellLog(Cell),"Cell spawned."),
@@ -77,7 +77,7 @@ awaitLinkup(Cell) ->
     end.
 
 %% @doc Main state function. This is the "idle" state where the cell awaits a request or a one way message
--spec cellMain(Cell::types:cell(),Time_Stamp::integer()) -> ok.
+-spec cellMain(Cell::types:cell(),Time_Stamp::float()) -> ok.
 cellMain(In_Cell,Time_Stamp) ->
 	logger:logEvent(utils:getCellLog(In_Cell),"Enterd main loop"),
 	{Message,New_Buffer} = message_buffer:receiver(utils:getCellMetadata(In_Cell)),
@@ -344,7 +344,7 @@ hoodQuerry(Cell,Sender,Reference) ->
 hoodQuerryAux([],Cell,Attributes) ->
     {Cell,element(2,lists:unzip(Attributes))};
 
-hoodQuerryAux(Refs,In_Cell,Attributes) ->  
+hoodQuerryAux(Refs,In_Cell,Attributes) when is_list(Refs)->  
     {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,element(1,lists:unzip(Attributes)),utils:getCellMetadata(In_Cell)),
     Cell0 = utils:setCellMetadata(In_Cell,New_Buffer),
     logger:logMessage(utils:getCellLog(Cell0),Message),
@@ -724,7 +724,7 @@ takeFoodTest() ->
             Amount = maps:get(food,Attributes,none),
             ?assertEqual(Amount,9);
         _ ->
-            ?debugFmt("Received wrong message ~p ",[Message1]),
+            ?debugFmt("Received wrong message ~p ",[Message2]),
             ?assert(fail)
     end,
     
@@ -736,7 +736,7 @@ takeFoodTest() ->
         {_,_,_,{reply,take_food,fail}} ->
             ok;
         _ ->
-            ?debugFmt("Received wrong message ~p ",[Message1]),
+            ?debugFmt("Received wrong message ~p ",[Message3]),
             ?assert(fail)
     end,
     
@@ -746,7 +746,7 @@ takeFoodTest() ->
             Amount1 = maps:get(food,Attributes1,none),
             ?assertEqual(Amount1,0);
         _ ->
-            ?debugFmt("Received wrong message ~p ",[Message1]),
+            ?debugFmt("Received wrong message ~p ",[Message4]),
             ?assert(fail)
     end,
 
@@ -781,7 +781,7 @@ drawTest() ->
     Center_Cell ! {self(),{draw,self()}},
     
     receive
-        {_,{gui_update,Position,Attributes}} ->
+        {_,{gui_update,Position,_}} ->
             ?assertEqual({0,0},Position);
         _ ->
             ?assert(false)
