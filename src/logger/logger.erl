@@ -164,7 +164,7 @@ testEntity(Log,Creator,0) ->
 	exit(sucsess);
 testEntity(Log,Creator,N) ->
 	logEvent(Log, "Test entity entered its loop"),
-	timer:sleep(100+random:uniform(300)),
+	timer:sleep(50+random:uniform(100)),
 	logEvent(Log, "Sending message"),
 	Creator ! {self(),spamm,"Boring old message",N},
 	testEntity(Log,Creator,N-1).
