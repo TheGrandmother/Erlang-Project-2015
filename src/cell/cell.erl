@@ -87,9 +87,9 @@ cellMain(In_Cell,Time_Stamp) ->
 		
         {_,Payload} ->
             logger:logEvent(utils:getCellLog(Cell),"Received oneway message"),
-            New_Cell = handleOneWayMessage(Cell, Payload),
+            {New_Cell,New_Time_Stamp} = handleOneWayMessage(Cell, Payload,Time_Stamp),
             logger:logEvent(utils:getCellLog(New_Cell),"Finished with one way message"),
-            cellMain(New_Cell,Time_Stamp);
+            cellMain(New_Cell,New_Time_Stamp);
         
 		Request = {_,_,_} ->
             %logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Printing pointless crap ~p", [getTimeStamp()-Time_Stamp])),
@@ -108,13 +108,25 @@ cellMain(In_Cell,Time_Stamp) ->
 	
 
 %% @doc Transition function for handling one way messages.
--spec handleOneWayMessage(Cell::types:cell(), Payload::types:one_way_type()) -> types:cell().
-handleOneWayMessage(Cell, Payload) ->
+-spec handleOneWayMessage(Cell::types:cell(), Payload::types:one_way_type(),Time_Stamp::float()) -> {New_Cell::types:cell(),New_Time_Stam::float()}.
+handleOneWayMessage(Cell, Payload,Time_Stamp) ->
     case Payload of
         dump ->
             logger:logEvent(utils:getCellLog(Cell),"Got dump message. Dumping everything....."),
             dump(Cell),
-            Cell
+            {Cell,Time_Stamp};
+        
+        {draw,Gui_Pid} ->
+            logger:logEvent(utils:getCellLog(Cell),"Received draw message. Relaying state to GUI process."),
+            {Updated_Cell,New_Time_Stamp} = automaticUpdate(Cell,(getTimeStamp()-Time_Stamp)/1000000),
+            Msg = Gui_Pid ! {self(),{gui_update,utils:getCellPos(Updated_Cell),utils:getCellAttributes(Updated_Cell)}},
+            logger:logMessageSent(utils:getCellLog(Cell),Msg,Gui_Pid),
+            {Updated_Cell,New_Time_Stamp};
+        
+        _Any ->     
+            logger:logWarning(utils:getCellLog(Cell),"Received pointless one way message! Crashing system"),
+            ?debugFmt("Cell(~p) Received pointless message ~p ~n Crashing system",[self(),_Any]),
+            exit(failure)
     end.
             
     
@@ -764,6 +776,19 @@ automaticDecayTest() ->
     
     true.
 
+drawTest() ->
+    {Center_Cell,_,_} = buildTestWorld(),
+    Center_Cell ! {self(),{draw,self()}},
+    
+    receive
+        {_,{gui_update,Position,Attributes}} ->
+            ?assertEqual({0,0},Position);
+        _ ->
+            ?assert(false)
+    end,
+    true.
+            
+
 sendAndReceive(Destination,Message)->
     Ref = make_ref(),
     Destination ! {self(),Ref,Message},
@@ -806,6 +831,8 @@ takeFood_test()->
 automaticDecay_test()->
     [?assert(automaticDecayTest())].
 
+draw_test()->
+    [?assert(drawTest())].
 
 
 

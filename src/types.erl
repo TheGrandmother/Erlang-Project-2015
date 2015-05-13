@@ -28,6 +28,7 @@
 -type one_way_type() ::   
                         | {gui_update,{X::integer(),Y::integer()},[#{}]}
 						| {gui_init,{X::integer(),Y::integer()}}
+                        | {draw,Gui_Pid::pid()} %Message to be sent to a cell to tell it to relay its sttate to the gui module.
                         | dump.
 
 %% @doc These are the different types of request messages
