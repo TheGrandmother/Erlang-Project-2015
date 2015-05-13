@@ -31,27 +31,35 @@ receiver(Buffer) ->
 %% in such a fashion that the order in which these messages arrived is not altered.
 %%
 -spec receiver(Special::reference() | none | [reference()],Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
-receiver(none,{L,[]}) ->
+receiver({L,[]}) ->
 	receive
 		_A ->
 			{_A,{L,[]}}   
     
 	end;
-receiver(none,{_,[Message]}) ->
+receiver({_,[Message]}) ->
 	{Message,{0,[]}};
 
-receiver(none,{L,[Message | Tl]}) ->
-	{Message,{L-1,Tl}};
+receiver({L,[Message | Tl]}) ->
+	{Message,{L-1,Tl}}.
 
-receiver(Refs,Buffer={L,Queue}) when is_list(Refs)==true -> 
+receiver(Refs, Recipients, Buffer={L,Queue}) when is_list(Refs)==true -> 
     receive
         A={_,_,Request_Reference,_} ->
             case lists:member(Request_Reference,Refs) of
                 true ->
                     {A,Buffer,lists:delete(Request_Reference,Refs)};
                 false ->
-                    receiver(Refs,{L+1,lists:append(Queue,[A])})
+                    receiver(Refs,Recipients,{L+1,lists:append(Queue,[A])})
             end;
+		{Pid,Return_Reference,{Reply_Type,_}} ->
+			case lists:member(Pid,Recipients) of
+				true ->
+					Pid ! {self(), make_ref(), Return_Reference,{Reply_Type,fail}},
+					receiver(Refs,Recipients,Buffer);
+				false ->
+					receiver(Refs,Recipients,Buffer)
+			end;
         _Any ->
             receiver(Refs,{L+1,lists:append(Queue,[_Any])})
     after ?DEFAULT_TIMEOUT ->
@@ -61,10 +69,13 @@ receiver(Refs,Buffer={L,Queue}) when is_list(Refs)==true ->
     end;
 
 
-receiver(Reference,Buffer={L,Queue}) ->
+receiver(Reference,Recipient,Buffer={L,Queue}) ->
 	receive
 		A={_,_,Request_Reference,_} when Reference == Request_Reference->
 			{A,Buffer};
+		{Pid,Return_Reference,{Reply_Type,_}} when Pid == Recipient ->
+			Pid ! {self(), make_ref(), Return_Reference,{Reply_Type,fail}},
+			receiver(Reference, Recipient, Buffer);
 		_Any ->
 			receiver(Reference,{L+1,lists:append(Queue,[_Any])})
     after ?DEFAULT_TIMEOUT ->
@@ -116,19 +127,19 @@ tester() ->
 	PingerPid ! {self(),Reference,ok},
 	tester(Reference,{0,[]},[],PingerPid,TrollPid).
 
-tester(Reference,Message_Buffer,List,PingerPid,TrollPid) ->
-	{Message,New_Buffer} = receiver(Reference,Message_Buffer),
+tester(Reference,Message_Buffer,List,Pinger_Pid,TrollPid) ->
+	{Message,New_Buffer} = receiver(Reference,Pinger_Pid,Message_Buffer),
 	case Message of
 		{die} ->
 			io:format("Recieved last message...time to die ~n"),
-			exit(PingerPid,sucsess),
+			exit(Pinger_Pid,sucsess),
 			List;
 		_A={_,N}->
 			io:format("Cool kid troll message ~p ~n",[_A]),
-			tester(none,New_Buffer,lists:append(List,[N]),PingerPid,TrollPid);
+			tester(none,New_Buffer,lists:append(List,[N]),Pinger_Pid,TrollPid);
 		_ ->
 			io:format("received dope message~n"),
-			tester(none,New_Buffer,List,PingerPid,TrollPid)
+			tester(none,New_Buffer,List,Pinger_Pid,TrollPid)
 	
 	end.
 	
@@ -152,7 +163,7 @@ testerOfLists([],[],_) ->
     true;
 
 testerOfLists(Pids,Refs,Buffer) ->
-    {Message,New_Buffer,New_Refs} = receiver(Refs,Buffer),
+    {Message,New_Buffer,New_Refs} = receiver(Refs,Pids,Buffer),
     case Message of
         
         {_,_,Reference,Pid} ->
@@ -179,11 +190,11 @@ buildCoolList(Pids,Refs, N) ->
     CoolPid= spawn(fun() -> creeps(MyPid,Reference) end),
     buildCoolList([CoolPid]++Pids,[Reference]++Refs,N-1).
                          
-testListThing_test()->
-    ?_assert(testerOfLists()).
+%testListThing_test()->
+%    ?_assert(testerOfLists()).
 
 basic_test() ->
-    ?_assertEqual([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], tester()).
+    [?_assertEqual([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], tester())].
 
 		
 

@@ -44,12 +44,12 @@
                         
 
 %% @doc These are the different types of reply messages.
--type reply_type() ::     {query_hood_reply,{
+-type reply_type() ::     {query_hood_reply,fail | {
                                              Attributes::#{}, Attributes::#{}, Attributes::#{},
                                              Attributes::#{}, Attributes::#{}, Attributes::#{},
                                              Attributes::#{}, Attributes::#{}, Attributes::#{}}}
-                        | {query_state_reply,[cell_attributes()] | [ant_attributes()]}
-                        | {move_reply,{sucsess | fail, none | pid()}}
+                        | {query_state_reply,fail | [cell_attributes()] | [ant_attributes()]}
+                        | {move_reply,fail | {sucsess, pid()}}
 						| {place_ant_reply,sucsess | fail}
 						| {set_cell_attribute_reply, sucsess | fail}
 						| {set_ant_attribute_reply, sucsess | fail}
