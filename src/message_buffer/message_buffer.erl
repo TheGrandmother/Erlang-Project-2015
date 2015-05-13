@@ -9,15 +9,27 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([receiver/3,receiver/1]).
+-export([receiver/3,receiver/1,hasMessages/1]).
 
 -define(DEFAULT_TIMEOUT,2000).
 
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
+
+-spec hasMessages(Buffer::types:buffer()) -> true | false
+hasMessages({_,[]})->
+    {_,Length} = erlang:process_info(self(), message_queue_len),
+    case Length of
+        0 ->
+            true;
+        _ ->
+            false
+    end;
+hasMessages(_)->
+    true.
+
+
 %% @doc see receiver/2
-%% 
-%%
 -spec receiver(Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
 receiver({L,[]}) ->
     receive

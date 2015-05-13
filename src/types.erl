@@ -101,6 +101,7 @@
 -type ant_state() ::     searching_for_food
                         |idling
                         |returning_with_food.
+
 %%@doc These are the different key value pairs that a cells attributes map can have.
 -type ant_attributes() ::    {time_to_live, integer()}
                             |{food, Amount::integer()}.
