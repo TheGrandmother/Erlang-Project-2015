@@ -15,7 +15,7 @@ spawn_Ant(Cell_Pid, Attributes) ->
 %% Creates needed information for ant, and places it in given cell
 ant_Init(Cell_Pid, Attributes) ->
 	Ant_ID = self(),
-	State = searching_for_food,
+	State = idling,
 	Log = logger:makeLog(logger:makeCoolString("Ant ~p",[Ant_ID]),self()),
 	Buffer = {0, []},  
 	Ref = make_ref(),
@@ -25,62 +25,94 @@ ant_Init(Cell_Pid, Attributes) ->
 	logger:logEvent(utils:getAntLog(Ant),"Ant spawned."),
 	logger:logMessageSent(utils:getAntLog(Ant),Msg,Cell_Pid),
 	case Response of
-		{place_ant_reply, fail} ->
+		{reply,place_ant, fail} ->
 			logger:logEvent(utils:getAntLog(Ant),"Ant failed to get placed and is killed."),
 			exit(fail);
-		{place_ant_reply, sucsess} ->
-			if 
-				Sender =/= Cell_Pid ->
-				   io:format("Responder is not given cell ~n"),
-				   exit(fail);
-				true ->
-					logger:logEvent(utils:getAntLog(Ant),"Ant successfully placed in "),
-					logger:logEvent(utils:getAntLog(Ant),Cell_Pid),
-					ant_Main(Ant)
-			end;
+		{reply,place_ant, sucsess} ->
+
+			logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Ant placed in Cell ~p ", [Cell_pid])),
+            antMain(Ant);
 		_ ->
-			logger:logEvent(utils:getAntLog(Ant),"Ant fucked up."),
+			logger:logWarning(utils:getAntLog(Ant),"Ant recived malformed message whilst awaiting initial placement"),
 			exit(fail)
 	end.
 
 %% Main loop of ant
-%% It is currently just walking around randomly
-ant_Main(Ant) ->
+antMain(In_Ant) ->
 	%% Start with a nap
-	timer:sleep(100),
-	State = utils:getAntState(Ant),
-	Cell = utils:getAntCell(Ant),
-	%% Tons of printout 
-	logger:logEvent(utils:getAntLog(Ant),(Cell)),
-	Buffer = utils:getAntMetadata(Ant),
-	case State of
-		searching_for_food ->
-			logger:logEvent(utils:getAntLog(Ant),"Ant is searching for food"),
-			Directions = [northwest, north, northeast, west, east, southwest, south, southeast],
-			Magic = random:uniform(8),
-			Direction = lists:nth(Magic, Directions),
-			logger:logEvent(utils:getAntLog(Ant),"Ant trying to move"),
-			logger:logEvent(utils:getAntLog(Ant),Direction),
-			Ref = make_ref(), 
-			Msg = Cell ! {self(), Ref, {move_ant, Direction}},
-			logger:logMessageSent(utils:getAntLog(Ant),Msg,Cell),
-			{Message, New_Buffer} = message_buffer:receiver(Ref,Buffer),
-			New_Ant = utils:setAntMetadata(Ant, New_Buffer),
-			case Message of
-				{_, _, _,{move_ant_reply,{sucsess, Dest}}} ->
-					Newer_Ant = utils:setAntCell(New_Ant, Dest),
-					logger:logEvent(utils:getAntLog(Ant),"Ant is moving"),
-					ant_Main(Newer_Ant);
-				{_, _, _,{move_ant_reply,{fail, _}}} ->
-					logger:logEvent(utils:getAntLog(Ant),"Ant failed to move~n"),
-					ant_Main(New_Ant);
-				_ ->
-					logger:logEvent(utils:getAntLog(Ant),"Ant got fucked up~n"),
-					ant_Main(New_Ant)
-			end;
-		_ ->
-			ant_Main(Ant)
+    logger:logEvent(utils:getAntLog(In_Ant),"Ant entered main loop"),
+    case message_buffer:hasMessages(utils:getAntMetadata(In_Ant)) of
+        true->
+            logger:logEvent(utils:getAntLog(In_Ant),"Ant has messages to process"),
+            {Message,New_Buffer} = message_buffer:receiver(utils:getAntMetadata),
+            logger:logMessage(utils:getAntLog(In_Ant), Message),
+            Ant = utils:setAntMetadata(In_Ant,New_Buffer),
+            case Message of
+                {Sender,Reference,Payload} ->
+                    logger:logEvent(utils:getAntLog(Ant),"Received request message"),
+                    New_Ant = handleRequest(Ant,{Sender,Reference,Payload}),
+                    logger:logEvent(utils:getAntLog(Ant),"Processed request message"),
+                    antMain(New_Ant);
+                {_,Payload} ->
+                    logger:logEvent(utils:getAntLog(Ant),"Received oneway message"),
+                    New_Ant = handleOneWayMessage(Ant, Payload),
+                    logger:logEvent(utils:getAntLog(Ant),"Processed oneway message"),
+                    antMain(New_Ant);
+                
+                _Any ->
+                    logger:logWarning(utils:getAntLog(Ant),"Received pointless message in main loop! Crashing system :("),
+                    ?debugFmt("Ant(~p) Received pointless message ~p ~n Crashing system",[self(),_Any]),
+                    timer:sleep(100),
+                    exit(failure)
+            end;
+                    
+        false ->
+            tbi
+                    
+            
 	end.
+
+handleOneWay(Ant,Payload) ->
+    case Payload of
+        dump ->
+            logger:logEvent(utils:getAntLog(Ant),"Received dump message"),
+            
+
+handleRequest(Ant,{Sender,Reference,Payload}) ->
+    case Payload of
+        query_state ->
+            logger:logEvent(utils:getAntLog(Ant),"Received state querry"),
+            Msg = Sender ! {self(),make_ref(),Reference,{reply,state_query,utils:getAntAttributes(Ant)}},
+            logger:logMessageSent(utils:getAntLog(Ant),Msg,Sender),
+            Ant;
+        
+        ping ->
+            logger:logEvent(utils:getAntLog(Ant),"Received ping"),
+            Msg = Sender ! {self(),make_ref(),Reference,pong},
+            logger:logMessageSent(utils:getAntLog(Ant),Msg,Sender),
+            Ant;
+        
+        {set_ant_attribute,{Attribute,{Type,Value}}} ->
+            logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Atempting to set attribute ~p to ~p",[Type,Value])),
+            Map = utils:getAntAttributes(Ant),
+            New_Map = maps:put(Type,Value,Map),
+            New_Ant = utils:setAntAttribute(Ant,New_Map),
+            logger:logEvent(utils:getAntLog(Ant),"Updated attributes"),
+            Msg = Sender ! {self(),make_ref(),Reference,{reply,set_ant_attribute,sucsess}},
+            logger:logMessageSent(utils:getAntLog(Ant),Msg,Sender),
+            New_Ant;
+        
+        _Any ->
+            logger:logWarning(utils:getAntLog(Ant),"Received pointless Request! Crashing system :("),
+            ?debugFmt("Ant(~p) Received pointless request ~p ~n Crashing system",[self(),_Any]),
+            timer:sleep(100),
+            exit(failure)
+    end.
+            
+            
+    
+dump(Ant) ->
+    
 
 
 %% Spawns a 1 by 2 grid and places an ant that runs around for 5 seconds
