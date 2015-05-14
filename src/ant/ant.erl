@@ -333,10 +333,10 @@ sendAndReceive(Ant,Message) ->
     Reference = make_ref(),
     Msg = Cell_Pid ! {self(), Reference, Message},
     logger:logMessageSent(utils:getAntLog(Ant),Msg,Cell_Pid),
-    {Received_Message,New_Buffer} = message_buffer:receiver(Reference,Cell_Pid,utils:getAntMetadata(Ant)),
+    {{_,_,_,Payload}=Received_Mesage,New_Buffer} = message_buffer:receiver(Reference,Cell_Pid,utils:getAntMetadata(Ant)),
     New_Ant = utils:setAntMetadata(Ant,New_Buffer),
-    logger:logMessage(utils:getAntLog(Ant),Message),
-    {Received_Message,New_Ant}.
+    logger:logMessage(utils:getAntLog(Ant),Received_Mesage),
+    {Payload,New_Ant}.
 
     
 dump({Pid, Cell_Pid, State, Attributes, {Length,Buffer}, _}) ->
