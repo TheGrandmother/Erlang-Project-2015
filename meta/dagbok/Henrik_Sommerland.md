@@ -92,6 +92,8 @@ Projekt planering/möte.
 sätt att hantera medelanden
 
 ##### Torsdag
+9h KRIG med erlang! Myrorna funkar som dem ska och kan leta upp och ta hem mat.
+Nu upstår det **INGA** deadlocks om man kör med flera myror!
 
 ##### Fredag
 
