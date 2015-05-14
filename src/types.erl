@@ -31,6 +31,8 @@
                         | {draw,Gui_Pid::pid()} %Message to be sent to a cell to tell it to relay its sttate to the gui module.
                         | start_ant
                         | stop_ant
+						| {found_food,Steps_Taken::integer()}
+						| {returned_with_food,Steps_Taken::integer()}
                         | dump.
 
 %% @doc These are the different types of request messages
