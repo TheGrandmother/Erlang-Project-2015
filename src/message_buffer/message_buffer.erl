@@ -11,7 +11,7 @@
 %% ====================================================================
 -export([receiver/3,receiver/1,hasMessages/1]).
 
--define(DEFAULT_TIMEOUT,2000).
+-define(DEFAULT_TIMEOUT,5000).
 
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
