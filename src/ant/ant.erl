@@ -7,7 +7,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -define(DEFAULT_IDLE_TIME,50).
--define(SELECTION_PROBABILITY,0.5).
+-define(SELECTION_PROBABILITY,0.75).
 
 %% Attempts to spawn ant in given Cell
 spawn_Ant(Cell_Pid, Attributes) ->
@@ -15,17 +15,22 @@ spawn_Ant(Cell_Pid, Attributes) ->
 
 
 %% Creates needed information for ant, and places it in given cell
-ant_Init(Cell_Pid, _) ->
+ant_Init(Cell_Pid, Queen) ->
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
 	Ant_ID = self(),
 	State = idling,
-	Log = logger:makeLog(logger:makeCoolString("Ant ~p",[Ant_ID]),self()),
+	Log = logger:makeLog("Ant",self()),
 	Buffer = {0, []},  
 	Ref = make_ref(),
+
 	Msg = Cell_Pid ! {Ant_ID, Ref, {place_ant, Ant_ID}},
 	{{_, _, _, Response}, New_Buffer} = message_buffer:receiver(Ref, Cell_Pid,Buffer),
-	Ant = {self(), Cell_Pid, State, #{food => 0}, New_Buffer, Log},
+	Ant = {self(), Cell_Pid, State, #{
+									  food => 0,steps_taken => 0, 
+									  cells_visited => sets:add_element(Cell_Pid,sets:new()), 
+									  queen => Queen}, 
+		   New_Buffer, Log},
 	logger:logEvent(utils:getAntLog(Ant),"Ant spawned."),
 	logger:logMessageSent(utils:getAntLog(Ant),Msg,Cell_Pid),
 	case Response of
@@ -44,8 +49,9 @@ ant_Init(Cell_Pid, _) ->
 %% Main loop of ant
 antMain(In_Ant) ->
 	%% Start with a nap
-    logger:logEvent(utils:getAntLog(In_Ant),logger:makeCoolString("Ant antered main and is ~p",[utils:getAntState(In_Ant)])),
-    Has_Messages = message_buffer:hasMessages(utils:getAntMetadata(In_Ant)),
+	Has_Messages = message_buffer:hasMessages(utils:getAntMetadata(In_Ant)),
+    logger:logEvent(utils:getAntLog(In_Ant),logger:makeCoolString("Ant antered main and is ~p has messages ? ~p",[utils:getAntState(In_Ant), Has_Messages])),
+
     Is_Idle = utils:getAntState(In_Ant) == idling, 
     if  
         Has_Messages or Is_Idle ->
@@ -78,24 +84,34 @@ antMain(In_Ant) ->
                     logger:logEvent(utils:getAntLog(In_Ant),"Attempting to search for food."),
                     New_Ant = searchForFood(In_Ant),
                     logger:logEvent(utils:getAntLog(In_Ant),"Search atempt completed."),
-                    antMain(New_Ant);
+                    antMain(increaseStepsTaken(New_Ant));
                 
                 returning_with_food->
                     logger:logEvent(utils:getAntLog(In_Ant),"Attempting return with food."),
                     New_Ant = returnWithFood(In_Ant),
                     logger:logEvent(utils:getAntLog(In_Ant),"Return Attempt Completed."),
+					antMain(increaseStepsTaken(New_Ant)),
                     antMain(New_Ant);
                 
                 _Any ->
                     logger:logWarning(utils:getAntLog(In_Ant),logger:makeCoolString("Ant is in ridcoulus state ~p. Lol...", [_Any])),
                     ?debugFmt("Ant(~p) is in silly state ~p",[self(),_Any]),
-                    timer:sleep(100),
+                    timer:sleep(10),
                     exit(failure)
             end
                     
                     
             
 	end.
+
+increaseStepsTaken(Ant)->
+	Map = utils:getAntAttributes(Ant),
+	Old_Steps = maps:get(steps_taken,Map),
+	New_Map = maps:put(steps_taken,Old_Steps+1,Map),
+	Old_Set = maps:get(cells_visited,New_Map),
+	New_Set = sets:add_element(utils:getAntCell(Ant),Old_Set),
+	New_Map1 = maps:put(cells_visited,New_Set,New_Map),
+	utils:setAntAttributes(Ant,New_Map1).
 
 searchForFood(Ant)->
     searchForFood(Ant,examining_current_cell).
@@ -116,7 +132,7 @@ Cell_Pid = utils:getAntCell(Ant),
             case Food_Amount of
                 0 ->
                     logger:logEvent(utils:getAntLog(New_Ant),"Cell contained no food. Continuing search"),
-                    searchForFood(New_Ant,examine_hood);
+                     examineHoodAntTakeAction(New_Ant, food_feremone, base_feremone);
                 _ ->
                     logger:logEvent(utils:getAntLog(New_Ant),logger:makeCoolString("Cell contained ~p units of food. Attempting to snatch some.",[Food_Amount])),
                     searchForFood(New_Ant,snatch_food)
@@ -141,7 +157,12 @@ searchForFood(Ant,snatch_food) ->
             Map = utils:getAntAttributes(New_Ant),
             New_Map = maps:put(food,1,Map),
             New_Ant1 = utils:setAntAttributes(Ant,New_Map),
+			Queen = maps:get(queen,Map),
+			Steps = maps:get(steps_taken,Map),
+			Msg = Queen ! {self(),{found_food,Steps}},
+			logger:logMessageSent(utils:getAntLog(Ant),Msg,Queen),
             utils:setAntState(New_Ant1,returning_with_food);
+			
         
         {reply,take_food,fail} ->
             logger:logEvent(utils:getAntLog(New_Ant),"Ant could not get the food :(. Continuing with search like a boss."),
@@ -159,33 +180,36 @@ examineHoodAntTakeAction(Ant,Search_Feremone,Drop_Feremone) ->
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Examining the surroundings of ~p",[Cell_Pid])),
     {Message,New_Ant} = sendAndReceive(Ant,query_hood),
     case Message of
+		
+		{reply,query_hood,fail} ->
+            logger:logEvent(utils:getAntLog(New_Ant),"Ant could not see its surroundings. Giving up search."),
+            New_Ant;
+		
         {reply,query_hood,Hood} ->
             logger:logEvent(utils:getAntLog(New_Ant),"Ant took a look at the hood"),
-            {Status,New_Ant} = contemplateHood(Ant, Hood, Search_Feremone),
+            {Status,New_Ant1} = contemplateHood(Ant, Hood, Search_Feremone),
             case Status of 
                 sucsess ->
                     logger:logEvent(utils:getAntLog(New_Ant),"Ant depositing feremone at former cell"),
-                    {Message2,New_Ant1} = sendAndReceive(Cell_Pid,{deposit_feremone,Drop_Feremone}),
+                    {Message2,New_Ant2} = sendAndReceive(New_Ant1,Cell_Pid,{deposit_feremone,Drop_Feremone}),
                     case Message2 of
-                        {reply,drop_feremone,sucsess} ->
-                            logger:logEvent(utils:getAntLog(New_Ant),"Ant deposited feremone."),
-                            New_Ant1;
-                        {reply,drop_feremone,fail} ->
-                            logger:logEvent(utils:getAntLog(New_Ant),"Ant could not deposit pheremone. Not that anyone cares though."),
-                            New_Ant1;
+                        {reply,deposit_feremone,sucsess} ->
+                            logger:logEvent(utils:getAntLog(New_Ant2),"Ant deposited feremone."),
+                            New_Ant2;
+                        {reply,deposit_feremone,fail} ->
+                            logger:logEvent(utils:getAntLog(New_Ant2),"Ant could not deposit pheremone. Not that anyone cares though."),
+                            New_Ant2;
                         _Any ->
-                            logger:logWarning(utils:getAntLog(New_Ant1),"Received idiotic message whilst dropping feremone. Crashing system"),
+                            logger:logWarning(utils:getAntLog(New_Ant2),"Received idiotic message whilst dropping feremone. Crashing system"),
                             ?debugFmt("Ant(~p) got dumb message whilst dropping feremone ~p",[self(),_Any]),
                             timer:sleep(100),
                             exit(failure)
                     end;
                 fail ->
-                    New_Ant
+                    New_Ant1
             end;
 
-        {reply,query_hood,fail} ->
-            logger:logEvent(utils:getAntLog(New_Ant),"Ant could not see its surroundings. Giving up search."),
-            New_Ant;
+
         
         _Any ->
             logger:logWarning(utils:getAntLog(New_Ant),"Received idiotic message whilst examing hood. Crashing system"),
@@ -196,15 +220,54 @@ examineHoodAntTakeAction(Ant,Search_Feremone,Drop_Feremone) ->
                                            
 
 returnWithFood(Ant)->
-    logger:logEvent(utils:getAntLog(Ant),"Return with food not implemented. Idling."),
-    utils:setAntState(Ant,idling).
+    returnWithFood(Ant,examining_current_cell).
+
+returnWithFood(Ant,examining_current_cell) ->
+Cell_Pid = utils:getAntCell(Ant),
+    logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Examining its own cell ~p",[Cell_Pid])),
+    {Message,New_Ant} = sendAndReceive(Ant,query_state),
+
+    case Message of
+        
+        {reply,query_state,fail} ->
+            logger:logEvent(utils:getAntLog(New_Ant),"Failed to retreive cell state."),
+            New_Ant;
+        
+        {reply,query_state,Attributes} ->
+            Type = maps:get(type,Attributes),
+            case Type of
+				nest ->
+                    logger:logEvent(utils:getAntLog(New_Ant),"Ant finaly arrived at its home.. But there is no time to rest. Another  adventures await."),
+                    Map = utils:getAntAttributes(New_Ant),
+					New_Map = maps:put(food,0,Map),
+					New_Ant1 = utils:setAntAttributes(New_Ant,New_Map),
+					New_Ant2 = utils:setAntState(New_Ant1,searching_for_food),
+					Queen = maps:get(queen,Map),
+					Steps = maps:get(steps_taken,Map),
+					Msg = Queen ! {self(),{returned_with_food,Steps}},
+					logger:logMessageSent(utils:getAntLog(Ant),Msg,Queen),
+					New_Ant2;
+				
+                _ ->
+                    logger:logEvent(utils:getAntLog(New_Ant),"Cell was not a nest. Continuing the eqic quest to get home."),
+                    examineHoodAntTakeAction(New_Ant, base_feremone, food_feremone)
+
+            end;
+
+
+        _Any ->
+            logger:logWarning(utils:getAntLog(New_Ant),"Received idiotic message whilst examining cell. Crashing system"),
+            ?debugFmt("Ant(~p) got dumb message whilst examinig cell ~p",[self(),_Any]),
+            timer:sleep(100),
+            exit(failure)
+    end.
 
 contemplateHood(Ant,Hood,Feremone) ->
     Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),"Ant is contemplating the nature of 'The Hood'."),
     Sorted_Hood = processHood(Hood, Feremone),
     Direction = pickDirection(Sorted_Hood),
-    logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("And sorted hood like so: ~p with regards to '~p' and decided to go to the ~p",[Sorted_Hood, Feremone, Direction])),
+    logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("And sorted hood with regards to '~p' and decided to go to the ~p",[ Feremone, Direction])),
     {Message,New_Ant} = sendAndReceive(Ant, {move_ant,Direction}),
     case Message of
         {reply,move_ant,{sucsess,New_Pid}} ->
@@ -220,10 +283,9 @@ contemplateHood(Ant,Hood,Feremone) ->
             logger:logWarning(utils:getAntLog(New_Ant),"Received idiotic message whilst contemplating hood. Crashing system"),
             ?debugFmt("Ant(~p) got dumb message whilst contemplating hood ~p",[self(),_Any]),
             timer:sleep(100),
-            exit(failure)
+            exit(failure) 
         
-    end,
-    ok.
+    end.
     
 
 handleOneWayMessage(Ant,Payload) ->
@@ -255,7 +317,7 @@ handleRequest(Ant,{Sender,Reference,Payload}) ->
     case Payload of
         query_state ->
             logger:logEvent(utils:getAntLog(Ant),"Received state querry"),
-            Msg = Sender ! {self(),make_ref(),Reference,{reply,state_query,utils:getAntAttributes(Ant)}},
+            Msg = Sender ! {self(),make_ref(),Reference,{reply,query_state,utils:getAntAttributes(Ant)}},
             logger:logMessageSent(utils:getAntLog(Ant),Msg,Sender),
             Ant;
         
@@ -273,6 +335,7 @@ handleRequest(Ant,{Sender,Reference,Payload}) ->
             logger:logEvent(utils:getAntLog(Ant),"Updated attributes"),
             Msg = Sender ! {self(),make_ref(),Reference,{reply,set_ant_attribute,sucsess}},
             logger:logMessageSent(utils:getAntLog(Ant),Msg,Sender),
+			
             New_Ant;
         
         _Any ->
@@ -291,10 +354,11 @@ processHood(Hood,Feremone) ->
     {Front,Back} = lists:split(4,List0),
     List1 = Front ++ tl(Back),
     List2 = lists:map(fun(X) -> hoodFilter(X, Feremone) end, List1),
-    Directions = [northwest, north, northeast, west, east, southwest ,south, southeast],
+    Directions = lists:reverse([northwest, north, northeast, west, east, southwest ,south, southeast]),
     List3 = lists:zip(Directions,List2),
-    Sorted = sorter:sort(list_to_tuple(List3)),
-    Sorted.
+    List4 = list_to_tuple(List3),
+	Sort_Me = sorter:permute(List4),
+    Sort_Me.
 
 hoodFilter(Hood_Element,Feremone) ->
     case Hood_Element of
@@ -306,7 +370,7 @@ hoodFilter(Hood_Element,Feremone) ->
                 block -> 0.0;
                 _ -> 
                     Feremone_Map = maps:get(feremones,Hood_Element),
-                    {Strength,_} = maps:get(base_feremone,Feremone_Map),
+                    {Strength,_} = maps:get(Feremone,Feremone_Map),
                     Strength
             end
     end.
@@ -334,6 +398,15 @@ sendAndReceive(Ant,Message) ->
     Msg = Cell_Pid ! {self(), Reference, Message},
     logger:logMessageSent(utils:getAntLog(Ant),Msg,Cell_Pid),
     {{_,_,_,Payload}=Received_Mesage,New_Buffer} = message_buffer:receiver(Reference,Cell_Pid,utils:getAntMetadata(Ant)),
+    New_Ant = utils:setAntMetadata(Ant,New_Buffer),
+    logger:logMessage(utils:getAntLog(Ant),Received_Mesage),
+    {Payload,New_Ant}.
+
+sendAndReceive(Ant,Receipient, Message) ->
+    Reference = make_ref(),
+    Msg = Receipient ! {self(), Reference, Message},
+    logger:logMessageSent(utils:getAntLog(Ant),Msg,Receipient),
+    {{_,_,_,Payload}=Received_Mesage,New_Buffer} = message_buffer:receiver(Reference,Receipient,utils:getAntMetadata(Ant)),
     New_Ant = utils:setAntMetadata(Ant,New_Buffer),
     logger:logMessage(utils:getAntLog(Ant),Received_Mesage),
     {Payload,New_Ant}.
@@ -387,9 +460,9 @@ hoodProcessor_test() ->
                                },
     True = {southeast,east,northeast,south,north,west,southwest,northwest},
     Result1 = list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,base_feremone))))),
-    Result2 = list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,food_feremone))))),
-    [?assertEqual(True,list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,base_feremone)))))),
-     ?assertEqual(True, list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,food_feremone))))))].
+    Result2 = list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,food_feremone))))).
+    %[?assertEqual(True,list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,base_feremone)))))),
+    %?assertEqual(True, list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,food_feremone))))))].
 
 directionPickerAux(0,Cool_Tuple) ->
     Cool_Tuple;
@@ -413,44 +486,251 @@ directionPicker_test() ->
     Lol = element(1,lists:unzip(tuple_to_list(Sorted))),
     [?assertEqual([1,2,3,4,5,6,7,8],Lol)].
 
+queenWaitingForPickup(Main) ->
+	receive
+		{Pid,{found_food,Steps}} ->
+			?debugFmt("Our little ant found food in ~p steps",[Steps]),
+			Pid ! {self(),stop_ant},
+			Main ! {ok};
+		_A ->
+			?debugFmt("Our little ant sent me an odd message ~p",[_A]),
+			?assert(false)
+	end.
+
 searchForFoodTest()->
     logger:initLogger(),
-    Grid = grid_init:initGrid({3,3}),
-    Cell_ID = grid_init:getGridElement({1,1},{3,3},Grid),
-    Ant = spawn_Ant(Cell_ID, []),
-    Ant ! {self(),dump},
-    timer:sleep(10),
+    Grid = grid_init:initGrid({5,5}),
+    Cell_ID = grid_init:getGridElement({2,2},{3,3},Grid),
+	My_Pid = self(),
+	Queen = spawn(fun() -> queenWaitingForPickup(My_Pid) end),
+    Ant = spawn_Ant(Cell_ID, Queen),
     Cell_With_Food = grid_init:getGridElement({0,0},{3,3},Grid),
     Ref = make_ref(),
     Cell_With_Food ! {self(),Ref,{set_cell_attribute,{food,1}}},
     receive
         {_,_,_,{reply,set_cell_attribute,sucsess}} ->
-            ok;
+			ok;
         _ ->
             ?debugMsg("Failed to place food at cell :("),
             ?assert(false)
     end,
     Ant ! {self(),start_ant},
-    timer:sleep(2000),
-    Ref2 = make_ref(),
-    Cell_With_Food ! {self(),Ref2,query_state},
     receive
-        {_,_,_,{reply,query_State,Attributes}} ->
-            Type = maps:get(food,Attributes,none),
-            ?assertEqual(Type,0),
-            ok;
-        _ ->
-            ?debugMsg("Failed to check cell food contents :("),
-            ?assert(false)
-    end,
+		{ok} ->
+			?debugMsg("all is well :)");
+		_ ->
+			?assert(false)
+	end,
+
     true.
 
+queenWaitingForPickupAndReturn(Main) ->
+	receive
+		{Pid,{found_food,Steps}} ->
+			?debugFmt("Our little ant found food in ~p steps",[Steps]),
+			
+			Main ! {ok},
+			receive
+				{Pid,{returned_with_food,Steps1}} ->
+					?debugFmt("Our little returned with the  food in ~p steps",[Steps1]),
+					Pid ! {self(),stop_ant},
+					Main ! {ok};
+				_A ->
+					?debugFmt("Our little ant sent me an odd message ~p",[_A]),
+					?assert(false)
+			end;
+
+		_A ->
+			?debugFmt("Our little ant sent me an odd message ~p",[_A]),
+			?assert(false)
+	end.
+
+
+searchAndReturnTest()->
+    logger:initLogger(),
+    Grid = grid_init:initGrid({5,5}),
+    Cell_ID = grid_init:getGridElement({4,4},{5,5},Grid),
+	SillyRef = make_ref(),
+ 	Cell_ID ! {self(),SillyRef,{set_cell_attribute,{type,nest}}},
+    receive 
+        {_,_,_,{reply,set_cell_attribute,sucsess}} ->
+			ok;
+        _ ->
+            ?debugMsg("Failed to place food at cell :("),
+            ?assert(false)
+    end,
+	My_Pid = self(),
+	Queen = spawn(fun() -> queenWaitingForPickupAndReturn(My_Pid) end),
+    Ant = spawn_Ant(Cell_ID, Queen),
+    Cell_With_Food = grid_init:getGridElement({0,0},{5,5},Grid),
+    Ref = make_ref(),
+    Cell_With_Food ! {self(),Ref,{set_cell_attribute,{food,1}}},
+    receive
+        {_,_,_,{reply,set_cell_attribute,sucsess}} ->
+            %?debugFmt("Added food to ~p",[Cell_With_Food]);
+			ok;
+        _ ->
+            ?debugMsg("Failed to place food at cell :("),
+            ?assert(false)
+    end,
+    Ant ! {self(),start_ant},
+
+    receive
+		{ok} ->
+			?debugMsg("We found food :)");
+		_ ->
+			?assert(false)
+	end,
+	receive
+		{ok} ->
+			?debugMsg("all is well :)");
+		_ ->
+			?assert(false)
+	end,
+    true.
+
+checkSpeedup()->
+    logger:initLogger(),
+    Grid = grid_init:initGrid({6,6}),
+    Cell_ID = grid_init:getGridElement({5,5},{6,6},Grid),
+	SillyRef = make_ref(),
+ 	Cell_ID ! {self(),SillyRef,{set_cell_attribute,{type,nest}}},
+    receive 
+        {_,_,_,{reply,set_cell_attribute,sucsess}} ->
+            %?debugFmt("Added food to ~p",[Cell_With_Food]);
+			ok;
+        _ ->
+            ?debugMsg("Failed to place food at cell :("),
+            ?assert(false)
+    end,
+	My_Pid = self(),
+	Queen = spawn(fun() -> complicatedQueen(My_Pid,0,[],20) end),
+    Ant = spawn_Ant(Cell_ID, Queen),
+    Cell_With_Food = grid_init:getGridElement({0,0},{6,6},Grid),
+    Ref = make_ref(),
+    Cell_With_Food ! {self(),Ref,{set_cell_attribute,{food,100}}},
+    receive
+        {_,_,_,{reply,set_cell_attribute,sucsess}} ->
+			ok;
+        _ ->
+            ?debugMsg("Failed to place food at cell :("),
+            ?assert(false)
+    end,
+    Ant ! {self(),start_ant},
+
+    receive
+		{ok,Diffs} ->
+			?debugMsg("We sured did a lot of things :)"),
+			?debugFmt("This is how many steps every thing took ~p",[lists:reverse(Diffs)]),
+			timer:sleep(500);
+		_ ->
+			?assert(false)
+	end,
+    true.
+
+
+derpQueen(Main,_,Find_Diffs,Return_Diffs,0) ->
+	Main ! {ok,Find_Diffs,Return_Diffs};
+derpQueen(Main,Map,Find_Diffs,Return_Diffs,N) ->
+	receive
+		{Pid,{found_food,Steps}} ->
+			Old_Steps = maps:get(Pid,Map,0),
+			Diff = Steps-Old_Steps,
+			New_Map = maps:put(Pid,Steps,Map),
+			?debugFmt("Our little ant ~p found food in ~p steps",[Pid,Diff]),
+			derpQueen(Main,New_Map,[Diff]++Find_Diffs,Return_Diffs,N-1);
+		
+		{Pid,{returned_with_food,Steps}} ->
+			Old_Steps = maps:get(Pid,Map,0),
+			Diff = Steps-Old_Steps,
+			New_Map = maps:put(Pid,Steps,Map),
+			?debugFmt("Our little ant ~p returned the food in ~p steps",[Pid,Diff]),
+			derpQueen(Main,New_Map,[Diff]++Find_Diffs,[Diff]+Return_Diffs,N-1);
+		
+		_A ->
+			?debugFmt("Our little ant sent me an odd message ~p",[_A]),
+			?assert(false)
+	end.
+	
+complicatedQueen(Main,_,Diffs,0) ->
+	Main ! {ok,Diffs};
+complicatedQueen(Main,Last_Step,Diffs,N) ->
+	receive
+		{_,{found_food,Steps}} ->
+			?debugFmt("Our little ant found food in ~p steps",[Steps-Last_Step]),
+			complicatedQueen(Main,Steps,[Steps-Last_Step]++Diffs,N-1);
+		
+		{_,{returned_with_food,Steps}} ->
+			?debugFmt("Our little ant returned the food in ~p steps",[Steps-Last_Step]),
+			complicatedQueen(Main,Steps,[Steps-Last_Step]++Diffs,N-1);
+		_A ->
+			?debugFmt("Our little ant sent me an odd message ~p",[_A]),
+			?assert(false)
+	end.
+
+
+multiAntTest()->
+    logger:initLogger(),
+    Grid = grid_init:initGrid({6,6}),
+    Cell_ID = grid_init:getGridElement({5,5},{6,6},Grid),
+	SillyRef = make_ref(),
+ 	Cell_ID ! {self(),SillyRef,{set_cell_attribute,{type,nest}}},
+    receive 
+        {_,_,_,{reply,set_cell_attribute,sucsess}} ->
+            %?debugFmt("Added food to ~p",[Cell_With_Food]);
+			ok;
+        _ ->
+            ?debugMsg("Failed to place food at cell :("),
+            ?assert(false)
+    end,
+	My_Pid = self(),
+	Queen = spawn(fun() -> derpQueen(My_Pid,#{},[],[],30) end),
+    Ant1 = spawn_Ant( grid_init:getGridElement({5,5},{6,6},Grid), Queen),
+	Ant2 = spawn_Ant( grid_init:getGridElement({5,4},{6,6},Grid), Queen),
+	Ant3 = spawn_Ant( grid_init:getGridElement({4,5},{6,6},Grid), Queen),
+    Cell_With_Food = grid_init:getGridElement({0,0},{6,6},Grid),
+    Ref = make_ref(),
+    Cell_With_Food ! {self(),Ref,{set_cell_attribute,{food,100}}},
+    receive
+        {_,_,_,{reply,set_cell_attribute,sucsess}} ->
+			ok;
+        _ ->
+            ?debugMsg("Failed to place food at cell :("),
+            ?assert(false)
+    end,
+    Ant1 ! {self(),start_ant},
+	Ant2 ! {self(),start_ant},
+	Ant3 ! {self(),start_ant},
+
+    receive
+		{ok,Find_Diffs,Return_Diffs} ->
+			?debugMsg("We sured did a lot of things :)"),
+			?debugFmt("This is how many steps every thing took to find ~p",[lists:reverse(Find_Diffs)]),
+			?debugFmt("This is how many steps every thing took to return ~p",[lists:reverse(Return_Diffs)]),
+			timer:sleep(500);
+		_ ->
+			?assert(false)
+	end,
+    true.
 
 spawn_test() ->
     [?assert(spawnTest())].
 
-searchForFood_test() ->
-    [?assert(searchForFoodTest())].
+%searchForFood_test() ->
+%    [?assert(searchForFoodTest())].
+
+%searchAndReturn_test() ->
+%    [?assert(searchAndReturnTest())].
+
+searchForFood_test_() ->
+         {timeout, 20, [fun searchForFoodTest/0]}.
+searchAndReturn_test_() ->
+         {timeout, 30, [fun searchAndReturnTest/0]}.
+%speedup_test_() ->
+%         {timeout, 100, [fun checkSpeedup/0]}.
+
+multiAnt_test_() ->
+         {timeout, 100, [fun multiAntTest/0]}.
 
 
 

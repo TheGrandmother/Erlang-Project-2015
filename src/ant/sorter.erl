@@ -7,7 +7,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([sort/1]).
+-export([sort/1,permute/1]).
 -include_lib("eunit/include/eunit.hrl").
 
 sort(T) ->
@@ -241,6 +241,40 @@ swap({E0,E1,E2,E3,E4,E5,E6,E7},18) ->
             {E0,E1,E2,E3,E4,E5,E6,E7}
     end.
 
+
+%unsigned uniform(unsigned i,unsigned m); /* Returns a random integer i <= uniform(i,m) <= m */
+% 
+%void permute(unsigned permutation[], unsigned n)
+%{
+%    unsigned i;
+%    for (i = 0; i < n; i++) {
+%        unsigned j = uniform(i, n - 1);
+%        unsigned swap = permutation[i];
+%        permutation[i] = permutation[j];
+%        permutation[j] = swap;
+%    }
+%}
+
+permute(Tuple) ->
+	permute(Tuple,1).
+
+permute(Tuple,9)->
+	Tuple;
+permute(Tuple,N)->
+	Swap = uniform(N,8),
+	permute(swapper(Tuple,N,Swap),N+1).
+
+uniform(N,M) when N /= M->
+	N + random:uniform(M-N) - 1;
+uniform(N,_) ->
+	N.
+swapper(Tuple,A,B)->
+	New_B = element(A,Tuple),
+	New_A = element(B,Tuple),
+	New1 = setelement(A,Tuple,New_A),
+	New2 = setelement(B,New1,New_B),
+	New2.
+	
 testBasic_test()->
     Test_Tuple = {{0,0},{1,1},{2,2},{3,3},{4,4},{5,5},{6,6},{7,7}},
     Test_Tuple1 = list_to_tuple(lists:reverse(tuple_to_list(Test_Tuple))),
@@ -254,3 +288,17 @@ testBasic_test()->
      ?assertEqual(F_Test_Tuple1,sort(F_Test_Tuple))
      
      ].
+
+permute_test() ->
+	Start = {1,2,3,4,5,6,7,8},
+	Permute1 = permute(Start),
+	Permute2 = permute(Start),
+	[
+	 ?assertNotEqual(Start,Permute1),
+	 ?assertNotEqual(Start,Permute2),
+	 ?assertNotEqual(Permute2,Permute1)
+	 ].
+
+
+	
+	
