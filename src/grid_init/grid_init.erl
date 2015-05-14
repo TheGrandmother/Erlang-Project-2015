@@ -24,7 +24,7 @@ initGrid(Size) ->
     Grid = newGrid(Size),
     Filled_Grid = fillGrid(Size, Grid),
     {Array,Refs} = linkup(Size,Filled_Grid),
-    awaitReplies(Refs,lists:map(fun(X) -> array:to_list(X) end,array:to_list(Array)),{0,[]}),
+    awaitReplies(Refs,lists:flatten(lists:map(fun(X) -> array:to_list(X) end,array:to_list(Array))),{0,[]}),
     Array.
 
 %% @todo Add ants and stuff

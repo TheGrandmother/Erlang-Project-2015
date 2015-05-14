@@ -357,7 +357,7 @@ hoodQuerryAux(Refs,In_Cell,Attributes,Pids) when is_list(Refs)->
     case Message of
     	{_, _,Key_Reference,{reply,query_state,fail}} ->
 			logger:logWarning(utils:getCellLog(Cell0),"DEADLOCK IN HOOD QUERRY!!!!!!"),
-			?debugMsg("DEDLOCK IN HOOD QUERRY"),
+			%?debugMsg("DEDLOCK IN HOOD QUERRY"),
             Flushed_Buffer = hoodQuerryRollback(New_Buffer, Pids, New_Refs),
     		{utils:setCellMetadata(In_Cell,Flushed_Buffer),fail};
 		
@@ -372,7 +372,7 @@ hoodQuerryAux(Refs,In_Cell,Attributes,Pids) when is_list(Refs)->
     end.
 
 hoodQuerryRollback(Buffer,_,[]) ->
-	?debugMsg("Performed rollback"),
+	%?debugMsg("Performed rollback"),
 	Buffer;
 	
 hoodQuerryRollback(Buffer,Pids,Refs) ->

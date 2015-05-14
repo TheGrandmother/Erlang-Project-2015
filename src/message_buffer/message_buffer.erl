@@ -58,26 +58,29 @@ receiver(Refs, Recipients, {_,Queue})->
 
 receiver(Refs, Recipients, Buffer={L,Queue},ok) when is_list(Refs)==true -> 
     receive
-		Candidate_Message={Sender,Reference,Request_Reference,Payload} ->
-			case lists:member(Request_Reference,Refs) of
-                true ->
-                    {Candidate_Message,Buffer,lists:delete(Request_Reference,Refs)};
-                false ->
-					case lists:member(Sender,Recipients) of
-						true ->
-							?debugMsg("DEADLOCK ENCOUNTERED!"),
-							case Payload of 
-								{Type,_}->
-									Sender ! {self(), make_ref(), Reference,{reply,Type,fail}};
-								Type ->
-									Sender ! {self(), make_ref(), Reference,{reply,Type,fail}}
-							end;
-						false ->
-							receiver(Refs,Recipients,Buffer,ok)
+		Request_Messsage={Sender,Reference,Payload} ->
+			case lists:member(Sender,Recipients) of
+				true ->
+					%?debugMsg("DEADLOCK ENCOUNTERED!"),
+					case Payload of 
+						{Type,_}->
+							Sender ! {self(), make_ref(), Reference,{reply,Type,fail}};
+						Type ->
+							Sender ! {self(), make_ref(), Reference,{reply,Type,fail}}
 					end,
-                    receiver(Refs,Recipients,{L+1,lists:append(Queue,[Candidate_Message])},ok)
+					receiver(Refs, Recipients, Buffer,ok);
+				false ->
+					receiver(Refs,Recipients,{L+1,lists:append(Queue,[Request_Messsage])},ok)
 			end;
-			
+            
+		Reply_Message={_,_,Request_Reference,_} ->
+			case lists:member(Request_Reference,Refs) of
+				true ->
+					{Reply_Message,Buffer,lists:delete(Request_Reference,Refs)};
+				false ->
+					receiver(Refs,Recipients,{L+1,lists:append(Queue,[Reply_Message])},ok)
+			end;
+
 
         _Any ->
             receiver(Refs,Recipients,{L+1,lists:append(Queue,[_Any])},ok)
@@ -94,12 +97,12 @@ receiver(Reference,Recipient,Buffer={L,Queue},ok) ->
 		A={_,_,Request_Reference,_} when Reference == Request_Reference->
 			{A,Buffer};
 		{Pid,Return_Reference,{Request_Type,_}} when Pid == Recipient ->
-			?debugMsg("DEADLOCK ENCOUNTERED!"),
+			%?debugMsg("DEADLOCK ENCOUNTERED!"),
 			Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
 			receiver(Reference, Recipient, Buffer,ok);
         
         {Pid,Return_Reference,Request_Type} when Pid == Recipient ->
-			?debugMsg("DEADLOCK ENCOUNTERED!"),
+			%?debugMsg("DEADLOCK ENCOUNTERED!"),
             Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
             receiver(Reference, Recipient, Buffer);
 		_Any ->
@@ -114,14 +117,14 @@ receiver(Reference,Recipient,Buffer={L,Queue},ok) ->
 cleanBuffer(_,[],[])->
 	{0,[]};
 cleanBuffer(_,[],New_Buffer)->
-	{lists:length(New_Buffer),lists:reverse(New_Buffer)};
+	{length(New_Buffer),lists:reverse(lists:flatten(New_Buffer))};
 cleanBuffer(Pids, [Hd|Tl],Buff)->
 	Recipient = element(1,Hd),
 	case lists:member(Recipient,Pids) of
 		true ->
 			case ifRequestSendFail(Hd) of
 				true ->
-					?debugFmt("Found deadlock in buffer and deleating msg ~p",[Hd]),
+					%?debugFmt("Found deadlock in buffer and deleating msg ~p",[Hd]),
 					cleanBuffer(Pids, Tl,Buff);
 				false ->
 					cleanBuffer(Pids, Tl,[Hd]++Buff)
