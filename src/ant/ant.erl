@@ -645,7 +645,7 @@ derpQueen(Main,Map,Find_Diffs,Return_Diffs,N) ->
 			Diff = Steps-Old_Steps,
 			New_Map = maps:put(Pid,Steps,Map),
 			?debugFmt("Our little ant ~p returned the food in ~p steps",[Pid,Diff]),
-			derpQueen(Main,New_Map,[Diff]++Find_Diffs,[Diff]+Return_Diffs,N-1);
+			derpQueen(Main,New_Map,Find_Diffs,[Diff]++Return_Diffs,N-1);
 		
 		_A ->
 			?debugFmt("Our little ant sent me an odd message ~p",[_A]),
@@ -700,7 +700,7 @@ multiAntTest()->
     end,
     Ant1 ! {self(),start_ant},
 	Ant2 ! {self(),start_ant},
-	%Ant3 ! {self(),start_ant},
+	Ant3 ! {self(),start_ant},
 
     receive
 		{ok,Find_Diffs,Return_Diffs} ->
@@ -716,18 +716,14 @@ multiAntTest()->
 spawn_test() ->
     [?assert(spawnTest())].
 
-%searchForFood_test() ->
-%    [?assert(searchForFoodTest())].
+searchForFood_test_() ->
+         {timeout, 20, [fun searchForFoodTest/0]}.
 
-%searchAndReturn_test() ->
-%    [?assert(searchAndReturnTest())].
+searchAndReturn_test_() ->
+         {timeout, 30, [fun searchAndReturnTest/0]}.
 
-%searchForFood_test_() ->
-%         {timeout, 20, [fun searchForFoodTest/0]}.
-%searchAndReturn_test_() ->
-%         {timeout, 30, [fun searchAndReturnTest/0]}.
-%speedup_test_() ->
-%         {timeout, 100, [fun checkSpeedup/0]}.
+speedup_test_() ->
+         {timeout, 100, [fun checkSpeedup/0]}.
 
 multiAnt_test_() ->
          {timeout, 100, [fun multiAntTest/0]}.
