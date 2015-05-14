@@ -81,10 +81,10 @@ ant_source = $(wildcard $(SRC)/ant/*.erl)
 ant: $(ant_binary) 
 	
 $(ant_binary) : $(ant_source) $(grid_init_binary) $(message_buffer_binary) $(cell_binary) $(logger_binary) src/ant/sorter.erl
-	erlc $(FLAGS -o $(BIN)/ $^
+	erlc $(FLAGS) -o $(BIN)/ $^
 
 test_ant: $(ant_binary)
-	erl -noshell -pa ebin -eval 'eunit:test(["$(ant_binary)"], [verbose])' -s init stop
+	erl -noshell -pa ebin -eval 'eunit:test({timeout, 1000, ["$(ant_binary)","ebin/sorter.beam"]}, [verbose])' -s init stop
 
 
 	
