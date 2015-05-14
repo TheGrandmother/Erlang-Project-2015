@@ -700,7 +700,7 @@ multiAntTest()->
     end,
     Ant1 ! {self(),start_ant},
 	Ant2 ! {self(),start_ant},
-	Ant3 ! {self(),start_ant},
+	%Ant3 ! {self(),start_ant},
 
     receive
 		{ok,Find_Diffs,Return_Diffs} ->
@@ -722,10 +722,10 @@ spawn_test() ->
 %searchAndReturn_test() ->
 %    [?assert(searchAndReturnTest())].
 
-searchForFood_test_() ->
-         {timeout, 20, [fun searchForFoodTest/0]}.
-searchAndReturn_test_() ->
-         {timeout, 30, [fun searchAndReturnTest/0]}.
+%searchForFood_test_() ->
+%         {timeout, 20, [fun searchForFoodTest/0]}.
+%searchAndReturn_test_() ->
+%         {timeout, 30, [fun searchAndReturnTest/0]}.
 %speedup_test_() ->
 %         {timeout, 100, [fun checkSpeedup/0]}.
 

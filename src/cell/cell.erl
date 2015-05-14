@@ -330,35 +330,56 @@ placeAnt(Cell,Sender,Reference,New_Ant) ->
 -spec hoodQuerry(Cell::types:cell(),Sender::pid(), Reference::reference()) -> types:cell().
 hoodQuerry(Cell,Sender,Reference) ->
     logger:logEvent(utils:getCellLog(Cell), "Processing hood request"),
-    {Attributes,Refs} = buildHoodThing(Cell,tuple_to_list(utils:getCellHood(Cell)),[],[]),
-    {New_Cell, Filled_Attributes} = hoodQuerryAux(Refs, Cell, Attributes),
-    logger:logEvent(utils:getCellLog(Cell), "Recieved complete hood"),
-    Msg = Sender! {self(),make_ref(),Reference,{reply,query_hood,list_to_tuple(Filled_Attributes)}},
-    logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
+    {Attributes,Refs,Pids} = buildHoodThing(Cell,tuple_to_list(utils:getCellHood(Cell)),[],[],[]),
+    {New_Cell, Filled_Attributes} = hoodQuerryAux(Refs, Cell, Attributes,Pids),
+    case Filled_Attributes of
+		fail ->
+			Msg1 = Sender! {self(),make_ref(),Reference,{reply,query_hood,fail}},
+   			logger:logMessageSent(utils:getCellLog(Cell),Msg1,Sender);
+		_Any ->			
+		    Msg = Sender! {self(),make_ref(),Reference,{reply,query_hood,list_to_tuple(Filled_Attributes)}},
+		    logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender)
+	end,
     New_Cell.
 
 
 %% @doc Corresponds to the await query hood replies.
 %% Will wait for the replies to the requests sent to all the neighbouring cells.
--spec hoodQuerryAux([reference()],Cell::types:cell(),Attributes::types:cell_atributes()) -> {Cell::types:cell(),[types:cel_attributes()]}.
-hoodQuerryAux([],Cell,Attributes) ->
+-spec hoodQuerryAux([reference()],Cell::types:cell(),Attributes::types:cell_atributes(),Pids::[pid()]) -> {Cell::types:cell(),[types:cel_attributes()]}.
+hoodQuerryAux([],Cell,Attributes,_) ->
     {Cell,element(2,lists:unzip(Attributes))};
 
-hoodQuerryAux(Refs,In_Cell,Attributes) when is_list(Refs)->  
-    {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,element(1,lists:unzip(Attributes)),utils:getCellMetadata(In_Cell)),
+hoodQuerryAux(Refs,In_Cell,Attributes,Pids) when is_list(Refs)->  
+    {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,Pids,utils:getCellMetadata(In_Cell)),
     Cell0 = utils:setCellMetadata(In_Cell,New_Buffer),
     logger:logMessage(utils:getCellLog(Cell0),Message),
     
     case Message of
-        {_, _,Key_Reference,{reply,query_state,New_Attribute}} ->
-            hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,New_Attribute,Attributes,[]));
-    
+    	{_, _,Key_Reference,{reply,query_state,fail}} ->
+			logger:logWarning(utils:getCellLog(Cell0),"DEADLOCK IN HOOD QUERRY!!!!!!"),
+			?debugMsg("DEDLOCK IN HOOD QUERRY"),
+            Flushed_Buffer = hoodQuerryRollback(New_Buffer, Pids, New_Refs),
+    		{utils:setCellMetadata(In_Cell,Flushed_Buffer),fail};
+		
+		{_, _,Key_Reference,{reply,query_state,New_Attribute}} ->
+            hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,New_Attribute,Attributes,[]),Pids);
+		
+	
         _Any ->
             logger:logWarning(utils:getCellLog(Cell0),"Received pointless message Whilst in hoodquerry awaiting state! Crashing system"),
             ?debugFmt("Cell(~p) Received pointless message ~p whilst waiting for hood replies.~n Crashing system",[self(),_Any]),
             exit(failure)
     end.
-    
+
+hoodQuerryRollback(Buffer,_,[]) ->
+	?debugMsg("Performed rollback"),
+	Buffer;
+	
+hoodQuerryRollback(Buffer,Pids,Refs) ->
+	{_,New_Buffer,New_Refs} = message_buffer:receiver(Refs,Pids,Buffer),
+	hoodQuerryRollback(New_Buffer,Pids,New_Refs).
+	
+
 %% @doc Function used for automatic decay of feremones and other types of time dependent updates.
 -spec automaticUpdate(Cell::types:cell(),Seconds_Diff::float()) -> {New_Cell::types:cell(),New_Time::integer()} .
 automaticUpdate(Cell,Seconds_Diff) ->
@@ -398,9 +419,7 @@ dump({Pid,Position,Hood,Next_Cell, Attributes,{Length,Buffer},_}) ->
     S4 = "=======================================~n",
     Big_String = string:join([S0,S1,S2,S3,S4],""),
     Args = [Pid,Next_Cell,Position,Hood,Attributes,Length,Buffer],
-    %logger:logEvent(Log, logger:makeCoolString(Big_String, Args)),
     ?debugFmt(Big_String,Args).
-    %logger:logEvent(Log,re:replace(logger:makeCoolString("~ts~ts~ts~ts~ts",[S0,S1,S2,S3,S4])),"\\","~").
 
 findAndReplace(_,_,[],Acc) ->
     lists:reverse(Acc);
@@ -413,32 +432,25 @@ findAndReplace(Reference,Val,[Hd|Tl],Acc)->
     end.
     
 
-buildHoodThing(_,[],CoolList,Refs) ->
+buildHoodThing(_,[],CoolList,Refs,Pids) ->
     
-    {lists:reverse(CoolList),Refs};
+    {lists:reverse(CoolList),Refs,Pids};
 
-buildHoodThing(Cell,[none|Tl],CoolList,Refs) ->
-    %Ref = make_ref(),
-    %Hd ! {self(),Ref,query_state},
+buildHoodThing(Cell,[none|Tl],CoolList,Refs,Pids) ->
     logger:logEvent(utils:getCellLog(Cell), "Skipping non existing cell"),
-    buildHoodThing(Cell,Tl,[{none,none}]++CoolList,Refs);
+    buildHoodThing(Cell,Tl,[{none,none}]++CoolList,Refs,Pids);
 
-%buildHoodThing([Derp],CoolList,Refs) ->
-%    Ref = make_ref(),
-%    Derp ! {self(),Ref,query_state},
-%    buildHoodThing([],[{Ref,none}]++CoolList,[Ref]++Refs);
-
-buildHoodThing(Cell,[Hd|Tl],CoolList,Refs) ->
+buildHoodThing(Cell,[Hd|Tl],CoolList,Refs,Pids) ->
     if
         Hd == self() ->
             logger:logEvent(utils:getCellLog(Cell), "Skipping cell"),        
-            buildHoodThing(Cell,Tl,[{none,utils:getCellAttributes(Cell)}]++CoolList,Refs);
+            buildHoodThing(Cell,Tl,[{none,utils:getCellAttributes(Cell)}]++CoolList,Refs,Pids);
 
         true->
             Ref = make_ref(),
             Msg = Hd ! {self(),Ref,query_state},
             logger:logMessageSent(utils:getCellLog(Cell),Msg,Hd),
-            buildHoodThing(Cell,Tl,[{Ref,none}]++CoolList,[Ref]++Refs)
+            buildHoodThing(Cell,Tl,[{Ref,none}]++CoolList,[Ref]++Refs,[Hd]++Pids)
     end.
 
 
