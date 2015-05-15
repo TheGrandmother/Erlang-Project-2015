@@ -4,7 +4,6 @@
 #
 SOURCES=$(wildcard src/*/*.erl)
 OBJECTS:=$(wildcard ebin/*.beam)
-
 BIN=ebin
 SRC=src
 
@@ -65,6 +64,7 @@ test_grid_init: $(grid_init_binary)
 	
 
 cell_binary = $(BIN)/cell.beam
+cell_test = $(BIN)/cell_tests.beam
 cell_source = $(wildcard $(SRC)/cell/*.erl) $(message_buffer_binary) $(logger_binary) $(utils_binary)
 
 cell: $(cell_binary)
@@ -72,8 +72,26 @@ cell: $(cell_binary)
 $(cell_binary) : $(cell_source)	
 	erlc $(FLAGS) -o $(BIN)/ $^
 
+
+
 test_cell: $(cell_binary)
-	erl -noshell -pa ebin -eval 'eunit:test(["$(cell_binary)"], [verbose])' -s init stop
+	erl -noshell -pa ebin -eval 'eunit:test(["$(cell_test)"], [verbose])' -s init stop
+
+
+
+
+
+ant_binary = $(BIN)/ant.beam
+ant_source = $(wildcard $(SRC)/ant/*.erl)
+
+ant: $(ant_binary) 
+	
+$(ant_binary) : $(ant_source) $(grid_init_binary) $(message_buffer_binary) $(cell_binary) $(logger_binary) src/ant/sorter.erl
+	erlc $(FLAGS) -o $(BIN)/ $^
+
+test_ant: $(ant_binary)
+	erl -noshell -pa ebin -eval 'eunit:test({timeout, 1000, ["$(ant_binary)","ebin/sorter.beam"]}, [verbose])' -s init stop
+
 
 	
 

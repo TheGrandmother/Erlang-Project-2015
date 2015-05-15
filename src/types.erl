@@ -26,9 +26,13 @@
 
 %% @doc This is the different types of one way messages
 -type one_way_type() ::   
-                        | {gui_update,{X::integer(),Y::integer()},[#{}]}
+                        | {gui_update,{{X::integer(),Y::integer()},#{}}}
 						| {gui_init,{X::integer(),Y::integer()}}
                         | {draw,Gui_Pid::pid()} %Message to be sent to a cell to tell it to relay its sttate to the gui module.
+                        | start_ant
+                        | stop_ant
+						| {found_food,Steps_Taken::integer()}
+						| {returned_with_food,Steps_Taken::integer()}
                         | dump.
 
 %% @doc These are the different types of request messages
@@ -84,7 +88,8 @@
 -type cell_attributes() ::    {type, plain | nest | block}
                             | {ant, Pid::pid()} 
                             | {feremones, none | list(feremone_type())} 
-                            | {food, Ammount::integer()}.
+                            | {food, Ammount::integer()}
+							| {gui_module, pid()}.
 
 %% @doc This is a definition of the types of freremone on a cell.
 -type feremone_type() :: {Name::feremone_name(),Strength::float(),Dissipation_Rate::float}.
@@ -97,10 +102,12 @@
 
 %%@doc The different "states" than an ant can be in.
 -type ant_state() ::     searching_for_food
+                        |idling
                         |returning_with_food.
+
 %%@doc These are the different key value pairs that a cells attributes map can have.
 -type ant_attributes() ::    {time_to_live, integer()}
-                            |{carrying_food, Amount::integer()}.
+                            |{food, Amount::integer()}.
                     
 
 

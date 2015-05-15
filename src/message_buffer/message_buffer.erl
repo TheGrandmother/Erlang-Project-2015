@@ -9,15 +9,27 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([receiver/3,receiver/1]).
+-export([receiver/3,receiver/1,hasMessages/1]).
 
--define(DEFAULT_TIMEOUT,2000).
+-define(DEFAULT_TIMEOUT,1000).
 
 -type message_buffer() :: {Queue_Length::integer(),Message_Buffer::list()}.
 
+
+-spec hasMessages(Buffer::types:buffer()) -> true | false.
+hasMessages({_,[]})->
+    {_,Length} = erlang:process_info(self(), message_queue_len),
+    case Length of
+        0 ->
+            false;
+        _ ->
+            true
+    end;
+hasMessages(_)->
+    true.
+
+
 %% @doc see receiver/2
-%% 
-%%
 -spec receiver(Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
 receiver({L,[]}) ->
     receive
@@ -40,62 +52,96 @@ receiver({L,[Message | Tl]}) ->
 %% in such a fashion that the order in which these messages arrived is not altered.
 %%
 -spec receiver(Special::reference() | [reference()],Recipient::pid() | [pid()],Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
-receiver(Refs, Recipients, Buffer={L,Queue}) when is_list(Refs)==true -> 
+receiver(Refs, Recipients, {_,Queue})->
+	%We must first check the buffer for conflicting deadlocks!!!!!
+	receiver(Refs, Recipients, cleanBuffer(lists:flatten([Recipients]), Queue, []),ok).
+
+receiver(Refs, Recipients, Buffer={L,Queue},ok) when is_list(Refs)==true -> 
     receive
-        A={_,_,Request_Reference,_} ->
-            case lists:member(Request_Reference,Refs) of
-                true ->
-                    {A,Buffer,lists:delete(Request_Reference,Refs)};
-                false ->
-                    receiver(Refs,Recipients,{L+1,lists:append(Queue,[A])})
-            end;
-		{Pid,Return_Reference,{Request_Type,_}}  ->
-			case lists:member(Pid,Recipients) of
+		Request_Messsage={Sender,Reference,Payload} ->
+			case lists:member(Sender,Recipients) of
 				true ->
-					Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
-					receiver(Refs,Recipients,Buffer);
+					%?debugMsg("DEADLOCK ENCOUNTERED!"),
+					case Payload of 
+						{Type,_}->
+							Sender ! {self(), make_ref(), Reference,{reply,Type,fail}};
+						Type ->
+							Sender ! {self(), make_ref(), Reference,{reply,Type,fail}}
+					end,
+					receiver(Refs, Recipients, Buffer,ok);
 				false ->
-					receiver(Refs,Recipients,Buffer)
+					receiver(Refs,Recipients,{L+1,lists:append(Queue,[Request_Messsage])},ok)
 			end;
-        {Pid,Return_Reference,Request_Type}  ->
-            case lists:member(Pid,Recipients) of
-                true ->
-                    Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
-                    receiver(Refs,Recipients,Buffer);
-                false ->
-                    receiver(Refs,Recipients,Buffer)
-            end;
+            
+		Reply_Message={_,_,Request_Reference,_} ->
+			case lists:member(Request_Reference,Refs) of
+				true ->
+					{Reply_Message,Buffer,lists:delete(Request_Reference,Refs)};
+				false ->
+					receiver(Refs,Recipients,{L+1,lists:append(Queue,[Reply_Message])},ok)
+			end;
+
+
         _Any ->
-            receiver(Refs,Recipients,{L+1,lists:append(Queue,[_Any])})
+            receiver(Refs,Recipients,{L+1,lists:append(Queue,[_Any])},ok)
     after ?DEFAULT_TIMEOUT ->
-        ?debugFmt("~nReceiver(in process ~p) timed out whils awating ~p.~nDumping everything there is to dump~nMessage buffer: ~n~p~nMessage Queue:~n ~p~n",[self(),Refs,Buffer,element(2,erlang:process_info(self(), messages))]),
+        ?debugFmt("~nReceiver(in process ~p) timed out whilst awating ~p from ~p .~nMessage buffer: ~n~p~nMessage Queue:~n ~p~n",
+				  [self(),Refs,Recipients,Buffer,element(2,erlang:process_info(self(), messages))]),
         timer:sleep(100),
         exit(failure)
     end;
 
 
-receiver(Reference,Recipient,Buffer={L,Queue}) ->
+receiver(Reference,Recipient,Buffer={L,Queue},ok) ->
 	receive
 		A={_,_,Request_Reference,_} when Reference == Request_Reference->
 			{A,Buffer};
 		{Pid,Return_Reference,{Request_Type,_}} when Pid == Recipient ->
+			%?debugMsg("DEADLOCK ENCOUNTERED!"),
 			Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
-			receiver(Reference, Recipient, Buffer);
+			receiver(Reference, Recipient, Buffer,ok);
         
         {Pid,Return_Reference,Request_Type} when Pid == Recipient ->
+			%?debugMsg("DEADLOCK ENCOUNTERED!"),
             Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
             receiver(Reference, Recipient, Buffer);
 		_Any ->
-			receiver(Reference,Recipient,{L+1,lists:append(Queue,[_Any])})
+			receiver(Reference,Recipient,{L+1,lists:append(Queue,[_Any])},ok)
     after ?DEFAULT_TIMEOUT ->
-        ?debugFmt("~nReceiver(in process ~p) timed out whils awating ~p.~nDumping everything there is to dump~n Message buffer: ~n~p~nMessage Queue:~n ~p~n",[self(),Reference,Buffer,element(2,erlang:process_info(self(), messages))]),
+        ?debugFmt("~nReceiver(in process ~p) timed out whilst awating ~p from ~p.~n Message buffer: ~n~p~nMessage Queue:~n ~p~n",
+				  [self(),Reference,Recipient,Buffer,element(2,erlang:process_info(self(), messages))]),
         timer:sleep(100),
         exit(failure)
     end.
 
+cleanBuffer(_,[],[])->
+	{0,[]};
+cleanBuffer(_,[],New_Buffer)->
+	{length(New_Buffer),lists:reverse(lists:flatten(New_Buffer))};
+cleanBuffer(Pids, [Hd|Tl],Buff)->
+	Recipient = element(1,Hd),
+	case lists:member(Recipient,Pids) of
+		true ->
+			case ifRequestSendFail(Hd) of
+				true ->
+					%?debugFmt("Found deadlock in buffer and deleating msg ~p",[Hd]),
+					cleanBuffer(Pids, Tl,Buff);
+				false ->
+					cleanBuffer(Pids, Tl,[Hd]++Buff)
+			end;
+		false ->
+			cleanBuffer(Pids, Tl,[Hd]++Buff)
+	end.
 
 
-
+ifRequestSendFail({Pid,Reference,{Type,_}}) ->
+	Pid ! {self(),make_ref(),Reference,{reply,Type,fail}},
+	true;
+ifRequestSendFail({Pid,Reference,Type}) ->
+	Pid ! {self(),make_ref(),Reference,{reply,Type,fail}},
+	true;
+ifRequestSendFail(_) ->
+	false.
 
 %% ====================================================================
 %% Internal functions
@@ -255,4 +301,28 @@ deadlock_test() ->
     [?assert(testDeadlockResolving())].
 
 		
-
+%        A={_,_,Request_Reference,_} ->
+%            case lists:member(Request_Reference,Refs) of
+%                true ->
+%                    {A,Buffer,lists:delete(Request_Reference,Refs)};
+%                false ->
+%                    receiver(Refs,Recipients,{L+1,lists:append(Queue,[A])})
+%            end;
+%		{Pid,Return_Reference,{Request_Type,_}}  ->
+%			case lists:member(Pid,Recipients) of
+%				true ->
+%					?debugMsg("DEADLOCK ENCOUNTERED!"),
+%					Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
+%					receiver(Refs,Recipients,Buffer);
+%				false ->
+%					receiver(Refs,Recipients,Buffer)
+%			end;
+%        {Pid,Return_Reference,Request_Type}  ->
+%            case lists:member(Pid,Recipients) of
+%                true ->
+%					?debugMsg("DEADLOCK ENCOUNTERED!"),
+%                    Pid ! {self(), make_ref(), Return_Reference,{reply,Request_Type,fail}},
+%                    receiver(Refs,Recipients,Buffer);
+%                false ->
+%                    receiver(Refs,Recipients,Buffer)
+%            end;

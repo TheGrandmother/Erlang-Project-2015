@@ -8,7 +8,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
--export([initGrid/1,setGridElement/3]).
+-export([initGrid/1,setGridElement/3, getGridElement/3]).
 
 %% =====================================================================================
 %% Exported functions
@@ -24,7 +24,8 @@ initGrid(Size) ->
     Grid = newGrid(Size),
     Filled_Grid = fillGrid(Size, Grid),
     {Array,Refs} = linkup(Size,Filled_Grid),
-    awaitReplies(Refs,lists:map(fun(X) -> array:to_list(X) end,array:to_list(Array)),{0,[]}).
+    awaitReplies(Refs,lists:flatten(lists:map(fun(X) -> array:to_list(X) end,array:to_list(Array))),{0,[]}),
+    Array.
 
 %% @todo Add ants and stuff
 
@@ -135,7 +136,6 @@ fillGridAux({X,Y}, {Width, Height},Array) when X == Width ->
     fillGridAux({0, Y+1},{Width, Height}, Array);
 fillGridAux({X,Y},{Width, Height}, Array) ->
     New_Array = setGridElement({X,Y}, spawn_link(fun() -> cell:spawnCell({X,Y}) end), Array),
-    %% PLACEHOLDER() to be replaced with actual cellstarting function
     fillGridAux({X+1, Y},{Width, Height},New_Array).
 
 
