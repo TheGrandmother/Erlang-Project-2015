@@ -26,7 +26,7 @@
 
 %% @doc This is the different types of one way messages
 -type one_way_type() ::   
-                        | {gui_update,{X::integer(),Y::integer()},[#{}]}
+                        | {gui_update,{{X::integer(),Y::integer()},#{}}}
 						| {gui_init,{X::integer(),Y::integer()}}
                         | {draw,Gui_Pid::pid()} %Message to be sent to a cell to tell it to relay its sttate to the gui module.
                         | start_ant
@@ -88,7 +88,8 @@
 -type cell_attributes() ::    {type, plain | nest | block}
                             | {ant, Pid::pid()} 
                             | {feremones, none | list(feremone_type())} 
-                            | {food, Ammount::integer()}.
+                            | {food, Ammount::integer()}
+							| {gui_module, pid()}.
 
 %% @doc This is a definition of the types of freremone on a cell.
 -type feremone_type() :: {Name::feremone_name(),Strength::float(),Dissipation_Rate::float}.
