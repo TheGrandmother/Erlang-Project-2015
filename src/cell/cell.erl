@@ -357,9 +357,12 @@ hoodQuerryAux(Refs,In_Cell,Attributes,Pids) when is_list(Refs)->
     case Message of
     	{_, _,Key_Reference,{reply,query_state,fail}} ->
 			logger:logWarning(utils:getCellLog(Cell0),"DEADLOCK IN HOOD QUERRY!!!!!!"),
-			%?debugMsg("DEDLOCK IN HOOD QUERRY"),
-            Flushed_Buffer = hoodQuerryRollback(New_Buffer, Pids, New_Refs),
-    		{utils:setCellMetadata(In_Cell,Flushed_Buffer),fail};
+
+            %Uncomment these lines to se a major performance degradation :)
+            %Flushed_Buffer = hoodQuerryRollback(New_Buffer, Pids, New_Refs),
+    	    %{utils:setCellMetadata(In_Cell,Flushed_Buffer),fail};
+
+hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,none,Attributes,[]),Pids);
 		
 		{_, _,Key_Reference,{reply,query_state,New_Attribute}} ->
             hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,New_Attribute,Attributes,[]),Pids);
