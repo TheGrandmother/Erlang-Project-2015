@@ -39,9 +39,58 @@ setGridElement({X, Y}, Value, Array) ->
     New_Y_Array = array:set(Y, Value, Y_Array),
     array:set(X, New_Y_Array, Array).
 
+%  0 1 2 3 4 5 6
+%0 . . F F F . . 
+%1 . . . . . . .
+%2 . . . . . . .
+%3 . . B B B . .
+%4 . . . . . . .
+%5 . . . . . . .
+%6 N N N N N N N 
+buildAndStartSimpleWorld(Gui_Module) ->
+	Size = {7,7},
+	Array = initGrid(Size),
+	Foods = [{2,0},{3,0},{4,0}],
+	Blocks =  [{2,3},{3,3},{4,3}],
+	Nests = [{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6}],
+	Gui_Module ! {self(), {gui_init,Size}},
+	broadcast(Array,Size,{self(),make_ref,{set_cell_attribute,{gui_module,Gui_Module}}}),
+	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,block}}} end,Blocks),
+	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,nest}}} end,Nests),
+	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{food,1000}}} end,Foods),
+	utils:ignoreMessgaes(length(Nests)+length(Foods)+length(Blocks)),
+	Queen = spawn(fun() -> dummyQueen(0, 0, #{}) end).
+	Ants
+
 %% =====================================================================================
 %% Internal functions
 %% =====================================================================================
+dummyQueen(Foods_Picked_Up,Foods_Deposited,Map) ->
+	receive
+		{Pid,{found_food,Steps}} ->
+			Old_Steps = maps:get(Pid,Map,0),
+			Diff = Steps-Old_Steps,
+			New_Map = maps:put(Pid,Steps,Map),
+			?debugFmt("Our little ant ~p found food in ~p steps",[Pid,Diff]),
+			?debugFmt("We have now found ~p foods in a total of ~p steps",[Foods_Picked_Up+1,getTotalSteps(Map)]),
+			dummyQueen(Foods_Picked_Up+1,Foods_Deposited,New_Map);
+		
+		{Pid,{returned_with_food,Steps}} ->
+			Old_Steps = maps:get(Pid,Map,0),
+			Diff = Steps-Old_Steps,
+			New_Map = maps:put(Pid,Steps,Map),
+			?debugFmt("Our little ant ~p returned with food in ~p steps",[Pid,Diff]),
+			?debugFmt("We have now returned with ~p foods in a total of ~p steps",[Foods_Deposited+1,getTotalSteps(Map)]),
+			dummyQueen(Foods_Picked_Up,Foods_Deposited+1,New_Map);
+		
+		_A ->
+			?debugFmt("Our little ant sent me an odd message ~p",[_A]),
+			?assert(false)
+	end.
+		
+getTotalSteps(Map) ->
+	lists:sum(element(2,lists:unzip(maps:to_list(Map)))).
+	
 
 
 -spec newGrid({Width::integer(), Height::integer()}) -> grid().
@@ -75,6 +124,17 @@ linkup({Width, Height},Array) ->
 %% Helper and utility Functions
 %% =====================================================================================
 
+broadcast(Grid,Size,Message) ->
+	broadcastAux({0,0},Size,Grid,Message).
+
+broadcastAux({X,Y},{Width,Height},Grid,Message) when X == Width -1, Y == Height ->
+	utils:ignoreMessgaes(X*Y);
+
+broadcastAux({X, Y},{Width, Height}, Array,Message) when X == Width ->
+    broadcastAux({0, Y+1},{Width,Height}, Array, Message);
+broadcastAux({X,Y},Grid_Size,Array,Message) ->
+		getNextGridElement({X,Y}, Array) ! Message,
+		broadcastAux({X+1,Y},Grid_Size,Array,Message).
 
 awaitReplies([],_,_) ->
     ok;
