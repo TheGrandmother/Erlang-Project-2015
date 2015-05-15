@@ -589,7 +589,7 @@ searchAndReturnTest()->
 	end,
     true.
 
-checkSpeedup()->
+backAndFourth()->
     logger:initLogger(),
     Grid = grid_init:initGrid({6,6}),
     Cell_ID = grid_init:getGridElement({5,5},{6,6},Grid),
@@ -604,7 +604,7 @@ checkSpeedup()->
             ?assert(false)
     end,
 	My_Pid = self(),
-	Queen = spawn(fun() -> complicatedQueen(My_Pid,0,[],20) end),
+	Queen = spawn(fun() -> complicatedQueen(My_Pid,0,[],7) end),
     Ant = spawn_Ant(Cell_ID, Queen),
     Cell_With_Food = grid_init:getGridElement({0,0},{6,6},Grid),
     Ref = make_ref(),
@@ -684,7 +684,7 @@ multiAntTest()->
             ?assert(false)
     end,
 	My_Pid = self(),
-	Queen = spawn(fun() -> derpQueen(My_Pid,#{},[],[],30) end),
+	Queen = spawn(fun() -> derpQueen(My_Pid,#{},[],[],10) end),
     Ant1 = spawn_Ant( grid_init:getGridElement({5,5},{6,6},Grid), Queen),
 	Ant2 = spawn_Ant( grid_init:getGridElement({5,4},{6,6},Grid), Queen),
 	Ant3 = spawn_Ant( grid_init:getGridElement({4,5},{6,6},Grid), Queen),
@@ -722,8 +722,8 @@ searchForFood_test_() ->
 searchAndReturn_test_() ->
          {timeout, 30, [fun searchAndReturnTest/0]}.
 
-speedup_test_() ->
-         {timeout, 100, [fun checkSpeedup/0]}.
+multiCycle_test_() ->
+         {timeout, 100, [fun backAndFourth/0]}.
 
 multiAnt_test_() ->
          {timeout, 100, [fun multiAntTest/0]}.
