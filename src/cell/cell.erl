@@ -7,7 +7,7 @@
 -module(cell).
 -include_lib("eunit/include/eunit.hrl").
 -define(DEFAULT_FEREMONE_INCREASE,1.0).
--define(DEFAULT_FEREMONE_DECAY,1.01).
+-define(DEFAULT_FEREMONE_DECAY,1.1).
 
 %% ====================================================================
 %% API functions
@@ -285,7 +285,7 @@ moveAnt(Cell,Sender,Reference,Direction) ->
                     New_Ref = make_ref(),
                     Msg = Destination ! {self(),New_Ref,{place_ant,Ant}},
 					logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
-                    {Message, New_Buffer} = message_buffer:receiver(New_Ref,Destination,utils:getCellMetadata(Cell)),					
+                    {Message, New_Buffer} = message_buffer:receiver(New_Ref,Destination,utils:getCellMetadata(Cell),"Trying to move ant"),					
                     New_Cell0 = utils:setCellMetadata(Cell,New_Buffer),
                     logger:logMessage(utils:getCellLog(Cell),Message),
         
@@ -362,7 +362,7 @@ hoodQuerryAux([],Cell,Attributes,_) ->
     {Cell,element(2,lists:unzip(Attributes))};
 
 hoodQuerryAux(Refs,In_Cell,Attributes,Pids) when is_list(Refs)->  
-    {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,Pids,utils:getCellMetadata(In_Cell)),
+    {Message,New_Buffer,New_Refs} = message_buffer:receiver(Refs,Pids,utils:getCellMetadata(In_Cell),"Awaiting hood replies"),
     Cell0 = utils:setCellMetadata(In_Cell,New_Buffer),
     logger:logMessage(utils:getCellLog(Cell0),Message),
     
@@ -373,8 +373,7 @@ hoodQuerryAux(Refs,In_Cell,Attributes,Pids) when is_list(Refs)->
             %Uncomment these lines to se a major performance degradation :)
             %Flushed_Buffer = hoodQuerryRollback(New_Buffer, Pids, New_Refs),
     	    %{utils:setCellMetadata(In_Cell,Flushed_Buffer),fail};
-
-hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,none,Attributes,[]),Pids);
+            hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,none,Attributes,[]),Pids);
 		
 		{_, _,Key_Reference,{reply,query_state,New_Attribute}} ->
             hoodQuerryAux(New_Refs, Cell0, findAndReplace(Key_Reference,New_Attribute,Attributes,[]),Pids);

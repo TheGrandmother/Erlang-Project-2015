@@ -119,7 +119,7 @@ searchForFood(Ant)->
 searchForFood(Ant,examining_current_cell) ->
 Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Examining its own cell ~p",[Cell_Pid])),
-    {Message,New_Ant} = sendAndReceive(Ant,query_state),
+    {Message,New_Ant} = sendAndReceive(Ant,query_state,"Geting cell state"),
 
     case Message of
         
@@ -150,7 +150,7 @@ searchForFood(Ant,snatch_food) ->
     Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Trying to snatch food from ~p",[Cell_Pid])), 
 
-    {Message,New_Ant} = sendAndReceive(Ant,take_food),
+    {Message,New_Ant} = sendAndReceive(Ant,take_food,"Taking food"),
     case Message of
         {reply,take_food,sucsess} ->
             logger:logEvent(utils:getAntLog(New_Ant),"ANT SCORED FOOD! Returning in triumph :D"),
@@ -178,7 +178,7 @@ searchForFood(Ant,snatch_food) ->
 examineHoodAntTakeAction(Ant,Search_Feremone,Drop_Feremone) ->
     Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Examining the surroundings of ~p",[Cell_Pid])),
-    {Message,New_Ant} = sendAndReceive(Ant,query_hood),
+    {Message,New_Ant} = sendAndReceive(Ant,query_hood,"Getting the hood"),
     case Message of
 		
 		{reply,query_hood,fail} ->
@@ -191,7 +191,7 @@ examineHoodAntTakeAction(Ant,Search_Feremone,Drop_Feremone) ->
             case Status of 
                 sucsess ->
                     logger:logEvent(utils:getAntLog(New_Ant),"Ant depositing feremone at former cell"),
-                    {Message2,New_Ant2} = sendAndReceive(New_Ant1,Cell_Pid,{deposit_feremone,Drop_Feremone}),
+                    {Message2,New_Ant2} = sendAndReceive(New_Ant1,Cell_Pid,{deposit_feremone,Drop_Feremone},"Depositing feremone"),
                     case Message2 of
                         {reply,deposit_feremone,sucsess} ->
                             logger:logEvent(utils:getAntLog(New_Ant2),"Ant deposited feremone."),
@@ -225,7 +225,7 @@ returnWithFood(Ant)->
 returnWithFood(Ant,examining_current_cell) ->
 Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Examining its own cell ~p",[Cell_Pid])),
-    {Message,New_Ant} = sendAndReceive(Ant,query_state),
+    {Message,New_Ant} = sendAndReceive(Ant,query_state,"Eaxmining cell"),
 
     case Message of
         
@@ -268,7 +268,7 @@ contemplateHood(Ant,Hood,Feremone) ->
     Sorted_Hood = processHood(Hood, Feremone),
     Direction = pickDirection(Sorted_Hood),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("And sorted hood with regards to '~p' and decided to go to the ~p",[ Feremone, Direction])),
-    {Message,New_Ant} = sendAndReceive(Ant, {move_ant,Direction}),
+    {Message,New_Ant} = sendAndReceive(Ant, {move_ant,Direction},"Trying to move"),
     case Message of
         {reply,move_ant,{sucsess,New_Pid}} ->
             logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Ant succseeded in moving to the ~p and is now at ~p",[Direction,New_Pid])),
@@ -392,21 +392,21 @@ pickDirection(Sorted_Hood) ->
     pickDirection(element(1,lists:unzip(tuple_to_list(Sorted_Hood)))).
 
 
-sendAndReceive(Ant,Message) ->
+sendAndReceive(Ant,Message,Tag) ->
     Cell_Pid = utils:getAntCell(Ant),
     Reference = make_ref(),
     Msg = Cell_Pid ! {self(), Reference, Message},
     logger:logMessageSent(utils:getAntLog(Ant),Msg,Cell_Pid),
-    {{_,_,_,Payload}=Received_Mesage,New_Buffer} = message_buffer:receiver(Reference,Cell_Pid,utils:getAntMetadata(Ant)),
+    {{_,_,_,Payload}=Received_Mesage,New_Buffer} = message_buffer:receiver(Reference,Cell_Pid,utils:getAntMetadata(Ant),Tag),
     New_Ant = utils:setAntMetadata(Ant,New_Buffer),
     logger:logMessage(utils:getAntLog(Ant),Received_Mesage),
     {Payload,New_Ant}.
 
-sendAndReceive(Ant,Receipient, Message) ->
+sendAndReceive(Ant,Receipient, Message,Tag) ->
     Reference = make_ref(),
     Msg = Receipient ! {self(), Reference, Message},
     logger:logMessageSent(utils:getAntLog(Ant),Msg,Receipient),
-    {{_,_,_,Payload}=Received_Mesage,New_Buffer} = message_buffer:receiver(Reference,Receipient,utils:getAntMetadata(Ant)),
+    {{_,_,_,Payload}=Received_Mesage,New_Buffer} = message_buffer:receiver(Reference,Receipient,utils:getAntMetadata(Ant),Tag),
     New_Ant = utils:setAntMetadata(Ant,New_Buffer),
     logger:logMessage(utils:getAntLog(Ant),Received_Mesage),
     {Payload,New_Ant}.

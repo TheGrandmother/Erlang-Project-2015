@@ -55,10 +55,10 @@ grid_init_source = $(wildcard $(SRC)/grid_init/*.erl)
 
 grid_init: $(grid_init_binary) $(message_buffer_binary) $(logger_binary) $(utils_binary)
 	
-$(grid_init_binary) : $(grid_init_source)	
+$(grid_init_binary) : $(grid_init_source) $(message_buffer_binary) $(logger_binary) $(utils_binary) $(cell_binary) $(ant_binary)
 	erlc $(FLAGS) -o $(BIN)/ $^
 
-test_grid_init: $(grid_init_binary)
+test_grid_init: $(grid_init_binary) $(message_buffer_binary) $(logger_binary) $(utils_binary) $(cell_binary) $(ant_binary)
 	erl -noshell -pa ebin -eval 'eunit:test(["$(grid_init_binary)"], [verbose])' -s init stop
 	
 	

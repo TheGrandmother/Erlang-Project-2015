@@ -1,4 +1,4 @@
-%% @author Tanshinan
+%% @author Tanshinan	
 %% @todo Add proper documentation, replace PLACEHOLDER() with actual cellstarting function
 %% @todo possibly replacing a bunch of internal functions with util-functions if applicable
 
@@ -8,7 +8,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
--export([initGrid/1,setGridElement/3, getGridElement/3]).
+-export([initGrid/1,setGridElement/3, getGridElement/3,buildAndStartSimpleWorld/1]).
 
 %% =====================================================================================
 %% Exported functions
@@ -47,41 +47,84 @@ setGridElement({X, Y}, Value, Array) ->
 %4 . . . . . . .
 %5 . . . . . . .
 %6 N N N N N N N 
-buildAndStartSimpleWorld(Gui_Module) ->
+buildAndStartSimpleWorld(Gui) ->
+    
 	Size = {7,7},
 	Array = initGrid(Size),
+    io:format("started grid"),
 	Foods = [{2,0},{3,0},{4,0}],
 	Blocks =  [{2,3},{3,3},{4,3}],
-	Nests = [{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6}],
-	Gui_Module ! {self(), {gui_init,Size}},
+	%Nests = [{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6}],
+    Nests = [{6,6}],
+    
+    case is_pid(Gui) of
+        false ->
+            io:format("spawning dummy gui~n"),
+            Gui_Module = spawn(fun() ->  dummyGui() end),
+            io:format("Dummy gui spawned~n");
+        true ->
+            Gui_Module = Gui
+    end,
+    io:format("Gui module = ~p ~n",[Gui_Module]),
+    Gui_Module ! {self(), {gui_init,Size}},
 	broadcast(Array,Size,{self(),make_ref,{set_cell_attribute,{gui_module,Gui_Module}}}),
+    io:format("Broadcasted Gui to cells~n"),
 	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,block}}} end,Blocks),
 	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,nest}}} end,Nests),
 	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{food,1000}}} end,Foods),
-	utils:ignoreMessgaes(length(Nests)+length(Foods)+length(Blocks)),
-	Queen = spawn(fun() -> dummyQueen(0, 0, #{}) end).
-	Ants
+    io:format("Filled cells~n"),
+	utils:ignoreMessages(length(Nests)+length(Foods)+length(Blocks)),
+	Queen = spawn_link(fun() -> dummyQueen(0, 0, #{},0,getTimeStamp(),0) end),
+    io:format("Spawned Queen~n"),
+    Ants = lists:map(fun(X) -> ant:spawn_Ant( getGridElement(X,Size,Array), Queen)end, Nests),
+    io:format("Spawned ants~n"),
+    lists:map(fun(X) -> X ! {self(), start_ant} end,Ants),
+    io:format("Started ants~n"),
+    timer:sleep(50000).
+    
 
 %% =====================================================================================
 %% Internal functions
 %% =====================================================================================
-dummyQueen(Foods_Picked_Up,Foods_Deposited,Map) ->
+
+dummyGui() ->
+    receive
+        _ ->
+            ok
+    end,
+    dummyGui().
+
+
+getTimeStamp() ->
+    {MegaSecs,Secs,MicroSecs} = erlang:now(),
+    (MegaSecs*1000000 + Secs)*1000000 + MicroSecs.
+
+
+dummyQueen(Foods_Picked_Up,Foods_Deposited,Map,Events,Previous_Time,Total_Time) ->
 	receive
 		{Pid,{found_food,Steps}} ->
 			Old_Steps = maps:get(Pid,Map,0),
 			Diff = Steps-Old_Steps,
 			New_Map = maps:put(Pid,Steps,Map),
-			?debugFmt("Our little ant ~p found food in ~p steps",[Pid,Diff]),
-			?debugFmt("We have now found ~p foods in a total of ~p steps",[Foods_Picked_Up+1,getTotalSteps(Map)]),
-			dummyQueen(Foods_Picked_Up+1,Foods_Deposited,New_Map);
+			%?debugFmt("Our little ant ~p found food in ~p steps, We have now found ~p foods in a total of ~p steps",[Pid,Diff ,Foods_Picked_Up+1,getTotalSteps(Map)]),
+            Time = getTimeStamp(),
+            Time_Diff = Time - Previous_Time,
+            New_Total = Total_Time + Time_Diff,
+            ?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
+                      [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
+			dummyQueen(Foods_Picked_Up+1,Foods_Deposited,New_Map,Events+1,Time,New_Total);
 		
 		{Pid,{returned_with_food,Steps}} ->
 			Old_Steps = maps:get(Pid,Map,0),
 			Diff = Steps-Old_Steps,
 			New_Map = maps:put(Pid,Steps,Map),
-			?debugFmt("Our little ant ~p returned with food in ~p steps",[Pid,Diff]),
-			?debugFmt("We have now returned with ~p foods in a total of ~p steps",[Foods_Deposited+1,getTotalSteps(Map)]),
-			dummyQueen(Foods_Picked_Up,Foods_Deposited+1,New_Map);
+            %?debugFmt("Our little ant ~p returned food in ~p steps, We have now returned ~p foods in a total of ~p steps",[Pid,Diff ,Foods_Deposited+1,getTotalSteps(Map)]),
+			Time = getTimeStamp(),
+            Time_Diff = Time - Previous_Time,
+            New_Total = Total_Time + Time_Diff,
+            ?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
+                      [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
+            dummyQueen(Foods_Picked_Up,Foods_Deposited+1,New_Map,Events+1,Time,New_Total);
 		
 		_A ->
 			?debugFmt("Our little ant sent me an odd message ~p",[_A]),
@@ -127,13 +170,16 @@ linkup({Width, Height},Array) ->
 broadcast(Grid,Size,Message) ->
 	broadcastAux({0,0},Size,Grid,Message).
 
-broadcastAux({X,Y},{Width,Height},Grid,Message) when X == Width -1, Y == Height ->
-	utils:ignoreMessgaes(X*Y);
+broadcastAux({X,Y},{Width,Height},Grid,Message) when Y == Height ->
+	utils:ignoreMessages(Width*Height);
 
-broadcastAux({X, Y},{Width, Height}, Array,Message) when X == Width ->
+broadcastAux({X, Y},{Width, Height}, Array,Message) when X == Width->
     broadcastAux({0, Y+1},{Width,Height}, Array, Message);
+
 broadcastAux({X,Y},Grid_Size,Array,Message) ->
-		getNextGridElement({X,Y}, Array) ! Message,
+        Pid =getGridElement({X,Y},Grid_Size, Array), 
+        io:format("broadcasting to ~p  at ~p~n",[Pid,{X,Y}]),
+		Pid ! Message,
 		broadcastAux({X+1,Y},Grid_Size,Array,Message).
 
 awaitReplies([],_,_) ->
@@ -205,5 +251,13 @@ fillGridAux({X,Y},{Width, Height}, Array) ->
 
 linkupTest_test() ->
     initGrid({10,10}).
+
+%bob() ->
+%    buildAndStartSimpleWorld(none).
+
+%removeMe_test_()->    
+%    {timeout, 120, [fun bob/0]}.
+
+   
 
 
