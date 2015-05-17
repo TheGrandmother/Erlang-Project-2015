@@ -265,7 +265,7 @@ permute(Tuple,N)->
 	permute(swapper(Tuple,N,Swap),N+1).
 
 uniform(N,M) when N /= M->
-	N + random:uniform(M-N) - 1;
+	N + random:uniform(M-N);
 uniform(N,_) ->
 	N.
 swapper(Tuple,A,B)->

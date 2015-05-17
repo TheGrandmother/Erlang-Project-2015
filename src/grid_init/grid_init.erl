@@ -49,13 +49,13 @@ setGridElement({X, Y}, Value, Array) ->
 %6 N N N N N N N 
 buildAndStartSimpleWorld(Gui) ->
     
-	Size = {7,7},
+	Size = {20,20},
 	Array = initGrid(Size),
     io:format("started grid"),
 	Foods = [{2,0},{3,0},{4,0}],
 	Blocks =  [{2,3},{3,3},{4,3}],
-	%Nests = [{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6}],
-    Nests = [{6,6}],
+	Nests = [{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6}],
+    %Nests = [{6,6}],
     
     case is_pid(Gui) of
         false ->
@@ -69,18 +69,19 @@ buildAndStartSimpleWorld(Gui) ->
     Gui_Module ! {self(), {gui_init,Size}},
 	broadcast(Array,Size,{self(),make_ref,{set_cell_attribute,{gui_module,Gui_Module}}}),
     io:format("Broadcasted Gui to cells~n"),
-	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,block}}} end,Blocks),
-	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,nest}}} end,Nests),
-	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{food,1000}}} end,Foods),
+	%lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,block}}} end,Blocks),
+	%lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,nest}}} end,Nests),
+	%lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{food,1000}}} end,Foods),
     io:format("Filled cells~n"),
-	utils:ignoreMessages(length(Nests)+length(Foods)+length(Blocks)),
+	%utils:ignoreMessages(length(Nests)+length(Foods)+length(Blocks)),
 	Queen = spawn_link(fun() -> dummyQueen(0, 0, #{},0,getTimeStamp(),0) end),
     io:format("Spawned Queen~n"),
-    Ants = lists:map(fun(X) -> ant:spawn_Ant( getGridElement(X,Size,Array), Queen)end, Nests),
+    Ants = lists:map(fun(X) -> ant:spawnAnt( getGridElement(X,Size,Array), Queen)end, Nests),
     io:format("Spawned ants~n"),
     lists:map(fun(X) -> X ! {self(), start_ant} end,Ants),
     io:format("Started ants~n"),
-    timer:sleep(50000).
+    %timer:sleep(50000).
+    ok.
     
 
 %% =====================================================================================
@@ -110,8 +111,8 @@ dummyQueen(Foods_Picked_Up,Foods_Deposited,Map,Events,Previous_Time,Total_Time) 
             Time = getTimeStamp(),
             Time_Diff = Time - Previous_Time,
             New_Total = Total_Time + Time_Diff,
-            ?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
-                      [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
+            %?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
+            %          [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
 			dummyQueen(Foods_Picked_Up+1,Foods_Deposited,New_Map,Events+1,Time,New_Total);
 		
 		{Pid,{returned_with_food,Steps}} ->
@@ -122,8 +123,8 @@ dummyQueen(Foods_Picked_Up,Foods_Deposited,Map,Events,Previous_Time,Total_Time) 
 			Time = getTimeStamp(),
             Time_Diff = Time - Previous_Time,
             New_Total = Total_Time + Time_Diff,
-            ?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
-                      [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
+            %?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
+            %          [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
             dummyQueen(Foods_Picked_Up,Foods_Deposited+1,New_Map,Events+1,Time,New_Total);
 		
 		_A ->
