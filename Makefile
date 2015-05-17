@@ -90,7 +90,7 @@ $(ant_binary) : $(ant_source) $(grid_init_binary) $(message_buffer_binary) $(cel
 	erlc $(FLAGS) -o $(BIN)/ $^
 
 test_ant: $(ant_binary)
-	erl -noshell -pa ebin -eval 'eunit:test({timeout, 1000, ["$(ant_binary)","ebin/sorter.beam"]}, [verbose])' -s init stop
+	erl -noshell -pa ebin -eval 'eunit:test({timeout, 1000, ["ebin/ant_tests.beam","ebin/sorter.beam"]}, [verbose])' -s init stop
 
 
 	
