@@ -4,7 +4,8 @@
 		 getCellNext/1, setCellNext/2, getCellAttributes/1, setCellAttributes/2,
 		 getCellMetadata/1, setCellMetadata/2, getProperty/2, initCell/1, getOneDirection/2,
 		 getAntAttributes/1, getAntState/1, getAntMetadata/1, getAntCell/1, getAntPid/1,
-		 setAntCell/2, setAntState/2, getAntLog/1, setAntLog/2, setAntAttributes/2, setAntMetadata/2,getCellLog/1,setCellLog/2]).
+		 setAntCell/2, setAntState/2, getAntLog/1, setAntLog/2, setAntAttributes/2, setAntMetadata/2,
+		 getCellLog/1,setCellLog/2, ignoreMessages/1]).
 
 %%@doc initiates a new cell with the position coordinates
 -spec initCell(Position::types:position()) -> types:cell().
@@ -183,3 +184,10 @@ setAntMetadata(_Ant = {Pid, Cell, State, Attributes, _, Log}, NewMetadata) ->
 setAntLog(_Ant = {Pid, Cell, State, Attributes, Metadata, _}, Log) ->
     {Pid, Cell, State, Attributes, Metadata, Log}.
 
+ignoreMessages(0) ->
+    ok;
+ignoreMessages(N) ->
+    receive
+        _ ->
+            ignoreMessages(N-1)
+    end.

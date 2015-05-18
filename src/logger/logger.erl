@@ -5,7 +5,7 @@
 
 -module(logger).
 -define(LOG,true).
--define(LOG_MESSAGES,false).
+-define(LOG_MESSAGES,true).
 -define(LOG_EVENTS,true).
 
 %% ====================================================================
