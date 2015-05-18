@@ -49,7 +49,7 @@ setGridElement({X, Y}, Value, Array) ->
 %6 N N N N N N N 
 buildAndStartSimpleWorld(Gui) ->
     
-	Size = {20,20},
+	Size = {7,7},
 	Array = initGrid(Size),
     io:format("started grid"),
 	Foods = [{2,0},{3,0},{4,0}],
@@ -69,11 +69,11 @@ buildAndStartSimpleWorld(Gui) ->
     Gui_Module ! {self(), {gui_init,Size}},
 	broadcast(Array,Size,{self(),make_ref,{set_cell_attribute,{gui_module,Gui_Module}}}),
     io:format("Broadcasted Gui to cells~n"),
-	%lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,block}}} end,Blocks),
-	%lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,nest}}} end,Nests),
-	%lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{food,1000}}} end,Foods),
+	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,block}}} end,Blocks),
+	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{type,nest}}} end,Nests),
+	lists:map(fun(X) -> getGridElement(X,Size,Array)! {self(),make_ref,{set_cell_attribute,{food,1000}}} end,Foods),
     io:format("Filled cells~n"),
-	%utils:ignoreMessages(length(Nests)+length(Foods)+length(Blocks)),
+	utils:ignoreMessages(length(Nests)+length(Foods)+length(Blocks)),
 	Queen = spawn_link(fun() -> dummyQueen(0, 0, #{},0,getTimeStamp(),0) end),
     io:format("Spawned Queen~n"),
     Ants = lists:map(fun(X) -> ant:spawnAnt( getGridElement(X,Size,Array), Queen)end, Nests),

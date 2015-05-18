@@ -4,9 +4,9 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -module(logger).
--define(LOG,false).
--define(LOG_MESSAGES,false).
--define(LOG_EVENTS,false).
+-define(LOG,true).
+-define(LOG_MESSAGES,true).
+-define(LOG_EVENTS,true).
 
 %% ====================================================================
 %% API functions

@@ -3,7 +3,7 @@
 
 -module(ant).
   
--export([spawnAnt/2]).
+-export([spawnAnt/2,processHood/2,pickDirection/1]).
 -include_lib("eunit/include/eunit.hrl").
 
 -define(DEFAULT_IDLE_TIME,50).
@@ -324,8 +324,8 @@ contemplateHood(Ant,Hood,Feremone) ->
     Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),"Ant is contemplating the nature of 'The Hood'."),
     Sorted_Hood = processHood(Hood, Feremone),
-    %Direction = pickDirection(Sorted_Hood),
-    Direction = randomDirection(Sorted_Hood),
+    Direction = pickDirection(Sorted_Hood),
+    %Direction = randomDirection(Sorted_Hood),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("And sorted hood with regards to '~p' and decided to go to the ~p",[ Feremone, Direction])),
     {Message,New_Ant} = sendAndReceive(Ant, {move_ant,Direction},"Trying to move"),
     case Message of
@@ -358,7 +358,7 @@ processHood(Hood,Feremone) ->
     List1 = Front ++ tl(Back),
     List2 = lists:map(fun(X) -> hoodFilter(X, Feremone) end, List1),
     Directions = [northwest, north, northeast, west, east, southwest ,south, southeast],
-    List3 = lists:zip(Directions,List2),
+    List3 = lists:zip(Directions,List2), 
     List4 = list_to_tuple(List3),
 	Sort_Me = sorter:permute(List4),
     sorter:sort(Sort_Me).

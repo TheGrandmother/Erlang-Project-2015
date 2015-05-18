@@ -48,6 +48,37 @@ spawnTest() ->
     %[?assertEqual(True,list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,base_feremone)))))),
     %?assertEqual(True, list_to_tuple(element(1,lists:unzip(tuple_to_list(processHood(Really_Annoying_To_Write,food_feremone))))))].
 
+
+hoodEqual_test()->
+	{A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
+    Hood = {
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain},
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain}, 
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain},
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain}, 
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain}, 
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain}, 
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain}, 
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain}, 
+        #{feremones => #{food_feremone => {0.0,0}, base_feremone => {0.0,0}},type => plain} 
+       },
+	Histogram = makeHistogram(Hood,50000,#{}),
+	?debugFmt("~nHistogram = ~p",[Histogram]),
+	ok.
+
+makeHistogram(_,0,Histogram) ->
+	Histogram;
+makeHistogram(Hood,N,Histogram) ->
+	Sorted = ant:processHood(Hood,base_feremone),
+	Direction = ant:pickDirection(Sorted),
+	Old_Val = maps:get(Direction,Histogram,0),
+	New_Val = Old_Val +1,
+	New_Histogram = maps:put(Direction,New_Val,Histogram),
+	makeHistogram(Hood,N-1,New_Histogram).
+							  
+	
+
 directionPickerAux(0,Cool_Tuple) ->
     Cool_Tuple;
 directionPickerAux(N,Cool_Tuple) ->
@@ -297,20 +328,20 @@ multiAntTest()->
     end,
     true.
 
-spawn_test() ->
-    [?assert(spawnTest())].
+%spawn_test() ->
+%    [?assert(spawnTest())].
 
-searchForFood_test_() ->
-         {timeout, 20, [fun searchForFoodTest/0]}.
+%searchForFood_test_() ->
+%         {timeout, 20, [fun searchForFoodTest/0]}.
 
-searchAndReturn_test_() ->
-         {timeout, 30, [fun searchAndReturnTest/0]}.
+%searchAndReturn_test_() ->
+%         {timeout, 30, [fun searchAndReturnTest/0]}.
 
-multiCycle_test_() ->
-         {timeout, 100, [fun backAndFourth/0]}.
+%multiCycle_test_() ->
+%         {timeout, 100, [fun backAndFourth/0]}.
 
-multiAnt_test_() ->
-         {timeout, 100, [fun multiAntTest/0]}.
+%multiAnt_test_() ->
+%         {timeout, 100, [fun multiAntTest/0]}.
 
 %% ====================================================================
 %% Internal functions

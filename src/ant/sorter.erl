@@ -264,8 +264,10 @@ permute(Tuple,N)->
 	Swap = uniform(N,8),
 	permute(swapper(Tuple,N,Swap),N+1).
 
+uniform(1,M)->
+	random:uniform(M);
 uniform(N,M) when N /= M->
-	N + random:uniform(M-N);
+	N + random:uniform(M-N+1) -1 ;
 uniform(N,_) ->
 	N.
 swapper(Tuple,A,B)->
@@ -298,6 +300,91 @@ permute_test() ->
 	 ?assertNotEqual(Start,Permute2),
 	 ?assertNotEqual(Permute2,Permute1)
 	 ].
+
+hardcoreSort_test()->
+	{A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
+	First = makeHistogram(1,50000,#{}),
+	Last = makeHistogram(8,50000,#{}),
+	?debugFmt("~nFIRSTELEMENT=~n~p",[First]),
+	?debugFmt("~nLastElement=~n~p",[Last]),
+	ok.
+
+makeHistogram(_,0,Histogram) ->
+	Histogram;
+makeHistogram(Index,N,Histogram) ->
+	Thing = element(1,element(Index,sort(makeRandomTuple(8, [])))),
+	Old_Val = maps:get(Thing,Histogram,0),
+	New_Val = Old_Val +1,
+	New_Histogram = maps:put(Thing,New_Val,Histogram),
+	makeHistogram(Index,N-1,New_Histogram).
+
+hardcorePermute_test()->
+	{A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
+	First = makeHistogram1(1,50000,#{}),
+	Last = makeHistogram1(8,50000,#{}),
+	?debugFmt("~nFIRSTELEMENT=~n~p",[First]),
+	?debugFmt("~nLastElement=~n~p",[Last]),
+	ok.
+	
+makeHistogram1(_,0,Histogram) ->
+	Histogram;
+makeHistogram1(Index,N,Histogram) ->
+	Thing = element(Index,permute({1,2,3,4,5,6,7,8})),
+	Old_Val = maps:get(Thing,Histogram,0),
+	New_Val = Old_Val +1,
+	New_Histogram = maps:put(Thing,New_Val,Histogram),
+	makeHistogram1(Index,N-1,New_Histogram).
+
+hardcoreUnioform_test()->
+	{A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
+	F1 = makeHistogram2(1,50000,#{}),
+	F2 = makeHistogram2(2,50000,#{}),
+	F3 = makeHistogram2(3,50000,#{}),
+	F4 = makeHistogram2(4,50000,#{}),
+	F5 = makeHistogram2(5,50000,#{}),
+	F6 = makeHistogram2(6,50000,#{}),
+	F7 = makeHistogram2(7,50000,#{}),
+	F8 = makeHistogram2(8,50000,#{}),
+	
+	?debugFmt("~n1=~n~p",[F1]),
+	?debugFmt("~n2=~n~p",[F2]),
+	?debugFmt("~n3=~n~p",[F3]),
+	?debugFmt("~n4=~n~p",[F4]),
+	?debugFmt("~n5=~n~p",[F5]),
+	?debugFmt("~n6=~n~p",[F6]),
+	?debugFmt("~n7=~n~p",[F7]),
+	?debugFmt("~n8=~n~p",[F8]),
+
+	
+	ok.
+	
+makeHistogram2(_,0,Histogram) ->
+	Histogram;
+makeHistogram2(Index,N,Histogram) ->
+	Thing = uniform(Index,8),
+	Old_Val = maps:get(Thing,Histogram,0),
+	New_Val = Old_Val +1,
+	New_Histogram = maps:put(Thing,New_Val,Histogram),
+	makeHistogram2(Index,N-1,New_Histogram).
+	
+
+	
+makeRandomTuple(0,Thing) ->
+	list_to_tuple(Thing);
+
+makeRandomTuple(N,Thing) ->
+	makeRandomTuple(N-1,[{N,random:uniform()}]++Thing).
+
+
+
+
+
+
+
+
 
 
 	
