@@ -98,11 +98,12 @@ Nu upstår det **INGA** deadlocks om man kör med flera myror!
 ##### Fredag
 
 ##### Söndag
-5h Alt failar :'(
+5h Allt failar :'(
+
 ## Vecka 21
 
 ##### Måndag
-
+4h allt failar inte längre :)
 ##### Tisdag
 
 ##### Onsdag
