@@ -1,6 +1,6 @@
 -module(gui).
 
--export([main/2,initList/2,addToList/4,sendToPyt/1,test/1]).
+-export([main/2,initList/2,addToList/4,sendToPyt/1,test/1,sendInitPyt/1]).
 -define(DEFAULT_UPDATE_TIME,200).
 %%@ Receives messages from actors and puts them in list that will be sent to Python, Width and Height argument is 
 %% the size of entire grid. When receiving message X,Y is location of the cell.
@@ -27,7 +27,7 @@ initList(Size, L) ->
 %%@ Adds the attributes to the right location of the list with cells.
 addToList(L,{X,Y},{Width,_Height},Attributes) ->
     Place = Y*Width+X,
-    {Head,[Hd | Tl]} = lists:split(Place, L),
+    {Head,[_Hd | Tl]} = lists:split(Place, L),
     Head ++ [Attributes] ++ Tl.
     
 %%@Sends the list to python, in python a message handler is required.    
@@ -44,13 +44,37 @@ sendInitPyt(Size = {_X,_Y}) ->
     python:call(P, init_handler, init_register_handler,[self()]),
     python:cast(P,Size),
     %flush(),
-    python:stop(p).
+    python:stop(P).
     
-%%@Modifys the map to a tuple of information    
+%%@Retrieves information from the map and returns single atom(This is used for testing).
 modifyAttributes(Attributes) ->
     StateAnt = maps:get(ant, Attributes),
     StateFood = maps:get(food, Attributes),
     checkState(StateAnt,StateFood).	
+%%@Retrieves information from the map and returns a tuple of information
+modifyAttributes2(Attributes) ->
+    StateAnt = isAnt(maps:get(ant, Attributes)),
+    StateFood = isFood(maps:get(food, Attributes)),
+    StatePheromone = checkPheromone(maps:get(feremones, Attributes)),
+    StateType = maps:get(type, Attributes),
+    {StateType,StateAnt,StateFood,StatePheromone}.
+%%@if its a pid its an ant.
+isAnt(none) ->
+    none;
+isAnt(_Pid) ->
+    ant.
+%%@If it's greater than zero its food.
+isFood(0) ->
+    none;
+isFood(_) ->
+    food.
+%%@Returns the pheromones in a tuple
+checkPheromone(none) ->
+    none;
+checkPheromone(Feromones) ->
+    Base = maps:get(base_feremone,Feromones),
+    Food = maps:get(food_feremone,Feromones),
+    {Base,Food}.
 %%@ Aux function to modifyAttributes, helps with patternmatching
 checkState(none, Food) when Food > 0 ->
     food;
@@ -65,15 +89,15 @@ checkState(_Pid,0) ->
     
 test({X,Y}) ->
     L = initList((X*Y),[]),
-    L2 = addToList(L,{1,0},{X,Y},modifyAttributes(#{ant => none, feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
-    L3 = addToList(L2,{0,2},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
-    L4 = addToList(L3,{2,1},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 0, type => plain})),
+    L2 = addToList(L,{0,0},{X,Y},modifyAttributes(#{ant => none, feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
+    L3 = addToList(L2,{2,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
+    L4 = addToList(L3,{1,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 0, type => plain})),
     testPrint2(L4,X,1).
 
 testPrint2([],_,_) ->
     io:format("");
 testPrint2([L],_,_) ->
-    io:format("~p",[L]);
+    io:format("~p ~n",[L]);
 testPrint2([Hd | Tl],X,Acc) ->
     io:format(" ~p ",[Hd]),
     if
@@ -83,27 +107,4 @@ testPrint2([Hd | Tl],X,Acc) ->
       true ->
 	  testPrint2(Tl,X,Acc+1)
     end.
-    
-testPrint([]) ->
-  none;
-testPrint([ant]) ->
-    io:format( "ant");
-testPrint([antFood]) ->
-    io:format( "antFood");
-testPrint([food]) ->
-    io:format( "food");
-testPrint([none]) ->
-    io:format( "none");
-testPrint([ant | Tl]) ->
-    io:format(" ant "),
-    testPrint(Tl);
-testPrint([antFood | Tl]) ->
-    io:format(" antFood "),
-    testPrint(Tl);
-testPrint([food | Tl]) ->
-    io:format(" food "),
-    testPrint(Tl);
-testPrint([none | Tl]) ->
-    io:format(" none "),
-    testPrint(Tl).
     
