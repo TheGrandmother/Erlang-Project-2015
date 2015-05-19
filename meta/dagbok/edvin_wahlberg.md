@@ -27,3 +27,18 @@ Satt med Oskar och polerade klart koden vi jobbade med på tisdagen.
 (8/5/2015)
 Satt själv och försökte få en djupare kunskap om erlang för att underlätta mitt och oscars nästa moment som vi ska börja på i helgen. Det var inte det lättaste men känner i alla fall nu att jag har fått en bättre förståelse för språkets mer avancerade användning.
 
+(10/5/2015)
+Började sitta med Features/GUI, processen då vi ska skicka alla cellernas information och innehåll till python
+som sedan ska representera världen grafiskt.
+
+(11/5/2015)
+Milstolpe, jag och oskar satt efteråt och snackade om hur vi skulle göra med GUI-biten.
+
+(18/5/2015) 
+Var bortrest över kristerhimmelfärd så idag var första dagen sedan hemkomsten på söndagen. 
+Blev uppdaterad av Oskar vad han hade gjort för framsteg sedan jag åkte.
+
+(19/5/2015)
+Idag var första gången vi körde GUI i Python med input från våran modul i erlang. Det gick väl.
+
+
