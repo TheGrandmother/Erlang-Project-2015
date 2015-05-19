@@ -77,13 +77,13 @@ checkPheromone(Feromones) ->
     {Base,Food}.
 %%@ Aux function to modifyAttributes, helps with patternmatching
 checkState(none, Food) when Food > 0 ->
-    food;
+    "food";
 checkState(_Pid, Food) when Food > 0 ->
-    antfood;    
+    "foodant";    
 checkState(none,0) ->
-    none;
+    "none";
 checkState(_Pid,0) ->
-    ant.
+    "ant".
 
     
     
@@ -92,7 +92,7 @@ test({X,Y}) ->
     L2 = addToList(L,{0,0},{X,Y},modifyAttributes(#{ant => none, feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
     L3 = addToList(L2,{2,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
     L4 = addToList(L3,{1,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 0, type => plain})),
-    testPrint2(L4,X,1).
+    L4.
 
 testPrint2([],_,_) ->
     io:format("");
