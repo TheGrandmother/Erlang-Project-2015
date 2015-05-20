@@ -49,12 +49,13 @@ setGridElement({X, Y}, Value, Array) ->
 %6 N N N N N N N 
 buildAndStartSimpleWorld(Gui) ->
     
-	Size = {7,7},
+	Size = {9,9},
 	Array = initGrid(Size),
     io:format("started grid"),
-	Foods = [{2,0},{3,0},{4,0}],
-	Blocks =  [{2,3},{3,3},{4,3}],
-	Nests = [{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6}],
+	Foods = [{3,0},{4,0},{5,0}],
+	Blocks =  [{3,4},{4,4},{5,4}],
+	Nests = [{0,8},{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8}],
+    Ant_Positions = [{0,8},{2,8},{4,8},{6,8},{8,8}], 
     %Nests = [{6,6}],
     
     case is_pid(Gui) of
@@ -76,7 +77,7 @@ buildAndStartSimpleWorld(Gui) ->
 	utils:ignoreMessages(length(Nests)+length(Foods)+length(Blocks)),
 	Queen = spawn_link(fun() -> dummyQueen(0, 0, #{},0,getTimeStamp(),0) end),
     io:format("Spawned Queen~n"),
-    Ants = lists:map(fun(X) -> ant:spawnAnt( getGridElement(X,Size,Array), Queen)end, Nests),
+    Ants = lists:map(fun(X) -> ant:spawnAnt( getGridElement(X,Size,Array), Queen)end, Ant_Positions),
     io:format("Spawned ants~n"),
     lists:map(fun(X) -> X ! {self(), start_ant} end,Ants),
     io:format("Started ants~n"),

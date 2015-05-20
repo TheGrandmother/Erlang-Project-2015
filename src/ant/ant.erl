@@ -7,7 +7,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -define(DEFAULT_IDLE_TIME,50).
--define(SELECTION_PROBABILITY,0.75).
+-define(SELECTION_PROBABILITY,0.5).
 
 %% Attempts to spawn ant in given Cell
 spawnAnt(Cell_Pid, Attributes) ->
@@ -78,6 +78,7 @@ antMain(In_Ant) ->
             end;
                     
         true ->
+            timer:sleep(50),
             case utils:getAntState(In_Ant) of
                  
                 searching_for_food->
@@ -132,7 +133,7 @@ Cell_Pid = utils:getAntCell(Ant),
             case Food_Amount of
                 0 ->
                     logger:logEvent(utils:getAntLog(New_Ant),"Cell contained no food. Continuing search"),
-                     examineHoodAntTakeAction(New_Ant, food_feremone, base_feremone);
+                    examineHoodAntTakeAction(New_Ant, food_feremone, base_feremone);
                 _ ->
                     logger:logEvent(utils:getAntLog(New_Ant),logger:makeCoolString("Cell contained ~p units of food. Attempting to snatch some.",[Food_Amount])),
                     searchForFood(New_Ant,snatch_food)
@@ -156,17 +157,21 @@ searchForFood(Ant,snatch_food) ->
             logger:logEvent(utils:getAntLog(New_Ant),"ANT SCORED FOOD! Returning in triumph :D"),
             Map = utils:getAntAttributes(New_Ant),
             New_Map = maps:put(food,1,Map),
-            New_Ant1 = utils:setAntAttributes(Ant,New_Map),
+            New_Ant1 = utils:setAntAttributes(New_Ant,New_Map),
 			Queen = maps:get(queen,Map),
 			Steps = maps:get(steps_taken,Map),
 			Msg = Queen ! {self(),{found_food,Steps}},
 			logger:logMessageSent(utils:getAntLog(Ant),Msg,Queen),
-            utils:setAntState(New_Ant1,returning_with_food);
+            New_Ant2 = depositFeremone(New_Ant1, Cell_Pid, food_feremone),
+            %New_Ant2 = New_Ant1, 
+            
+            utils:setAntState(New_Ant2,returning_with_food);
 			
         
         {reply,take_food,fail} ->
             logger:logEvent(utils:getAntLog(New_Ant),"Ant could not get the food :(. Continuing with search like a boss."),
-            examineHoodAntTakeAction(New_Ant, food_feremone, base_feremone);
+            %examineHoodAntTakeAction(New_Ant, food_feremone, base_feremone);
+            new_ant;
         
         _Any ->
             logger:logWarning(utils:getAntLog(New_Ant),"Received idiotic message whilst trying to pick up food. Crashing system"),
@@ -223,7 +228,7 @@ returnWithFood(Ant)->
     returnWithFood(Ant,examining_current_cell).
 
 returnWithFood(Ant,examining_current_cell) ->
-Cell_Pid = utils:getAntCell(Ant),
+    Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Examining its own cell ~p",[Cell_Pid])),
     {Message,New_Ant} = sendAndReceive(Ant,query_state,"Eaxmining cell"),
 
@@ -244,13 +249,17 @@ Cell_Pid = utils:getAntCell(Ant),
 					New_Ant2 = utils:setAntState(New_Ant1,searching_for_food),
 					Queen = maps:get(queen,Map),
 					Steps = maps:get(steps_taken,Map),
+                    New_Ant3 = depositFeremone(New_Ant2, Cell_Pid, base_feremone),
+                    %New_Ant3 =New_Ant2,
 					Msg = Queen ! {self(),{returned_with_food,Steps}},
 					logger:logMessageSent(utils:getAntLog(Ant),Msg,Queen),
-					New_Ant2;
+					New_Ant3;
 				
                 _ ->
                     logger:logEvent(utils:getAntLog(New_Ant),"Cell was not a nest. Continuing the eqic quest to get home."),
-                    examineHoodAntTakeAction(New_Ant, base_feremone, food_feremone)
+                    New_Ant1 = examineHoodAntTakeAction(New_Ant, base_feremone, food_feremone),
+                    New_Ant1
+                
 
             end;
 
@@ -351,7 +360,24 @@ contemplateHood(Ant,Hood,Feremone) ->
 %% =====================================================================================
 %% Internals
 %% =====================================================================================
-      
+
+depositFeremone(Ant,Cell,Feremone) ->
+    {Message,New_Ant} = sendAndReceive(Ant,Cell,{deposit_feremone,Feremone},"Depositing feremone"),
+    case Message of
+        {reply,deposit_feremone,sucsess} ->
+            logger:logEvent(utils:getAntLog(New_Ant),"Ant deposited feremone."),
+            New_Ant;
+        {reply,deposit_feremone,fail} ->
+            logger:logEvent(utils:getAntLog(New_Ant),"Ant could not deposit pheremone. Not that anyone cares though."),
+            New_Ant;
+        _Any ->
+            logger:logWarning(utils:getAntLog(New_Ant),"Received idiotic message whilst dropping feremone. Crashing system"),
+            ?debugFmt("Ant(~p) got dumb message whilst dropping feremone ~p",[self(),_Any]),
+            timer:sleep(100),
+            exit(failure)
+    end.
+
+
 processHood(Hood,Feremone) ->
     List0 = tuple_to_list(Hood),
     {Front,Back} = lists:split(4,List0),

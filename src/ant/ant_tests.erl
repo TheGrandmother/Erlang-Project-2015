@@ -328,20 +328,20 @@ multiAntTest()->
     end,
     true.
 
-%spawn_test() ->
-%    [?assert(spawnTest())].
+spawn_test() ->
+    [?assert(spawnTest())].
 
-%searchForFood_test_() ->
-%         {timeout, 20, [fun searchForFoodTest/0]}.
+searchForFood_test_() ->
+         {timeout, 20, [fun searchForFoodTest/0]}.
 
-%searchAndReturn_test_() ->
-%         {timeout, 30, [fun searchAndReturnTest/0]}.
+searchAndReturn_test_() ->
+         {timeout, 30, [fun searchAndReturnTest/0]}.
 
-%multiCycle_test_() ->
-%         {timeout, 100, [fun backAndFourth/0]}.
+multiCycle_test_() ->
+         {timeout, 100, [fun backAndFourth/0]}.
 
-%multiAnt_test_() ->
-%         {timeout, 100, [fun multiAntTest/0]}.
+multiAnt_test_() ->
+         {timeout, 100, [fun multiAntTest/0]}.
 
 %% ====================================================================
 %% Internal functions
