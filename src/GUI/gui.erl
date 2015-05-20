@@ -1,22 +1,35 @@
 -module(gui).
 
--export([main/2,initList/2,addToList/4,sendToPyt/1,test/1,sendInitPyt/1]).
--define(DEFAULT_UPDATE_TIME,200).
+-export([main/2,initList/2,addToList/4,sendToPyt/1,test/1,sendInitPyt/1,gui_init/0]).
+-define(DEFAULT_UPDATE_TIME,2201).
+
+gui_init() ->
+    My_Pid = self(),
+    spawn(fun() -> grid_init:buildAndStartSimpleWorld(My_Pid) end),
+    main([],{9,9}).
 %%@ Receives messages from actors and puts them in list that will be sent to Python, Width and Height argument is 
 %% the size of entire grid. When receiving message X,Y is location of the cell.
 main(AddList,{Width, Height})->
     receive
 	    {_Pid,{gui_update,{X,Y},Attributes}} -> 
+	    io:format("received message, updating list with cells"),
 		    L = addToList(AddList,{X,Y},{Width,Height},modifyAttributes(Attributes)),
 		    main(L,{Width,Height});
 	    {_Pid, {gui_init, {X, Y}}} ->
-		    sendInitPyt({X,Y}),
+		    %sendInitPyt({X,Y}),
+	    io:format("received message, building grid ~p",[{X,Y}]),
 		    L = initList(X*Y, []),
 		    main(L , {X,Y});
 	    _Any ->
-		    exit(fail)
+	    io:format("WRONG MESSAGE: ~p ~n",[_Any]),
+	    exit(fail)
+	    %%main(AddList,{Width,Height})
     after ?DEFAULT_UPDATE_TIME ->
-	    sendToPyt(AddList)
+	    %sendToPyt(AddList)
+	    io:format("Dumping list to python"),
+	    testPrint2(AddList, Width, 0),
+	    main(AddList,{Width,Height})
+		
     end.
 %%@ Initiates the list with empty cells
 initList(0, L) ->
