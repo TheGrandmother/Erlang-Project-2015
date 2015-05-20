@@ -77,7 +77,7 @@ buildAndStartSimpleWorld(Gui) ->
 	utils:ignoreMessages(length(Nests)+length(Foods)+length(Blocks)),
 	Queen = spawn_link(fun() -> dummyQueen(0, 0, #{},0,getTimeStamp(),0) end),
     io:format("Spawned Queen~n"),
-    Ants = lists:map(fun(X) -> ant:spawnAnt( getGridElement(X,Size,Array), Queen)end, Ant_Positions),
+    Ants = lists:map(fun(X) -> ant:spawnAnt(getGridElement(X,Size,Array), Queen)end, Ant_Positions),
     io:format("Spawned ants~n"),
     lists:map(fun(X) -> X ! {self(), start_ant} end,Ants),
     io:format("Started ants~n"),
