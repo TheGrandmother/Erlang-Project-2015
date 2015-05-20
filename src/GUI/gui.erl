@@ -1,7 +1,7 @@
 -module(gui).
 
 -export([main/2,initList/2,addToList/4,sendToPyt/1,test/1,sendInitPyt/1,gui_init/0]).
--define(DEFAULT_UPDATE_TIME,2201).
+-define(DEFAULT_UPDATE_TIME,200).
 
 gui_init() ->
     My_Pid = self(),
@@ -11,7 +11,7 @@ gui_init() ->
 %% the size of entire grid. When receiving message X,Y is location of the cell.
 main(AddList,{Width, Height})->
     receive
-	    {_Pid,{gui_update,{X,Y},Attributes}} -> 
+	    {_Pid,{gui_update,{{X,Y},Attributes}}} -> 
 	    io:format("received message, updating list with cells"),
 		    L = addToList(AddList,{X,Y},{Width,Height},modifyAttributes(Attributes)),
 		    main(L,{Width,Height});
@@ -61,12 +61,12 @@ sendInitPyt(Size = {_X,_Y}) ->
     
 %%@Retrieves information from the map and returns single atom(This is used for testing).
 modifyAttributes(Attributes) ->
-    StateAnt = maps:get(ant, Attributes),
+    StateAnt = maps:get(ant, Attributes,none),
     StateFood = maps:get(food, Attributes),
     checkState(StateAnt,StateFood).	
 %%@Retrieves information from the map and returns a tuple of information
 modifyAttributes2(Attributes) ->
-    StateAnt = isAnt(maps:get(ant, Attributes)),
+    StateAnt = isAnt(maps:get(ant, Attributes,none)),
     StateFood = isFood(maps:get(food, Attributes)),
     StatePheromone = checkPheromone(maps:get(feremones, Attributes)),
     StateType = maps:get(type, Attributes),
