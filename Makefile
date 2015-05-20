@@ -126,3 +126,18 @@ test_all: $(OBJECTS) $(message_buffer_binary) $(cell_binary) $(logger_binary) $(
 
 test_all_quiet: $(OBJECTS)
 	erl -noshell -pa ebin -eval 'eunit:test([$(OBJECTS_LIST)], [])' -s init stop
+
+
+#
+# COPY THIS AND REPLACE <name> with module name and you have a crazy cool build target :)
+#
+gui_binary = $(BIN)/gui.beam
+gui_source = $(wildcard $(SRC)/GUI/*.erl)
+#
+gui: $(gui_binary)
+#	
+$(gui_binary) : $(gui_source)	
+	erlc $(FLAGS) -o $(BIN)/ $^
+
+test_gui: $(gui_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(gui_binary)"], [verbose])' -s init stop
