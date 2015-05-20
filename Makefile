@@ -53,9 +53,9 @@ test_utils: $(utils_binary)
 grid_init_binary = $(BIN)/grid_init.beam
 grid_init_source = $(wildcard $(SRC)/grid_init/*.erl)
 
-grid_init: $(grid_init_binary) $(message_buffer_binary) $(logger_binary) $(utils_binary)
+grid_init: $(grid_init_binary) 
 	
-$(grid_init_binary) : $(grid_init_source) $(message_buffer_binary) $(logger_binary) $(utils_binary) $(cell_binary) $(ant_binary)
+$(grid_init_binary) : $(grid_init_source) $(utils_binary) $(ant_binary) $(cell_binary) $(message_buffer_binary) $(logger_binary) 
 	erlc $(FLAGS) -o $(BIN)/ $^
 
 test_grid_init: $(grid_init_binary) $(message_buffer_binary) $(logger_binary) $(utils_binary) $(cell_binary) $(ant_binary)

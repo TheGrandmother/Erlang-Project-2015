@@ -426,7 +426,7 @@ sendGuiUpdate(Cell) ->
 		none ->
 			ok;
 		_ ->
-			Msg = Gui_Pid ! {self(),{utils:getCellPos(Cell),utils:getCellAttributes(Cell)}},
+			Msg = Gui_Pid ! {self(),{gui_update,{utils:getCellPos(Cell),utils:getCellAttributes(Cell)}}},
 			logger:logMessageSent(utils:getCellLog(Cell),Msg,Gui_Pid)
 	end.
 

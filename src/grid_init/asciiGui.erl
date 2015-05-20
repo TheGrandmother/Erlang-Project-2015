@@ -24,12 +24,12 @@ initThingy() ->
 
 loopMe(Grid,Size,Timer) ->
     receive
-       {_,{Pos,Map}} ->
+       {_,{gui_update,{Pos,Map}}} ->
             New_Grid = setGridElement(Pos, getSymbol(Map), Grid),
             
             Time = getTimeStamp() - Timer,
             if
-                Time >= 100000 ->
+                Time >= 10000 ->
                     draw(Size, New_Grid),
                     loopMe(New_Grid, Size,getTimeStamp());
                 true ->
