@@ -7,7 +7,7 @@
 -module(cell).
 -include_lib("eunit/include/eunit.hrl").
 -define(DEFAULT_FEREMONE_INCREASE,1.0).
--define(DEFAULT_FEREMONE_DECAY,1.1).
+-define(DEFAULT_FEREMONE_DECAY,1.01).
 
 %% ====================================================================
 %% API functions
