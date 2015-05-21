@@ -83,19 +83,27 @@ Projekt planering/möte.
 ## Vecka 20
 
 ##### Måndag
+4h arbete med cell.erl den är typ klar nu :)
 
 ##### Tisdag
-
+4h fortsatt arbete med cell
 ##### Onsdag
+8h arbete med ant, refaktoring och implementering av ett "deadlock free" 
+sätt att hantera medelanden
 
 ##### Torsdag
+9h KRIG med erlang! Myrorna funkar som dem ska och kan leta upp och ta hem mat.
+Nu upstår det **INGA** deadlocks om man kör med flera myror!
 
 ##### Fredag
+
+##### Söndag
+5h Allt failar :'(
 
 ## Vecka 21
 
 ##### Måndag
-
+4h allt failar inte längre :)
 ##### Tisdag
 
 ##### Onsdag
