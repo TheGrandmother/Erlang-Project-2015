@@ -6,14 +6,13 @@ from erlport.erlang import set_message_handler, cast
 ANT = (0, 0, 0) #1
 PLAIN = (50, 100, 0) #2 gräääs
 PLAIN1 = pygame.image.load('grass.jpg')
-FOOD = (100, 50, 0) #3 Maaat
-FOODANT = (0, 0, 255) #hungrigMYRA
+FOOD = (, 100, 255) #3 Maaat
+FOODANT = (0, 100, 200) #hungrigMYRA
 
 
 
 NEST = (0, 255, 0) 
-FEROMONE = (255, 0, 0)
-FOOD = (0, 0, 255) 
+BLOCK = (255,102,0)
 
 WIDTH = 10
 HEIGHT = 10
@@ -73,18 +72,24 @@ def updateGrid(Grid,List):
 
 def updateGridAux(input):
 
-    if (input == "ant"):
-        return 1
-
-    elif (input == "plain"):
-        return 2
-
-    elif (input == "food"):
-        return 3
-
+    if (input[0]== "nest"):
+        return (5,"nest")
+    elif (input[0]== "block"):
+        return (6,"block")
+    elif (input[1] == "ant"):
+        return (1,"ant")
     elif (input == "foodant"):
-        return 4
-
+        return (4,"foodant")
+    elif (input == "food"):
+        return (3,"food")
+    elif (input[0] == "plain"):
+        if (input[3]=="none"):
+            return (2,"plain")
+        elif (input[3][0]=="food_feremone"):
+            return (input[3][1]],"food_feremone")
+        elif (input[3][0]=="base_feremone"):
+            return (input[3][1]),"base_feremone")
+        
 
 def drawGridAux():
     
@@ -92,7 +97,7 @@ def drawGridAux():
         for row in range(xSize):
             for column in range(ySize):
                 cellType = PLAIN
-                if gridArray[row][column] == 1:
+                if gridArray[row][column][0] == 1:
                     cellType = ANT
                     pygame.draw.rect(display,
                              cellType,
@@ -101,7 +106,7 @@ def drawGridAux():
                               WIDTH,
                               HEIGHT])
 
-                elif gridArray[row][column] == 2:
+                elif gridArray[row][column][0] == 2:
                     cellType = PLAIN
                     display.blit(PLAIN1, (column * WIDTH, row * HEIGHT))
                     
@@ -113,7 +118,7 @@ def drawGridAux():
     #                          WIDTH,
      #                         HEIGHT])
                 
-                elif gridArray[row][column] == 3:
+                elif gridArray[row][column][0] == 3:
                     cellType = FOOD
                     pygame.draw.rect(display,
                              cellType,
@@ -121,15 +126,44 @@ def drawGridAux():
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
-                elif gridArray[row][column] == 4:
-                    cellType = FOODANT
+                elif gridArray[row][column][0] == 5:
+                    cellType = NEST
                     pygame.draw.rect(display,
                              cellType,
                              [(MARGIN + WIDTH) * column + MARGIN,
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
-                
+                elif gridArray[row][column][0] == 6:
+                        cellType = BLOCK
+                        pygame.draw.rect(display,
+                                         cellType,
+                                         [(MARGIN + WIDTH) * column + MARGIN,
+                                          (MARGIN + HEIGHT) * row + MARGIN,
+                                          WIDTH,
+                                          HEIGHT])
+                elif gridArray[row][column][0] == 4:
+                    cellType = FOODANT
+                    pygame.draw.rect(display,
+                                     cellType,
+                                     [(MARGIN + WIDTH) * column + MARGIN,
+                                      (MARGIN + HEIGHT) * row + MARGIN,
+                                      WIDTH,
+                                      HEIGHT])
+                elif gridArray[row][column][1] == "food_feremone":
+                    pygame.draw.rect(display,
+                                     (255*gridArray[row][column][0],0,0),
+                             [(MARGIN + WIDTH) * column + MARGIN,
+                              (MARGIN + HEIGHT) * row + MARGIN,
+                              WIDTH,
+                              HEIGHT])
+                elif gridArray[row][column][1] == "base_feremone":
+                    pygame.draw.rect(display,
+                                     (0,0,255*gridArray[row][column][0]),
+                             [(MARGIN + WIDTH) * column + MARGIN,
+                              (MARGIN + HEIGHT) * row + MARGIN,
+                              WIDTH,
+                              HEIGHT])
 
     
 

@@ -1,34 +1,34 @@
 -module(gui).
 
--export([main/2,initList/2,addToList/4,sendToPyt/1,test/1,sendInitPyt/1,gui_init/0]).
--define(DEFAULT_UPDATE_TIME,200).
+-export([main/3,initList/2,addToList/4,sendToPyt/2,test/1,sendInitPyt/2,gui_init/0]).
+-define(DEFAULT_UPDATE_TIME,5).
 
 gui_init() ->
     My_Pid = self(),
+    {ok, P} = python:start([{python, "python3"}]),
     spawn(fun() -> grid_init:buildAndStartSimpleWorld(My_Pid) end),
-    main([],{9,9}).
+    main([],{9,9},P).
 %%@ Receives messages from actors and puts them in list that will be sent to Python, Width and Height argument is 
 %% the size of entire grid. When receiving message X,Y is location of the cell.
-main(AddList,{Width, Height})->
+main(AddList,{Width, Height},P)->
     receive
 	    {_Pid,{gui_update,{{X,Y},Attributes}}} -> 
 	    io:format("received message, updating list with cells"),
-		    L = addToList(AddList,{X,Y},{Width,Height},modifyAttributes(Attributes)),
-		    main(L,{Width,Height});
+		    L = addToList(AddList,{X,Y},{Width,Height},modifyAttributes2(Attributes)),
+		    main(L,{Width,Height},P);
 	    {_Pid, {gui_init, {X, Y}}} ->
-		    %sendInitPyt({X,Y}),
+		    sendInitPyt({X,Y},P),
 	    io:format("received message, building grid ~p",[{X,Y}]),
 		    L = initList(X*Y, []),
-		    main(L , {X,Y});
+		    main(L , {X,Y},P);
 	    _Any ->
 	    io:format("WRONG MESSAGE: ~p ~n",[_Any]),
 	    exit(fail)
 	    %%main(AddList,{Width,Height})
     after ?DEFAULT_UPDATE_TIME ->
-	    %sendToPyt(AddList)
+	    sendToPyt(AddList,P),
 	    io:format("Dumping list to python"),
-	    testPrint2(AddList, Width, 0),
-	    main(AddList,{Width,Height})
+	    main(AddList,{Width,Height},P)
 		
     end.
 %%@ Initiates the list with empty cells
@@ -44,33 +44,43 @@ addToList(L,{X,Y},{Width,_Height},Attributes) ->
     Head ++ [Attributes] ++ Tl.
     
 %%@Sends the list to python, in python a message handler is required.    
-sendToPyt(L) ->
-    {ok, P} = python:start(),
-    python:call(P, handler, register_handler, [self()]),
-    python:cast(P,L),
-    %flush(),
-    python:stop(P).
+sendToPyt(L,P) ->
+   python:cast(P,L).
 
 %%@Sends initial information to python, only called first at start
-sendInitPyt(Size = {_X,_Y}) ->
-    {ok, P} = python:start(),
-    python:call(P, init_handler, init_register_handler,[self()]),
-    python:cast(P,Size),
-    %flush(),
-    python:stop(P).
+sendInitPyt(_Size = {X,Y},P) ->
+    python:call(P, xd, createGrid, [X, Y]),
+    python:call(P,xd,register_handler,[self()]).
     
 %%@Retrieves information from the map and returns single atom(This is used for testing).
 modifyAttributes(Attributes) ->
     StateAnt = maps:get(ant, Attributes,none),
     StateFood = maps:get(food, Attributes),
-    checkState(StateAnt,StateFood).	
+    StateType = maps:get(type, Attributes),
+    checkState(StateAnt,StateFood,StateType).	
 %%@Retrieves information from the map and returns a tuple of information
 modifyAttributes2(Attributes) ->
     StateAnt = isAnt(maps:get(ant, Attributes,none)),
     StateFood = isFood(maps:get(food, Attributes)),
     StatePheromone = checkPheromone(maps:get(feremones, Attributes)),
     StateType = maps:get(type, Attributes),
-    {StateType,StateAnt,StateFood,StatePheromone}.
+    modifyAux({StateType,StateAnt,StateFood,StatePheromone}).
+    
+%%@Takes out the single most important value for the cell
+modifyAux(_L = {block,_Ant,_Food,_Feremone}) ->
+    block;
+modifyAux(_L = {nest,_State,_Food,_Feremone}) ->
+    nest;
+modifyAux(_L = {_Type,ant,food,_Feremone}) ->
+    foodant;
+modifyAux(_L = {_Type,ant,_Food,_Feremone}) ->
+    ant;
+modifyAux(_L = {_Type,_State,food,_Feremone}) ->
+    food;
+modifyAux(_L = {plain,_State,_Food,_Feremone}) ->
+    plain.
+
+    
 %%@if its a pid its an ant.
 isAnt(none) ->
     none;
@@ -89,13 +99,14 @@ checkPheromone(Feromones) ->
     Food = maps:get(food_feremone,Feromones),
     {Base,Food}.
 %%@ Aux function to modifyAttributes, helps with patternmatching
-checkState(none, Food) when Food > 0 ->
+
+checkState(none, Food,_Type) when Food > 0 ->
     "food";
-checkState(_Pid, Food) when Food > 0 ->
+checkState(_Pid, Food,_Type) when Food > 0 ->
     "foodant";    
-checkState(none,0) ->
-    "none";
-checkState(_Pid,0) ->
+checkState(none,0,plain) ->
+    "plain";
+checkState(_Pid,0,_Type) ->
     "ant".
 
     
