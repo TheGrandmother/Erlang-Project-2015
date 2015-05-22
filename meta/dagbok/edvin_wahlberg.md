@@ -41,4 +41,8 @@ Blev uppdaterad av Oskar vad han hade gjort för framsteg sedan jag åkte.
 (19/5/2015)
 Idag var första gången vi körde GUI i Python med input från våran modul i erlang. Det gick väl.
 
+(21/5/2015)
+satt och pillade med GUI med Oscar
 
+(22/5/2015)
+Möte angående vad som är viktigast att göra innan den stundande presentationen, jag tog på mig det främsta ansvaret för rapporten.
