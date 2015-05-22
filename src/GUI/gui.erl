@@ -13,12 +13,13 @@ gui_init() ->
 main(AddList,{Width, Height},P)->
     receive
 	    {_Pid,{gui_update,{{X,Y},Attributes}}} -> 
-	    io:format("received message, updating list with cells"),
+% 	    io:format("received message, updating list with cells"),
 		    L = addToList(AddList,{X,Y},{Width,Height},modifyAttributes2(Attributes)),
+		    sendToPyt(AddList,P),
 		    main(L,{Width,Height},P);
 	    {_Pid, {gui_init, {X, Y}}} ->
 		    sendInitPyt({X,Y},P),
-	    io:format("received message, building grid ~p",[{X,Y}]),
+%                     io:format("received message, building grid ~p",[{X,Y}]),
 		    L = initList(X*Y, []),
 		    main(L , {X,Y},P);
 	    _Any ->
@@ -27,7 +28,7 @@ main(AddList,{Width, Height},P)->
 	    %%main(AddList,{Width,Height})
     after ?DEFAULT_UPDATE_TIME ->
 	    sendToPyt(AddList,P),
-	    io:format("Dumping list to python"),
+% 	    io:format("Dumping list to python"),
 	    main(AddList,{Width,Height},P)
 		
     end.
