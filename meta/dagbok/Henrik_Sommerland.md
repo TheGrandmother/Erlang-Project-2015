@@ -109,8 +109,11 @@ Nu upstår det **INGA** deadlocks om man kör med flera myror!
 ##### Onsdag
 
 ##### Torsdag
-
+3h arbete med presentation
 ##### Fredag
+
+##### Söndag
+7h arbete med rapport och presentation
 
 ## Vecka 22
 
