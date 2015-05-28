@@ -38,8 +38,8 @@
 %% @doc These are the different types of request messages
 -type request_type() ::   query_hood 
                         | query_state 
-                        | {move_ant,Direction::direction()} 
-						| {place_ant, Ant::pid()}
+                        | {move_ant,{Direction::direction(),State:ant_state()}} 
+						| {place_ant, {Ant::pid(),State::ant_state()}}
 						| {set_cell_attribute, Attributes::#{}}
 						| {set_ant_attribute, Attributes::#{}}
                         | {linkup,Hood::neighbourhood(),Next::pid()}

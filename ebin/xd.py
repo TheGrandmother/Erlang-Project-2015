@@ -4,6 +4,9 @@ from erlport.erlterms import Atom,List
 from erlport.erlang import set_message_handler, cast
  
 ANT = (0, 0, 0) #1
+SEARCHING = (255, 0, 0) #11
+RETURNING = (0, 0, 255) #10
+IDLING = (255, 255, 255) #12
 PLAIN = (50, 100, 0) #2 gräääs
 PLAIN1 = pygame.image.load('grass.jpg')
 FOOD = (0, 100, 255) #3 Maaat
@@ -78,6 +81,12 @@ def updateGridAux(input):
         return 6
     elif (input == "ant"):
         return 1
+    elif (input == "returning"):
+    	return 10
+    elif (input == "searching"):
+    	return 11
+    elif (input == "idling"):
+    	return 12
     elif (input == "foodant"):
         return 4
     elif (input == "food"):
@@ -140,6 +149,31 @@ def drawGridAux():
                                           HEIGHT])
                 elif values == 4:
                     cellType = FOODANT
+                    pygame.draw.rect(display,
+                                     cellType,
+                                     [(MARGIN + WIDTH) * column + MARGIN,
+                                      (MARGIN + HEIGHT) * row + MARGIN,
+                                      WIDTH,
+                                      HEIGHT])
+              	elif values == 10:
+                    cellType = RETURNING
+                    pygame.draw.rect(display,
+                                     cellType,
+                                     [(MARGIN + WIDTH) * column + MARGIN,
+                                      (MARGIN + HEIGHT) * row + MARGIN,
+                                      WIDTH,
+                                      HEIGHT])
+                                     
+              	elif values == 11:
+                    cellType = SEARCHING
+                    pygame.draw.rect(display,
+                                     cellType,
+                                     [(MARGIN + WIDTH) * column + MARGIN,
+                                      (MARGIN + HEIGHT) * row + MARGIN,
+                                      WIDTH,
+                                      HEIGHT])
+              	elif values == 12:
+                    cellType = IDLING
                     pygame.draw.rect(display,
                                      cellType,
                                      [(MARGIN + WIDTH) * column + MARGIN,

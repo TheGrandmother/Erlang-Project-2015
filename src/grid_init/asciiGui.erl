@@ -52,7 +52,18 @@ getTimeStamp() ->
 getSymbol(Map) ->
     case is_pid(maps:get(ant,Map,none)) of
         true ->
-             "A";
+            case maps:get(ant_state,Map,none) of
+				idling ->
+					"I";
+				searching_for_food ->
+					"S";
+				returning_with_food ->
+					"R";
+				_A ->
+					io:format("Received idiotic ant state ~p.",[_A]),
+					exit(failure)
+			
+			end;
         false ->
             case maps:get(type,Map) of
                 block ->

@@ -4,7 +4,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -module(logger).
--define(LOG,true).
+-define(LOG,false).
 -define(LOG_MESSAGES,true).
 -define(LOG_EVENTS,true).
 
@@ -57,7 +57,7 @@ makeLog(Type,Pid,ok)->
         Status == ok ->
             ok;
         true ->
-            io:format("Logfile could not be created due to ~p ~n~n",[Status]),
+            io:format("Logfile could not be created due to ~p ~n~n",[{Status,Device}]),
             exit(fail)
     end,
     io:format(Device,"Logfile Created for ~s with pid ~w at ~w ~n~n",[Type,Pid,calendar:local_time()]),

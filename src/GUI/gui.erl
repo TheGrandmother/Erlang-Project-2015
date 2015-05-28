@@ -65,20 +65,31 @@ modifyAttributes2(Attributes) ->
     StateFood = isFood(maps:get(food, Attributes)),
     StatePheromone = checkPheromone(maps:get(feremones, Attributes)),
     StateType = maps:get(type, Attributes),
-    modifyAux({StateType,StateAnt,StateFood,StatePheromone}).
+	StateAntState = maps:get(ant_state, Attributes,none),
+    modifyAux({StateType,StateAnt,StateFood,StatePheromone,StateAntState}).
     
 %%@Takes out the single most important value for the cell
-modifyAux(_L = {block,_Ant,_Food,_Feremone}) ->
+modifyAux(_L = {block,_Ant,_Food,_Feremone,_}) ->
     block;
-modifyAux(_L = {nest,_State,_Food,_Feremone}) ->
+modifyAux(_L = {nest,_State,_Food,_Feremone,_}) ->
     nest;
-modifyAux(_L = {_Type,ant,food,_Feremone}) ->
+modifyAux(_L = {_Type,ant,food,_Feremone,_}) ->
     foodant;
-modifyAux(_L = {_Type,ant,_Food,_Feremone}) ->
-    ant;
-modifyAux(_L = {_Type,_State,food,_Feremone}) ->
+modifyAux(_L = {_Type,ant,_Food,_Feremone,AntState}) ->
+    case AntState of 
+		idling ->
+			idle;
+		searching_for_food ->
+			searching;
+		returning_with_food ->
+			returning;
+		_A ->
+			io:format("Recieved idiotic thing ~p",[_A])
+	end;
+
+modifyAux(_L = {_Type,_State,food,_Feremone,_}) ->
     food;
-modifyAux(_L = {plain,_State,_Food,_Feremone}) ->
+modifyAux(_L = {plain,_State,_Food,_Feremone,_}) ->
     plain.
 
     
