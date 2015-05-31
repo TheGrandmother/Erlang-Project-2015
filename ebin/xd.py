@@ -82,11 +82,11 @@ def updateGridAux(input):
     elif (input == "ant"):
         return 1
     elif (input == "returning"):
-    	return 10
+        return 10
     elif (input == "searching"):
-    	return 11
+        return 11
     elif (input == "idling"):
-    	return 12
+        return 12
     elif (input == "foodant"):
         return 4
     elif (input == "food"):
@@ -155,7 +155,7 @@ def drawGridAux():
                                       (MARGIN + HEIGHT) * row + MARGIN,
                                       WIDTH,
                                       HEIGHT])
-              	elif values == 10:
+                elif values == 10:
                     cellType = RETURNING
                     pygame.draw.rect(display,
                                      cellType,
@@ -164,7 +164,7 @@ def drawGridAux():
                                       WIDTH,
                                       HEIGHT])
                                      
-              	elif values == 11:
+                elif values == 11:
                     cellType = SEARCHING
                     pygame.draw.rect(display,
                                      cellType,
@@ -172,7 +172,7 @@ def drawGridAux():
                                       (MARGIN + HEIGHT) * row + MARGIN,
                                       WIDTH,
                                       HEIGHT])
-              	elif values == 12:
+                elif values == 12:
                     cellType = IDLING
                     pygame.draw.rect(display,
                                      cellType,
@@ -212,7 +212,6 @@ def handler(message):
     drawGridAux()
     pygame.display.flip()
             
-
 
 
 
