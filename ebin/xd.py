@@ -4,12 +4,12 @@ from erlport.erlterms import Atom,List
 from erlport.erlang import set_message_handler, cast
  
 ANT = (0, 0, 0) #1
-SEARCHING = (255, 0, 0) #11
-RETURNING = (0, 0, 255) #10
+SEARCHING = (255, 0, 50) #11
+RETURNING = (50, 0, 255) #10
 IDLING = (255, 255, 255) #12
 PLAIN = (50, 100, 0) #2 gräääs
 PLAIN1 = pygame.image.load('grass.jpg')
-FOOD = (0, 100, 255) #3 Maaat
+FOOD = (0, 255, 100) #3 Maaat
 FOODANT = (0, 100, 200) #hungrigMYRA
 
 #    global total_base 
@@ -17,8 +17,8 @@ FOODANT = (0, 100, 200) #hungrigMYRA
 total_food = 1
 total_base = 1
 
-NEST = (0, 255, 0) 
-BLOCK = (255,102,0)
+NEST = (190, 100, 0) 
+BLOCK = (150,120,100)
 
 WIDTH = 10
 HEIGHT = 10
@@ -26,29 +26,6 @@ MARGIN = 0
 
 gridArray = []
 feremone_array = []
-#total_base = 1.0
-#total_food = 1.0
-
-testList = ["plain", "ant", "plain", "foodant", "foodant", "foodant", "plain", "plain", "foodant", "foodant", "foodant", "ant", "foodant", "plain", "plain", "plain", "ant", "plain", "plain", "foodant", "food", "plain", "foodant", "plain", "food", "plain", "ant", "plain", "plain", "foodant", "plain", "plain", "plain", "foodant", "foodant", "foodant", "ant", "plain", "foodant", "plain", "plain", "ant", "plain", "plain", "plain", "food", "plain", "plain", "plain", "food", "foodant", "ant", "plain", "foodant", "plain", "plain", "plain", "plain", "plain", "foodant", "foodant", "ant", "plain", "plain", "foodant", "plain", "ant", "foodant", "plain", "foodant", "food", "plain", "foodant", "plain", "food", "foodant", "ant", "foodant", "plain", "foodant", "foodant", "foodant", "plain", "foodant", "foodant", "foodant", "ant", "plain", "plain", "foodant", "foodant", "ant", "foodant", "plain", "foodant", "food", "plain", "foodant", "plain", "food"]
-
-
-def randomList(amount):
-    
-    variables = ['food', 'plain', 'foodant', 'plain', 'plain', 'plain', 'plain', 'plain']
-    #global randList
-    randList = []
-
-    for x in range (amount):
-        randList.append([])
-
-    y = len(randList)
-    print(y)
-
-    for y in range (amount):
-        randList[y] = random.choice(variables)
-
-    
-    return randList
 
 xSize = 0
 ySize = 0
