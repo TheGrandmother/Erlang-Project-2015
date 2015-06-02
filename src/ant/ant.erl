@@ -24,7 +24,7 @@ antInit(Cell_Pid, Queen) ->
 	Buffer = {0, []},  
 	Ref = make_ref(),
 
-	Msg = Cell_Pid ! {Ant_ID, Ref, {place_ant, Ant_ID}},
+	Msg = Cell_Pid ! {Ant_ID, Ref, {place_ant, {Ant_ID,idling}}},
 	{{_, _, _, Response}, New_Buffer} = message_buffer:receiver(Ref, Cell_Pid,Buffer),
 	Ant = {self(), Cell_Pid, State, #{
 									  food => 0,steps_taken => 0, 
@@ -91,8 +91,8 @@ antMain(In_Ant) ->
                     logger:logEvent(utils:getAntLog(In_Ant),"Attempting return with food."),
                     New_Ant = returnWithFood(In_Ant),
                     logger:logEvent(utils:getAntLog(In_Ant),"Return Attempt Completed."),
-					antMain(increaseStepsTaken(New_Ant)),
-                    antMain(New_Ant);
+					antMain(increaseStepsTaken(New_Ant));
+                    
                 
                 _Any ->
                     logger:logWarning(utils:getAntLog(In_Ant),logger:makeCoolString("Ant is in ridcoulus state ~p. Lol...", [_Any])),
@@ -133,7 +133,7 @@ Cell_Pid = utils:getAntCell(Ant),
             case Food_Amount of
                 0 ->
                     logger:logEvent(utils:getAntLog(New_Ant),"Cell contained no food. Continuing search"),
-                    examineHoodAntTakeAction(New_Ant, food_feremone, base_feremone);
+                    examineHoodAndTakeAction(New_Ant, food_feremone, base_feremone);
                 _ ->
                     logger:logEvent(utils:getAntLog(New_Ant),logger:makeCoolString("Cell contained ~p units of food. Attempting to snatch some.",[Food_Amount])),
                     searchForFood(New_Ant,snatch_food)
@@ -170,7 +170,7 @@ searchForFood(Ant,snatch_food) ->
         
         {reply,take_food,fail} ->
             logger:logEvent(utils:getAntLog(New_Ant),"Ant could not get the food :(. Continuing with search like a boss."),
-            %examineHoodAntTakeAction(New_Ant, food_feremone, base_feremone);
+            %examineHoodAndTakeAction(New_Ant, food_feremone, base_feremone);
             new_ant;
         
         _Any ->
@@ -180,7 +180,7 @@ searchForFood(Ant,snatch_food) ->
             exit(failure)
     end.
 
-examineHoodAntTakeAction(Ant,Search_Feremone,Drop_Feremone) ->
+examineHoodAndTakeAction(Ant,Search_Feremone,Drop_Feremone) ->
     Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Examining the surroundings of ~p",[Cell_Pid])),
     {Message,New_Ant} = sendAndReceive(Ant,query_hood,"Getting the hood"),
@@ -257,7 +257,7 @@ returnWithFood(Ant,examining_current_cell) ->
 				
                 _ ->
                     logger:logEvent(utils:getAntLog(New_Ant),"Cell was not a nest. Continuing the eqic quest to get home."),
-                    New_Ant1 = examineHoodAntTakeAction(New_Ant, base_feremone, food_feremone),
+                    New_Ant1 = examineHoodAndTakeAction(New_Ant, base_feremone, food_feremone),
                     New_Ant1
                 
 
@@ -330,13 +330,13 @@ handleRequest(Ant,{Sender,Reference,Payload}) ->
 
 
 contemplateHood(Ant,Hood,Feremone) ->
-    Cell_Pid = utils:getAntCell(Ant),
+    %Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),"Ant is contemplating the nature of 'The Hood'."),
     Sorted_Hood = processHood(Hood, Feremone),
     Direction = pickDirection(Sorted_Hood),
     %Direction = randomDirection(Sorted_Hood),
     logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("And sorted hood with regards to '~p' and decided to go to the ~p",[ Feremone, Direction])),
-    {Message,New_Ant} = sendAndReceive(Ant, {move_ant,Direction},"Trying to move"),
+    {Message,New_Ant} = sendAndReceive(Ant, {move_ant,{Direction,utils:getAntState(Ant)}},"Trying to move"),
     case Message of
         {reply,move_ant,{sucsess,New_Pid}} ->
             logger:logEvent(utils:getAntLog(Ant),logger:makeCoolString("Ant succseeded in moving to the ~p and is now at ~p",[Direction,New_Pid])),
@@ -405,7 +405,7 @@ hoodFilter(Hood_Element,Feremone) ->
     end.
 
 
-randomDirection(Thing) ->
+randomDirection() ->
     lists:nth(random:uniform(8), [northwest, north, northeast, west, east, southwest ,south, southeast]).
 
 pickDirection([Hd|[]]) ->

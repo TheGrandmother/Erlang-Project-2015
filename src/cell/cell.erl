@@ -7,7 +7,7 @@
 -module(cell).
 -include_lib("eunit/include/eunit.hrl").
 -define(DEFAULT_FEREMONE_INCREASE,1.0).
--define(DEFAULT_FEREMONE_DECAY,1.01).
+-define(DEFAULT_FEREMONE_DECAY,1).
 
 %% ====================================================================
 %% API functions
@@ -58,7 +58,9 @@ awaitLinkup(Cell) ->
 							feremones => #{
 										   base_feremone => {0.0,?DEFAULT_FEREMONE_DECAY},
 										   food_feremone=> {0.0,?DEFAULT_FEREMONE_DECAY}},
-							gui_module => none
+							gui_module => none,
+							ant => none,
+							ant_state => idling
 						   },
 					C5 = utils:setCellAttributes(C4,Map),
                     logger:logEvent(utils:getCellLog(Cell),"Cell initialization complete!"),
@@ -240,10 +242,13 @@ setAttribute(Cell,Sender,Reference,{Type,Value}) ->
 %% @doc Function corresponding to deposit feremones. Increases feremone by the default increase rate
 -spec depositFeremone(Cell::types:cell(),Sender::pid(),Refernce::reference(), Feremone_Name::types:feremone_name()) -> types:cell().
 depositFeremone(Cell,Sender,Reference,Feremone_Name) ->
+    
 	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to increase feremone ~p",[Feremone_Name])),
 	Map = utils:getCellAttributes(Cell),
 	Old_Feremone_Map = maps:get(feremones,Map),
+    
 	{Old_Strength,Dissipation_Rate} = maps:get(Feremone_Name,Old_Feremone_Map),
+    
   	New_Strength = Old_Strength + ?DEFAULT_FEREMONE_INCREASE,
 	New_Feremone_Map = maps:put(Feremone_Name,{New_Strength,Dissipation_Rate},Old_Feremone_Map),
 	New_Map = maps:put(feremones,New_Feremone_Map,Map),
@@ -257,7 +262,7 @@ depositFeremone(Cell,Sender,Reference,Feremone_Name) ->
 
 %% @doc Cell corresponding to the move ant state.
 -spec moveAnt(Cell::types:cell(),Sender::pid(),Refernce::reference(), Direction::types:direction()) -> types:cell().
-moveAnt(Cell,Sender,Reference,Direction) ->
+moveAnt(Cell,Sender,Reference,{Direction,State}) ->
     Ant = maps:get(ant,utils:getCellAttributes(Cell),none),
     if 
         Ant == none -> 
@@ -283,7 +288,7 @@ moveAnt(Cell,Sender,Reference,Direction) ->
                 _ ->
                     %% Await move reply state
                     New_Ref = make_ref(),
-                    Msg = Destination ! {self(),New_Ref,{place_ant,Ant}},
+                    Msg = Destination ! {self(),New_Ref,{place_ant,{Ant,State}}},
 					logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
                     {Message, New_Buffer} = message_buffer:receiver(New_Ref,Destination,utils:getCellMetadata(Cell),"Trying to move ant"),					
                     New_Cell0 = utils:setCellMetadata(Cell,New_Buffer),
@@ -310,7 +315,7 @@ moveAnt(Cell,Sender,Reference,Direction) ->
     
 %% @doc Corresponds to the place ant state
 -spec placeAnt(Cell::types:cell(),Sender::pid(),Reference::reference(),Ant::pid()) -> types:cell().
-placeAnt(Cell,Sender,Reference,New_Ant) ->
+placeAnt(Cell,Sender,Reference,{New_Ant,State}) ->
     logger:logEvent(utils:getCellLog(Cell),"Attempting to place ant"),
     Ant = maps:get(ant,utils:getCellAttributes(Cell),none),
     Type = maps:get(type,utils:getCellAttributes(Cell),none),
@@ -323,7 +328,8 @@ placeAnt(Cell,Sender,Reference,New_Ant) ->
         {none,_} ->
             logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Placing ant ~p", [New_Ant])),
             New_Map = maps:put(ant,New_Ant,utils:getCellAttributes(Cell)),
-            New_Cell = utils:setCellAttributes(Cell,New_Map),
+			New_Map1 = maps:put(ant_state,State,New_Map),
+            New_Cell = utils:setCellAttributes(Cell,New_Map1),
             Msg = Sender ! {self(),make_ref(),Reference,{reply,place_ant,sucsess}},
             logger:logMessageSent(utils:getCellLog(Cell),Msg,Sender),
             New_Cell;

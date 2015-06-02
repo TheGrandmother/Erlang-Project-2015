@@ -219,7 +219,7 @@ backAndFourth()->
             ?assert(false)
     end,
     My_Pid = self(),
-    Queen = spawn(fun() -> complicatedQueen(My_Pid,0,[],7) end),
+    Queen = spawn(fun() -> complicatedQueen(My_Pid,0,[],3) end),
     Ant = ant:spawnAnt(Cell_ID, Queen),
     Cell_With_Food = grid_init:getGridElement({0,0},{6,6},Grid),
     Ref = make_ref(),
@@ -299,7 +299,7 @@ multiAntTest()->
             ?assert(false)
     end,
     My_Pid = self(),
-    Queen = spawn(fun() -> derpQueen(My_Pid,#{},[],[],10) end),
+    Queen = spawn(fun() -> derpQueen(My_Pid,#{},[],[],5) end),
     Ant1 = ant:spawnAnt( grid_init:getGridElement({5,5},{6,6},Grid), Queen),
     Ant2 = ant:spawnAnt( grid_init:getGridElement({5,4},{6,6},Grid), Queen),
     Ant3 = ant:spawnAnt( grid_init:getGridElement({4,5},{6,6},Grid), Queen),

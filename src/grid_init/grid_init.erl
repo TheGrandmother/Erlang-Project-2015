@@ -49,13 +49,18 @@ setGridElement({X, Y}, Value, Array) ->
 %6 N N N N N N N 
 buildAndStartSimpleWorld(Gui) ->
     
-	Size = {9,9},
+    Width = 25,
+    Height = 25,
+	Size = {Width,Height},
 	Array = initGrid(Size),
     io:format("started grid"),
-	Foods = [{3,0},{4,0},{5,0}],
-	Blocks =  [{3,4},{4,4},{5,4}],
-	Nests = [{0,8},{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8}],
-    Ant_Positions = [{0,8},{2,8},{4,8},{6,8},{8,8}], 
+	Foods = [{X,0} || X <- lists:seq(0,Width-1)],
+	Blocks =  [{X,Height div 3} || X <- lists:seq(Width div 3,(2*Width) div 3)]
+                ++[{X,(2*Height) div 3} || X <- lists:seq(Width div 3,(2*Width) div 3)]
+                ++[{(Width) div 3, Y} || Y <- lists:seq(Height div 3,(2*Height) div 3)]
+                ++[{(2*Width) div 3, Y} || Y <- lists:seq(Height div 3,(2*Height) div 3)],
+	Nests = [{X,Height-1} || X <- lists:seq(0,Width-1)],
+    Ant_Positions = [{X,Height-1} || X <- lists:seq(0,Width-1),X rem 2 == 0], 
     %Nests = [{6,6}],
     
     case is_pid(Gui) of
@@ -104,28 +109,18 @@ getTimeStamp() ->
 
 dummyQueen(Foods_Picked_Up,Foods_Deposited,Map,Events,Previous_Time,Total_Time) ->
 	receive
-		{Pid,{found_food,Steps}} ->
-			Old_Steps = maps:get(Pid,Map,0),
-			Diff = Steps-Old_Steps,
+		{Pid,{found_food,Steps}} ->		
 			New_Map = maps:put(Pid,Steps,Map),
-			%?debugFmt("Our little ant ~p found food in ~p steps, We have now found ~p foods in a total of ~p steps",[Pid,Diff ,Foods_Picked_Up+1,getTotalSteps(Map)]),
             Time = getTimeStamp(),
             Time_Diff = Time - Previous_Time,
             New_Total = Total_Time + Time_Diff,
-            %?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
-            %          [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
 			dummyQueen(Foods_Picked_Up+1,Foods_Deposited,New_Map,Events+1,Time,New_Total);
 		
 		{Pid,{returned_with_food,Steps}} ->
-			Old_Steps = maps:get(Pid,Map,0),
-			Diff = Steps-Old_Steps,
 			New_Map = maps:put(Pid,Steps,Map),
-            %?debugFmt("Our little ant ~p returned food in ~p steps, We have now returned ~p foods in a total of ~p steps",[Pid,Diff ,Foods_Deposited+1,getTotalSteps(Map)]),
 			Time = getTimeStamp(),
             Time_Diff = Time - Previous_Time,
             New_Total = Total_Time + Time_Diff,
-            %?debugFmt("Found = ~p \tReturned = ~p \tAverage Steps = ~f \tAverage Time = ~f\t Time Taken = ~f",
-            %          [Foods_Picked_Up+1,Foods_Deposited,getTotalSteps(Map)/(Events+1),(Total_Time/(Events+1))/1000000,(Time_Diff)/1000000]),
             dummyQueen(Foods_Picked_Up,Foods_Deposited+1,New_Map,Events+1,Time,New_Total);
 		
 		_A ->
@@ -133,11 +128,6 @@ dummyQueen(Foods_Picked_Up,Foods_Deposited,Map,Events,Previous_Time,Total_Time) 
 			?assert(false)
 	end.
 		
-getTotalSteps(Map) ->
-	lists:sum(element(2,lists:unzip(maps:to_list(Map)))).
-	
-
-
 -spec newGrid({Width::integer(), Height::integer()}) -> grid().
 %% Creates a two-dimensional array with given size
 newGrid({Width, Height}) ->
@@ -162,7 +152,7 @@ getGridElement(_,_,_) ->
 -spec linkup({Width::integer(), Height::integer()},Array) -> {Array,_Refs}.
 %% Makes sure that every worker in given two-dimensional array is up and running
 linkup({Width, Height},Array) ->
-    {Array,Refs } = linkupAux({0,0},{Width, Height},Array,[]).
+    {Array,_ } = linkupAux({0,0},{Width, Height},Array,[]).
 
 
 %% =====================================================================================
@@ -172,7 +162,7 @@ linkup({Width, Height},Array) ->
 broadcast(Grid,Size,Message) ->
 	broadcastAux({0,0},Size,Grid,Message).
 
-broadcastAux({X,Y},{Width,Height},Grid,Message) when Y == Height ->
+broadcastAux({_,Y},{Width,Height},_,_) when Y == Height ->
 	utils:ignoreMessages(Width*Height);
 
 broadcastAux({X, Y},{Width, Height}, Array,Message) when X == Width->

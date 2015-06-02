@@ -4,7 +4,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -module(logger).
--define(LOG,true).
+-define(LOG,false).
 -define(LOG_MESSAGES,true).
 -define(LOG_EVENTS,true).
 
@@ -57,7 +57,7 @@ makeLog(Type,Pid,ok)->
         Status == ok ->
             ok;
         true ->
-            io:format("Logfile could not be created due to ~p ~n~n",[Status]),
+            io:format("Logfile could not be created due to ~p ~n~n",[{Status,Device}]),
             exit(fail)
     end,
     io:format(Device,"Logfile Created for ~s with pid ~w at ~w ~n~n",[Type,Pid,calendar:local_time()]),
@@ -75,7 +75,7 @@ logMessage({Device,Type,Pid},Message) ->
             ok
     end.
 
-logMessage({Device,Type,Pid},Message,ok) ->
+logMessage({Device,_,_},Message,ok) ->
     Sender = element(1,Message),
     io:format(Device, "~s :: MESSAGE RECEIVE ~n    ",[makeTimeStamp()]),
     case is_pid(Sender)of
@@ -97,7 +97,7 @@ logMessageSent({Device,Type,Pid},Message,Recipient) ->
             ok
     end.
 
-logMessageSent({Device,Type,Pid},Message,Recipient,ok) ->
+logMessageSent({Device,_,_},Message,Recipient,ok) ->
     Sender = element(1,Message),
     io:format(Device, "~s :: MESSAGE SENT ~n    ",[makeTimeStamp()]),
     case is_pid(Sender)of
@@ -120,7 +120,7 @@ logEvent({Device,Type,Pid},Event) ->
 			ok
 	end.
 
-logEvent({Device,Type,Pid},Event,ok) ->
+logEvent({Device,_,_},Event,ok) ->
     io:format(Device, "~s :: EVENT ~n    ",[makeTimeStamp()]),
     io:format(Device, "~p~n~n",[Event]).
 
@@ -128,7 +128,7 @@ logEvent({Device,Type,Pid},Event,ok) ->
 logWarning(none,_) ->
 	ok;
 
-logWarning({Device,Type,Pid},Warning) ->
+logWarning({Device,_,_},Warning) ->
     io:format(Device, "~s :: WARNING ~n    ",[makeTimeStamp()]),
     io:format(Device, "~p~n~n",[Warning]).
 
