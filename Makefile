@@ -10,10 +10,6 @@ SRC=src
 FLAGS=+debug_info
 
 
-#
-# You shoulkd kinda copy paste this to make e make target for your module
-# Look at the cool thing commented out bellow.
-#
 message_buffer_binary = $(BIN)/message_buffer.beam
 message_buffer_source = $(wildcard $(SRC)/message_buffer/*.erl)
 
@@ -79,6 +75,17 @@ test_cell: $(cell_binary)
 
 
 
+gui_binary = $(BIN)/gui.beam
+gui_source = $(wildcard $(SRC)/GUI/*.erl)  $(grid_init_binary)
+
+gui: $(gui_binary)
+
+$(gui_binary) : $(gui_source)	
+	erlc $(FLAGS) -o $(BIN)/ $^
+
+test_gui: $(gui_binary)
+	erl -noshell -pa ebin -eval 'eunit:test(["$(gui_binary)"], [verbose])' -s init stop
+
 
 
 ant_binary = $(BIN)/ant.beam
@@ -92,7 +99,16 @@ $(ant_binary) : $(ant_source) $(grid_init_binary) $(message_buffer_binary) $(cel
 test_ant: $(ant_binary)
 	erl -noshell -pa ebin -eval 'eunit:test({timeout, 1000, ["ebin/ant_tests.beam","ebin/sorter.beam"]}, [verbose])' -s init stop
 
+all: ant cell gui
 
+run_ascii: all
+	erl -pa ebin -run asciiGui initThingy
+	
+run: all
+	@echo ""
+	@echo "Gui cannot be run from the terminal like due to python modules not being loaded correctly"
+	@echo "To start the Gui move to the ebin/ folder and run gui:initGui() from the erl shell"
+	@echo "You can run the system with the ASCII gui by running 'make run_ascii'"
 	
 
 #
@@ -128,16 +144,4 @@ test_all_quiet: $(OBJECTS)
 	erl -noshell -pa ebin -eval 'eunit:test([$(OBJECTS_LIST)], [])' -s init stop
 
 
-#
-# COPY THIS AND REPLACE <name> with module name and you have a crazy cool build target :)
-#
-gui_binary = $(BIN)/gui.beam
-gui_source = $(wildcard $(SRC)/GUI/*.erl)
-#
-gui: $(gui_binary)
-#	
-$(gui_binary) : $(gui_source)	
-	erlc $(FLAGS) -o $(BIN)/ $^
 
-test_gui: $(gui_binary)
-	erl -noshell -pa ebin -eval 'eunit:test(["$(gui_binary)"], [verbose])' -s init stop

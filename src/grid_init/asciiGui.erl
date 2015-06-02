@@ -12,11 +12,10 @@
 
 initThingy() ->
     My_Pid = self(),
-    World = spawn(fun() -> grid_init:buildAndStartSimpleWorld(My_Pid) end),
-     io:format("LOOOOOOPfewewfewffew"),
+    spawn(fun() -> grid_init:buildAndStartSimpleWorld(My_Pid) end),
+    
     receive
         {_,{gui_init,{X,Y}}} ->
-            io:format("LOOOOOOPdsfwertwrtw5t32254"),
             loopMe(makeGrid(X,Y),{X,Y},getTimeStamp());
         _A->
             io:format("Derp  ~p ~n",[_A])
@@ -86,7 +85,7 @@ draw(Size,Grid) ->
     io:format("\x1b[2J\x1b[1;1H"),
     drawAux({0,0},Size,Grid).
 
-drawAux({X,Y},{Width,Height},Grid) when Y == Height ->
+drawAux({_,Y},{_,Height},_) when Y == Height ->
     ok;
 
 drawAux({X, Y},{Width, Height}, Grid) when X == Width->

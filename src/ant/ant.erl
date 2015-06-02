@@ -330,7 +330,7 @@ handleRequest(Ant,{Sender,Reference,Payload}) ->
 
 
 contemplateHood(Ant,Hood,Feremone) ->
-    Cell_Pid = utils:getAntCell(Ant),
+    %Cell_Pid = utils:getAntCell(Ant),
     logger:logEvent(utils:getAntLog(Ant),"Ant is contemplating the nature of 'The Hood'."),
     Sorted_Hood = processHood(Hood, Feremone),
     Direction = pickDirection(Sorted_Hood),
@@ -405,7 +405,7 @@ hoodFilter(Hood_Element,Feremone) ->
     end.
 
 
-randomDirection(Thing) ->
+randomDirection() ->
     lists:nth(random:uniform(8), [northwest, north, northeast, west, east, southwest ,south, southeast]).
 
 pickDirection([Hd|[]]) ->

@@ -304,8 +304,8 @@ permute_test() ->
 hardcoreSort_test()->
 	{A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
-	First = makeHistogram(1,50000,#{}),
-	Last = makeHistogram(8,50000,#{}),
+	First = makeHistogram(1,10000,#{}),
+	Last = makeHistogram(8,10000,#{}),
 	?debugFmt("~nFIRSTELEMENT=~n~p",[First]),
 	?debugFmt("~nLastElement=~n~p",[Last]),
 	ok.
@@ -322,8 +322,8 @@ makeHistogram(Index,N,Histogram) ->
 hardcorePermute_test()->
 	{A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
-	First = makeHistogram1(1,50000,#{}),
-	Last = makeHistogram1(8,50000,#{}),
+	First = makeHistogram1(1,10000,#{}),
+	Last = makeHistogram1(8,10000,#{}),
 	?debugFmt("~nFIRSTELEMENT=~n~p",[First]),
 	?debugFmt("~nLastElement=~n~p",[Last]),
 	ok.
@@ -340,14 +340,14 @@ makeHistogram1(Index,N,Histogram) ->
 hardcoreUnioform_test()->
 	{A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
-	F1 = makeHistogram2(1,50000,#{}),
-	F2 = makeHistogram2(2,50000,#{}),
-	F3 = makeHistogram2(3,50000,#{}),
-	F4 = makeHistogram2(4,50000,#{}),
-	F5 = makeHistogram2(5,50000,#{}),
-	F6 = makeHistogram2(6,50000,#{}),
-	F7 = makeHistogram2(7,50000,#{}),
-	F8 = makeHistogram2(8,50000,#{}),
+	F1 = makeHistogram2(1,10000,#{}),
+	F2 = makeHistogram2(2,10000,#{}),
+	F3 = makeHistogram2(3,10000,#{}),
+	F4 = makeHistogram2(4,10000,#{}),
+	F5 = makeHistogram2(5,10000,#{}),
+	F6 = makeHistogram2(6,10000,#{}),
+	F7 = makeHistogram2(7,10000,#{}),
+	F8 = makeHistogram2(8,10000,#{}),
 	
 	?debugFmt("~n1=~n~p",[F1]),
 	?debugFmt("~n2=~n~p",[F2]),

@@ -10,7 +10,7 @@ initGui() ->
     main([],{9,9},P).
 %%@ Receives messages from actors and puts them in list that will be sent to Python, Width and Height argument is 
 %% the size of entire grid. When receiving message X,Y is location of the cell.
-main(AddList,{Width, Height},P)->
+main(_,{Width, Height},P)->
     receive
 	    {_Pid,{gui_update,{{X,Y},Attributes}}} -> 
 % 	    io:format("received message, updating list with cells"),
