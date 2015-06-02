@@ -49,13 +49,18 @@ setGridElement({X, Y}, Value, Array) ->
 %6 N N N N N N N 
 buildAndStartSimpleWorld(Gui) ->
     
-	Size = {15,15},
+    Width = 25,
+    Height = 25,
+	Size = {Width,Height},
 	Array = initGrid(Size),
     io:format("started grid"),
-	Foods = [{X,0} || X <- lists:seq(0,14)],
-	Blocks =  [{3,4},{4,4},{5,4}],
-	Nests = [{X,13} || X <- lists:seq(0,14)],
-    Ant_Positions = [{X,14} || X <- lists:seq(0,14),X rem 2 == 0], 
+	Foods = [{X,0} || X <- lists:seq(0,Width-1)],
+	Blocks =  [{X,Height div 3} || X <- lists:seq(Width div 3,(2*Width) div 3)]
+                ++[{X,(2*Height) div 3} || X <- lists:seq(Width div 3,(2*Width) div 3)]
+                ++[{(Width) div 3, Y} || Y <- lists:seq(Height div 3,(2*Height) div 3)]
+                ++[{(2*Width) div 3, Y} || Y <- lists:seq(Height div 3,(2*Height) div 3)],
+	Nests = [{X,Height-1} || X <- lists:seq(0,Width-1)],
+    Ant_Positions = [{X,Height-1} || X <- lists:seq(0,Width-1),X rem 2 == 0], 
     %Nests = [{6,6}],
     
     case is_pid(Gui) of
