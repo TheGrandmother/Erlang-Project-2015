@@ -49,13 +49,13 @@ setGridElement({X, Y}, Value, Array) ->
 %6 N N N N N N N 
 buildAndStartSimpleWorld(Gui) ->
     
-	Size = {9,9},
+	Size = {15,15},
 	Array = initGrid(Size),
     io:format("started grid"),
-	Foods = [{3,0},{4,0},{5,0}],
+	Foods = [{X,0} || X <- lists:seq(0,14)],
 	Blocks =  [{3,4},{4,4},{5,4}],
-	Nests = [{0,8},{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8}],
-    Ant_Positions = [{0,8},{2,8},{4,8},{6,8},{8,8}], 
+	Nests = [{X,13} || X <- lists:seq(0,14)],
+    Ant_Positions = [{X,14} || X <- lists:seq(0,14),X rem 2 == 0], 
     %Nests = [{6,6}],
     
     case is_pid(Gui) of

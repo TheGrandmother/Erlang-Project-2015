@@ -1,9 +1,9 @@
 -module(gui).
 
--export([main/3,initList/2,addToList/4,sendToPyt/2,test/1,sendInitPyt/2,gui_init/0]).
+-export([main/3,initList/2,addToList/4,sendToPyt/2,sendInitPyt/2,initGui/0]).
 -define(DEFAULT_UPDATE_TIME,5).
 
-gui_init() ->
+initGui() ->
     My_Pid = self(),
     {ok, P} = python:start([{python, "python3"}]),
     spawn(fun() -> grid_init:buildAndStartSimpleWorld(My_Pid) end),
@@ -14,22 +14,22 @@ main(AddList,{Width, Height},P)->
     receive
 	    {_Pid,{gui_update,{{X,Y},Attributes}}} -> 
 % 	    io:format("received message, updating list with cells"),
-		    L = addToList(AddList,{X,Y},{Width,Height},modifyAttributes2(Attributes)),
-		    sendToPyt(AddList,P),
-		    main(L,{Width,Height},P);
+		    %L = addToList(AddList,{X,Y},{Width,Height},modifyAttributes2(Attributes)),
+		    sendToPyt({{X,Y},modifyAttributes2(Attributes)},P),
+		    main(none,{Width,Height},P);
 	    {_Pid, {gui_init, {X, Y}}} ->
 		    sendInitPyt({X,Y},P),
 %                     io:format("received message, building grid ~p",[{X,Y}]),
-		    L = initList(X*Y, []),
-		    main(L , {X,Y},P);
+		    %L = initList(X*Y, []),
+		    main(none , {X,Y},P);
 	    _Any ->
 	    io:format("WRONG MESSAGE: ~p ~n",[_Any]),
 	    exit(fail)
 	    %%main(AddList,{Width,Height})
     after ?DEFAULT_UPDATE_TIME ->
-	    sendToPyt(AddList,P),
+	    %sendToPyt(AddList,P),
 % 	    io:format("Dumping list to python"),
-	    main(AddList,{Width,Height},P)
+	    main(none,{Width,Height},P)
 		
     end.
 %%@ Initiates the list with empty cells
@@ -53,12 +53,7 @@ sendInitPyt(_Size = {X,Y},P) ->
     python:call(P, xd, createGrid, [X, Y]),
     python:call(P,xd,register_handler,[self()]).
     
-%%@Retrieves information from the map and returns single atom(This is used for testing).
-modifyAttributes(Attributes) ->
-    StateAnt = maps:get(ant, Attributes,none),
-    StateFood = maps:get(food, Attributes),
-    StateType = maps:get(type, Attributes),
-    checkState(StateAnt,StateFood,StateType).	
+
 %%@Retrieves information from the map and returns a tuple of information
 modifyAttributes2(Attributes) ->
     StateAnt = isAnt(maps:get(ant, Attributes,none)),
@@ -90,7 +85,7 @@ modifyAux(_L = {_Type,ant,_Food,_Feremone,AntState}) ->
 modifyAux(_L = {_Type,_State,food,_Feremone,_}) ->
     food;
 modifyAux(_L = {plain,_State,_Food,_Feremone,_}) ->
-    plain.
+    {plain,_Feremone}.
 
     
 %%@if its a pid its an ant.
@@ -107,40 +102,31 @@ isFood(_) ->
 checkPheromone(none) ->
     none;
 checkPheromone(Feromones) ->
-    Base = maps:get(base_feremone,Feromones),
-    Food = maps:get(food_feremone,Feromones),
+    Base = element(1,maps:get(base_feremone,Feromones)),
+    Food = element(1,maps:get(food_feremone,Feromones)),
     {Base,Food}.
-%%@ Aux function to modifyAttributes, helps with patternmatching
 
-checkState(none, Food,_Type) when Food > 0 ->
-    "food";
-checkState(_Pid, Food,_Type) when Food > 0 ->
-    "foodant";    
-checkState(none,0,plain) ->
-    "plain";
-checkState(_Pid,0,_Type) ->
-    "ant".
 
     
-    
-test({X,Y}) ->
-    L = initList((X*Y),[]),
-    L2 = addToList(L,{0,0},{X,Y},modifyAttributes(#{ant => none, feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
-    L3 = addToList(L2,{2,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
-    L4 = addToList(L3,{1,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 0, type => plain})),
-    L4.
-
-testPrint2([],_,_) ->
-    io:format("");
-testPrint2([L],_,_) ->
-    io:format("~p ~n",[L]);
-testPrint2([Hd | Tl],X,Acc) ->
-    io:format(" ~p ",[Hd]),
-    if
-      ((Acc rem X) == 0) ->
-	  io:format(" ~n"),
-	  testPrint2(Tl,X,Acc+1);
-      true ->
-	  testPrint2(Tl,X,Acc+1)
-    end.
+%    
+%test({X,Y}) ->
+%    L = initList((X*Y),[]),
+%    L2 = addToList(L,{0,0},{X,Y},modifyAttributes(#{ant => none, feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
+%    L3 = addToList(L2,{2,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 1, type => plain})),
+%    L4 = addToList(L3,{1,0},{X,Y},modifyAttributes(#{ant => self(), feremones => #{base_feremone => {0.0,1.01},food_feremone => {0.0,1.01}}, food => 0, type => plain})),
+%    L4.
+%
+%testPrint2([],_,_) ->
+%    io:format("");
+%testPrint2([L],_,_) ->
+%    io:format("~p ~n",[L]);
+%testPrint2([Hd | Tl],X,Acc) ->
+%    io:format(" ~p ",[Hd]),
+%    if
+%      ((Acc rem X) == 0) ->
+%	  io:format(" ~n"),
+%	  testPrint2(Tl,X,Acc+1);
+%      true ->
+%	  testPrint2(Tl,X,Acc+1)
+%    end.
     

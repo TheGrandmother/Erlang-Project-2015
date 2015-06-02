@@ -7,7 +7,7 @@
 -module(cell).
 -include_lib("eunit/include/eunit.hrl").
 -define(DEFAULT_FEREMONE_INCREASE,1.0).
--define(DEFAULT_FEREMONE_DECAY,1.01).
+-define(DEFAULT_FEREMONE_DECAY,1).
 
 %% ====================================================================
 %% API functions
@@ -242,10 +242,13 @@ setAttribute(Cell,Sender,Reference,{Type,Value}) ->
 %% @doc Function corresponding to deposit feremones. Increases feremone by the default increase rate
 -spec depositFeremone(Cell::types:cell(),Sender::pid(),Refernce::reference(), Feremone_Name::types:feremone_name()) -> types:cell().
 depositFeremone(Cell,Sender,Reference,Feremone_Name) ->
+    
 	logger:logEvent(utils:getCellLog(Cell),logger:makeCoolString("Attempting to increase feremone ~p",[Feremone_Name])),
 	Map = utils:getCellAttributes(Cell),
 	Old_Feremone_Map = maps:get(feremones,Map),
+    
 	{Old_Strength,Dissipation_Rate} = maps:get(Feremone_Name,Old_Feremone_Map),
+    
   	New_Strength = Old_Strength + ?DEFAULT_FEREMONE_INCREASE,
 	New_Feremone_Map = maps:put(Feremone_Name,{New_Strength,Dissipation_Rate},Old_Feremone_Map),
 	New_Map = maps:put(feremones,New_Feremone_Map,Map),
