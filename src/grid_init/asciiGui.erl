@@ -1,5 +1,5 @@
-%% @author grandmother
-%% @doc @todo Add description to asciiGui.
+%% @author Henrik Sommerland
+%% @doc This module creates a simple asci representation of the simulation
 
 
 -module(asciiGui).
@@ -9,7 +9,8 @@
 %% ====================================================================
 -export([initThingy/0]).
 
-
+%% @doc Starts the asciiGui and makes and builds a simple test world
+-spec initThingy()->ok.
 initThingy() ->
     My_Pid = self(),
     spawn(fun() -> grid_init:buildAndStartSimpleWorld(My_Pid) end),

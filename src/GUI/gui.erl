@@ -1,8 +1,13 @@
+%% @author Oscar Wallster
+%% @doc Module for handling the gui and erlang-python communication
+
 -module(gui).
 
--export([main/3,initList/2,addToList/4,sendToPyt/2,sendInitPyt/2,initGui/0]).
+-export([initGui/0]).
 -define(DEFAULT_UPDATE_TIME,5).
 
+
+%%@doc This function will start the python Gui with a simple test world :D
 initGui() ->
     My_Pid = self(),
     {ok, P} = python:start([{python, "python3"}]),

@@ -1,5 +1,5 @@
-%% @author grandmother
-%% @doc @todo Add description to sorter.
+%% @author Henrik Sommerland
+%% @doc A collection of utility functions for the ant module
 
 
 -module(sorter).
@@ -10,6 +10,9 @@
 -export([sort/1,permute/1]).
 -include_lib("eunit/include/eunit.hrl").
 
+%%@doc takes a tupel of length 8 containing {types::direction(),float()} entries and
+%%returns a tupel of length 8 containing the directions sorted by the value of the float()
+-spec sort(Tuple) -> Tuple.
 sort(T) ->
     T0 = swap(T,0),
     T1 = swap(T0,1),
@@ -255,6 +258,8 @@ swap({E0,E1,E2,E3,E4,E5,E6,E7},18) ->
 %    }
 %}
 
+%%@doc Creates a psudorandom permutation of a tuple of length 8
+-spec permute(Tuple) -> Tuple.
 permute(Tuple) ->
 	permute(Tuple,1).
 

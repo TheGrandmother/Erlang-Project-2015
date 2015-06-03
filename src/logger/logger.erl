@@ -1,5 +1,5 @@
-%% @author grandmother
-%% @doc @todo Add description to logger.
+%% @author Henrik Sommerland
+%% @doc Handles the creation and woirting to the log files
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -14,7 +14,7 @@
 -export([makeLog/2,initLogger/0,logMessage/2,logEvent/2,makeCoolString/2,logWarning/2,logMessageSent/3]).
 
 
-
+%%@doc Setsup the directory for logging. Will Remove old logs
 initLogger() ->
 	case ?LOG of
 		true ->
@@ -40,7 +40,7 @@ initLogger(ok) ->
 			io:format("Found old log files, Deleting them like a boss ~n"),
 			deleteFiles(Files)
 	end.
-
+%%@doc Creates the logg object and log file
 -spec makeLog(Type::string(),Pid::pid()) -> types:log().
 makeLog(Type,Pid) ->
     case ?LOG of
@@ -64,6 +64,7 @@ makeLog(Type,Pid,ok)->
     io:format(Device,"Logfile Created for ~s with pid ~w at ~w ~n~n",[Type,Pid,calendar:local_time()]),
     {Device,Type,Pid}.
 
+%%@doc Loggs a message receive
 -spec logMessage(Log::types:log(),_Message) -> ok.
 logMessage(none,_) ->
     ok;
@@ -86,6 +87,7 @@ logMessage({Device,_,_},Message,ok) ->
             io:format(Device, "Tried to log this wich is not a nice message:~n        ~p~n~n",[Message])
     end.
 
+%%@doc Loggs that a message has been sent
 -spec logMessageSent(Log::types:log(),_Message,Recipient::pid()) -> ok.
 logMessageSent(none,_,_) ->
     ok;
@@ -110,7 +112,8 @@ logMessageSent({Device,_,_},Message,Recipient,ok) ->
 
 
 
-
+%%@doc Loggs an event
+-spec logEvent(Log::types:log(),_Event) -> ok.
 logEvent(none,_) ->
 	ok;
 logEvent({Device,Type,Pid},Event) ->
@@ -126,8 +129,11 @@ logEvent({Device,_,_},Event,ok) ->
     io:format(Device, "~p~n~n",[Event]).
 
 
+%%@doc Loggs a warning
+-spec logWarning(Log::types:log(),_Warning) -> ok.
 logWarning(none,_) ->
 	ok;
+
 
 logWarning({Device,_,_},Warning) ->
     io:format(Device, "~s :: WARNING ~n    ",[makeTimeStamp()]),
@@ -149,6 +155,7 @@ makeTimeStamp() ->
     {_,{H,M,S}} = calendar:local_time(),
     makeCoolString("~p:~p:~p",[H,M,S]).
 
+%%@doc will create a formated string with the same usage as `io:format/2' 
 makeCoolString(Format,Arguments) ->
     R= io_lib:format(Format,Arguments),
     lists:flatten(R).

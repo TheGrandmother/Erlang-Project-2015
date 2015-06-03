@@ -1,4 +1,4 @@
-%% @author grandmother
+%% @author Henrik Sommerland
 %% @doc Well. This is the humongous file for the cell actor.
 %% Most of these functions are internal and will only be given brief comments.
 %% Se the logging messsages for a more "natuaral" documentation and to understand how the program, works.

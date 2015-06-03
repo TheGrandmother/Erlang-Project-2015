@@ -1,5 +1,5 @@
-%% @author grandmother
-%% @doc @todo Add description to ant_tests.
+%% @author Henrik Sommerland
+%% @private
 
 
 -module(ant_tests).

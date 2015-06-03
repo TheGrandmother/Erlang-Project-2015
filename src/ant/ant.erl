@@ -1,5 +1,6 @@
-%% @author Tanshinan
-%% @todo Add further functionality of ant
+%% @author Henrik Sommerland, Aleksander Lunqvist
+%% @doc This is the ant module.
+%% it is reponisble for making the ant come to life.
 
 -module(ant).
   
@@ -10,8 +11,15 @@
 -define(SELECTION_PROBABILITY,0.5).
 
 %% Attempts to spawn ant in given Cell
-spawnAnt(Cell_Pid, Attributes) ->
-	spawn_link(fun() -> antInit(Cell_Pid, Attributes) end).
+
+%% @doc Spawns the ant.
+%% `Cell_Pid' is the pid of the Cell where the ant will start
+%% `Queen' is the pid of the ant queen
+%% Calling this function will spawn the ant and set it in a state where it awaits the place reply from the cell where it wants to be placed.
+%% The ant will then enter its main loop with an idling state.
+-spec spawnAnt(Cell_Pid::pid(),Queen::pid()) -> ok.
+spawnAnt(Cell_Pid, Queen) ->
+	spawn_link(fun() -> antInit(Cell_Pid, Queen) end).
 
 
 %% Creates needed information for ant, and places it in given cell
@@ -377,7 +385,7 @@ depositFeremone(Ant,Cell,Feremone) ->
             exit(failure)
     end.
 
-
+%%@private
 processHood(Hood,Feremone) ->
     List0 = tuple_to_list(Hood),
     {Front,Back} = lists:split(4,List0),
@@ -408,6 +416,7 @@ hoodFilter(Hood_Element,Feremone) ->
 randomDirection() ->
     lists:nth(random:uniform(8), [northwest, north, northeast, west, east, southwest ,south, southeast]).
 
+%%@private
 pickDirection([Hd|[]]) ->
   Hd;
 pickDirection([Hd|Tl]) ->

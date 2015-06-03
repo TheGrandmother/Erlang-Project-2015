@@ -1,6 +1,6 @@
-%% @author Tanshinan	
-%% @todo Add proper documentation, replace PLACEHOLDER() with actual cellstarting function
-%% @todo possibly replacing a bunch of internal functions with util-functions if applicable
+%% @author Aleksander Lunqvist and Henrik Sommerland	
+%% @doc Module used to initialize the world
+%%
 
 
 -module(grid_init).
@@ -8,7 +8,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
--export([initGrid/1,setGridElement/3, getGridElement/3,buildAndStartSimpleWorld/1]).
+-export([initGrid/1,buildAndStartSimpleWorld/1]).
 
 %% =====================================================================================
 %% Exported functions
@@ -27,9 +27,6 @@ initGrid(Size) ->
     awaitReplies(Refs,lists:flatten(lists:map(fun(X) -> array:to_list(X) end,array:to_list(Array))),{0,[]}),
     Array.
 
-%% @todo Add ants and stuff
-
-
 
 %% set_Grid_Element should be moved to another module
 -spec setGridElement({X::integer(), Y::integer()},_Value, Array::array:array()) -> array:array().
@@ -47,6 +44,11 @@ setGridElement({X, Y}, Value, Array) ->
 %4 . . . . . . .
 %5 . . . . . . .
 %6 N N N N N N N 
+
+%%@doc Builds and starts a nice little test world and such.
+%%
+%%`Gui' Is  the pid to the gui module
+-spec buildAndStartSimpleWorld(Gui::pid)-> ok.
 buildAndStartSimpleWorld(Gui) ->
     
     Width = 25,

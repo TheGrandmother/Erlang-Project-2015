@@ -1,7 +1,7 @@
 %% @author grandmother
 %% @doc @todo Add description to silly.
 
-
+%% @hidden
 -module(prototype).
 -import(cell,[cellStarter/0,spawnAnt/2]).
 -import(ant,[spawnAnt/1]).
