@@ -119,7 +119,7 @@ SOURCE_LIST = $(subst $(space),$(comma),$(THINGS1))
 #UGLY_HACK = src/cell/cell.erl","src/message_buffer/message_buffer.erl","src/logger/logger.erl","src/ant/sorter.erl","src/ant/ant.erl","src/cell/cell.erl","src/grid_init/grid_init.erl","src/grid_init/asciiGui.erl","src/GUI/gui.erl","src/utils/utils.erl","src/types.erl
 
 doc: .FORCE
-	rm doc/*.html doc/*.css doc/*.png doc/edoc-info
+	-rm doc/*.html doc/*.css doc/*.png doc/edoc-info
 	erl -noshell -run edoc_run files '[$(SOURCE_LIST)]' '[{dir, "doc"},{new, true}]'
 
 .FORCE:
@@ -139,7 +139,7 @@ doc: .FORCE
 #	erl -noshell -pa ebin -eval 'eunit:test(["$(<name>_binary)"], [verbose])' -s init stop
 
 clean:
-	rm ebin/*.beam
+	-rm ebin/*.beam
 
 #
 # This is testy stuff
