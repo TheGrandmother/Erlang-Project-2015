@@ -46,13 +46,13 @@ receiver({L,[Message | Tl]}) ->
 
 
 %% @doc wrapper for the recevie keyword which enables a wait untill
-%% a specific message arrives without messing up the order of the message queue.<p>
+%% a specific message arrives without messing up the order of the message queue.
+%%
+%% If `Special' is `none' the message wich has been waiting the longest will be returned.
 %% 
-%% If `Special' is `none' the message wich has been waiting the longest will be returned<br>
 %% if `Special' is a reference the function will block untill that message has arrived. But other
 %% messages received by the process meanwhile will be placed on a buffer and can then retreived with this function
 %% in such a fashion that the order in which these messages arrived is not altered.
-%%
 -spec receiver(Special::reference() | [reference()],Recipient::pid() | [pid()],Buffer::message_buffer()) -> {_Message,New_Buffer::message_buffer()}.
 receiver(Refs, Recipients, {_,Queue})->
     %We must first check the buffer for conflicting deadlocks!!!!!

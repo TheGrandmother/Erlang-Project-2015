@@ -13,7 +13,7 @@
 %% ====================================================================
 -export([makeLog/2,initLogger/0,logMessage/2,logEvent/2,makeCoolString/2,logWarning/2,logMessageSent/3]).
 
--spec makeLog(Type::string(),Pid::pid()) -> types:log().
+
 
 initLogger() ->
 	case ?LOG of
@@ -41,6 +41,7 @@ initLogger(ok) ->
 			deleteFiles(Files)
 	end.
 
+-spec makeLog(Type::string(),Pid::pid()) -> types:log().
 makeLog(Type,Pid) ->
     case ?LOG of
         true ->

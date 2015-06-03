@@ -109,7 +109,18 @@ run: all
 	@echo "Gui cannot be run from the terminal like due to python modules not being loaded correctly"
 	@echo "To start the Gui move to the ebin/ folder and run gui:initGui() from the erl shell"
 	@echo "You can run the system with the ASCII gui by running 'make run_ascii'"
-	
+
+
+comma:= ,
+empty:=
+space:= $(empty) $(empty)
+THINGS1 = $(foreach lol,$(SOURCES),"$(lol)")
+SOURCE_LIST = $(subst $(space),$(comma),$(THINGS1))
+
+doc: .FORCE
+	erl -noshell -run edoc_run files '[$(SOURCE_LIST)]' '[{dir, "doc"}]'
+
+.FORCE:
 
 #
 # COPY THIS AND REPLACE <name> with module name and you have a crazy cool build target :)

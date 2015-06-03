@@ -8,7 +8,7 @@ initGui() ->
     {ok, P} = python:start([{python, "python3"}]),
     spawn(fun() -> grid_init:buildAndStartSimpleWorld(My_Pid) end),
     main([],{9,9},P).
-%%@ Receives messages from actors and puts them in list that will be sent to Python, Width and Height argument is 
+%%@doc Receives messages from actors and puts them in list that will be sent to Python, Width and Height argument is 
 %% the size of entire grid. When receiving message X,Y is location of the cell.
 main(_,{Width, Height},P)->
     receive
@@ -32,29 +32,29 @@ main(_,{Width, Height},P)->
 	    main(none,{Width,Height},P)
 		
     end.
-%%@ Initiates the list with empty cells
+%%@doc Initiates the list with empty cells
 initList(0, L) ->
     L;
 initList(Size, L) ->
     B = L ++ [none],
     initList(Size-1,B).
-%%@ Adds the attributes to the right location of the list with cells.
+%%@doc Adds the attributes to the right location of the list with cells.
 addToList(L,{X,Y},{Width,_Height},Attributes) ->
     Place = Y*Width+X,
     {Head,[_Hd | Tl]} = lists:split(Place, L),
     Head ++ [Attributes] ++ Tl.
     
-%%@Sends the list to python, in python a message handler is required.    
+%%@doc Sends the list to python, in python a message handler is required.    
 sendToPyt(L,P) ->
    python:cast(P,L).
 
-%%@Sends initial information to python, only called first at start
+%%@doc Sends initial information to python, only called first at start
 sendInitPyt(_Size = {X,Y},P) ->
     python:call(P, xd, createGrid, [X, Y]),
     python:call(P,xd,register_handler,[self()]).
     
 
-%%@Retrieves information from the map and returns a tuple of information
+%%@doc Retrieves information from the map and returns a tuple of information
 modifyAttributes2(Attributes) ->
     StateAnt = isAnt(maps:get(ant, Attributes,none)),
     StateFood = isFood(maps:get(food, Attributes)),
@@ -63,7 +63,7 @@ modifyAttributes2(Attributes) ->
 	StateAntState = maps:get(ant_state, Attributes,none),
     modifyAux({StateType,StateAnt,StateFood,StatePheromone,StateAntState}).
     
-%%@Takes out the single most important value for the cell
+%%@doc Takes out the single most important value for the cell
 modifyAux(_L = {block,_Ant,_Food,_Feremone,_}) ->
     block;
 modifyAux(_L = {nest,_State,_Food,_Feremone,_}) ->
@@ -88,17 +88,17 @@ modifyAux(_L = {plain,_State,_Food,_Feremone,_}) ->
     {plain,_Feremone}.
 
     
-%%@if its a pid its an ant.
+%%@doc if its a pid its an ant.
 isAnt(none) ->
     none;
 isAnt(_Pid) ->
     ant.
-%%@If it's greater than zero its food.
+%%@doc If it's greater than zero its food.
 isFood(0) ->
     none;
 isFood(_) ->
     food.
-%%@Returns the pheromones in a tuple
+%%@doc Returns the pheromones in a tuple
 checkPheromone(none) ->
     none;
 checkPheromone(Feromones) ->
