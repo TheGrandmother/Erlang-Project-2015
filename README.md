@@ -4,18 +4,34 @@ OSPP (1DT096) 2015 - Grupp 5
 Projektarbete på kursen Operativsystem och processorienterad
 programmering (1DT096) våren 2015, Uppsala universitet.
 
+## Beroenden
+
+För att systemet skall kunna kompileras och för att köra ascii gui:t så kärvs att 
+Erlang/OTP 17 finns och att Eshel är version 6.2 eller hörgre.
+
+För att kunna köra Python Guit krävs att följade är instalerat 
+
+* [Python 3.x](https://www.python.org/downloads/)
+* [Erlport 1.0.0alpha](http://erlport.org/)
+* [Pygame](http://www.pygame.org/)
+
 ## Kompilera
 
 Skriv `make <module>` för att kompilera en modul där `<module>` är namnet på modulen.
 
+Eller skriv `make all` för att kompilera hela projektet.
+
 ## Testa
 
-Hela systemet testats igenom att köra  `make test` i root mappen
+Hela systemet testats igenom att köra  `make test` i root mappen. ***Bygg beroenderna fungerar inte riktigt så man kan behöva köra `make test` en extra gång för att testerna skall starta.
 Skriv `make test_<module>` för att för att testa en enskild modul där `<module>` är namnet på modulen.
 
 ## Starta systemet
 
-TBI
+För att starta ascii gui:t så räcker det mad att skriva `make run_ascii`.
+
+För att starta Python gui:t så måste man manuelt gå in i `ebin/` mappen. Starta `erl` och skriva `gui:initGui().`.
+Detta då Pythonmodulerna inte laddas korrekt annars.
 
 ## Git policy
 
