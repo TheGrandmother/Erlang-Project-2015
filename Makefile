@@ -116,8 +116,6 @@ empty:=
 space:= $(empty) $(empty)
 THINGS1 = $(foreach lol,src/cell/cell.erl $(SOURCES) src/types.erl ,"$(lol)")
 SOURCE_LIST = $(subst $(space),$(comma),$(THINGS1))
-#UGLY_HACK = src/cell/cell.erl","src/message_buffer/message_buffer.erl","src/logger/logger.erl","src/ant/sorter.erl","src/ant/ant.erl","src/cell/cell.erl","src/grid_init/grid_init.erl","src/grid_init/asciiGui.erl","src/GUI/gui.erl","src/utils/utils.erl","src/types.erl
-
 doc: .FORCE
 	-rm doc/*.html doc/*.css doc/*.png doc/edoc-info
 	erl -noshell -run edoc_run files '[$(SOURCE_LIST)]' '[{dir, "doc"},{new, true}]'
@@ -153,7 +151,7 @@ OBJECTS_LIST = $(subst $(space),$(comma),$(THINGS))
 test: all
 	erl -noshell -pa ebin -eval 'eunit:test([$(OBJECTS_LIST)], [verbose])' -s init stop
 
-test_all_quiet: $(OBJECTS)
+test<_all_quiet: $(OBJECTS)
 	erl -noshell -pa ebin -eval 'eunit:test([$(OBJECTS_LIST)], [])' -s init stop
 
 
