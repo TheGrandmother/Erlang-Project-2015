@@ -23,7 +23,7 @@ Eller skriv `make all` för att kompilera hela projektet.
 
 ## Testa
 
-Hela systemet testats igenom att köra  `make test` i root mappen. ***Bygg beroenderna fungerar inte riktigt så man kan behöva köra `make test` en extra gång för att testerna skall starta.
+Hela systemet testats igenom att köra  `make test` i root mappen. ***OBS*** Bygg beroenderna fungerar inte riktigt så man kan behöva köra `make test` en extra gång för att testerna skall starta.
 Skriv `make test_<module>` för att för att testa en enskild modul där `<module>` är namnet på modulen.
 
 ## Starta systemet
