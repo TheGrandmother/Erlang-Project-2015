@@ -25,49 +25,58 @@ varje gång du arbetat på projektet.
 
 ## Vecka 17
 
-##### Måndag
+##### Måndag möte med Karl
 
-##### Tisdag
+##### Tisdag möte med gruppen 
 
-##### Onsdag
+##### Onsdag arbetade med peer review med henke sedan började jag och ludde kolla på erlport.
 
-##### Torsdag
+##### Torsdag fortsatte med erlport
 
-##### Fredag
+##### Fredag möte med gruppen
+
+##### Lördag började läsa på om pygame 
+
+##### Söndag började pilla lite lätt i pygame
 
 ## Vecka 18
 
-##### Måndag
+##### Måndag kort möte med gruppen
 
-##### Tisdag
+##### Tisdag 
 
-##### Onsdag
+##### Onsdag genom av git med gruppen + projektförslag
 
-##### Torsdag
+##### Torsdag valborg
 
-##### Fredag
+##### Fredag valborg
+
+##### Lördag fortsatt med pygame
+
 
 ## Vecka 19
 
-##### Måndag
+##### Måndag möte med gruppen
 
-##### Tisdag
+##### Tisdag ytterligare ett möte med gruppen
 
-##### Onsdag
+##### Onsdag kodning i python
 
-##### Torsdag
+##### Torsdag 
 
-##### Fredag
+##### Fredag börjat koppla ihop python och erlport.
+
+##### Lördag kort pass med python
 
 ## Vecka 20
 
-##### Måndag
+##### Måndag möte i skolan med gruppen
 
-##### Tisdag
+##### Tisdag byta version av python från 2 till 3 då vi inte fick det att fungera med pygame ordentligt.
 
-##### Onsdag
+##### Onsdag implementering av grid m.m 
 
-##### Torsdag
+##### Torsdag fortsatte jobba med det grafiska
 
 ##### Fredag
 
@@ -75,13 +84,15 @@ varje gång du arbetat på projektet.
 
 ##### Måndag
 
-##### Tisdag
+##### Tisdag Sammanlänkning med gui koden i erlang med oskar.
 
-##### Onsdag
+##### Onsdag 
 
-##### Torsdag
+##### Torsdag jobbade med presentationen
 
-##### Fredag.
+##### Fredag 
+
+##### Söndag skrev på rapporten om introduktion och den grafiska delen. 
 
 ## Vecka 22
 
@@ -95,13 +106,11 @@ varje gång du arbetat på projektet.
 
 ##### Fredag
 
+##### Lördag skrev om erlport och pygame i rapporten. 
+
 ## Vecka 23
 
-##### Måndag
-
-##### Tisdag
-
-##### Onsdag
+##### Onsdag möte + rapport
 
 ##### Torsdag
 
