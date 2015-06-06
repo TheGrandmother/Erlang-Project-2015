@@ -104,7 +104,7 @@ placeAntTest()->
     {Center_Cell,_,Hood} = buildTestWorld(),
     Ant = spawn(fun() -> dumbAnt() end),
     
-    Message = sendAndReceive(Center_Cell, {place_ant,Ant}),
+    Message = sendAndReceive(Center_Cell, {place_ant,{Ant,idling}}),
     case Message of
         {_,_,_,{reply,place_ant,sucsess}}->
             %lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
@@ -117,7 +117,7 @@ placeAntTest()->
     
     Ant2 = spawn(fun() -> dumbAnt() end),
     
-    Message1 = sendAndReceive(Center_Cell, {place_ant,Ant2}),
+    Message1 = sendAndReceive(Center_Cell, {place_ant,{Ant2,idling}}),
      case Message1 of
         {_,_,_,{reply,place_ant,fail}} ->
             lists:map(fun(X) -> exit(X,sucsess) end, tuple_to_list(Hood)),
@@ -144,7 +144,7 @@ moveAntTest() ->
     
     %place first ant in the center
     Place_Ref1 = make_ref(), 
-    Center_Cell ! {Ant1,Place_Ref1,{place_ant,Ant1}},
+    Center_Cell ! {Ant1,Place_Ref1,{place_ant,{Ant1,idling}}},
     {Message,_} = message_buffer:receiver(Place_Ref1,Center_Cell,{0,[]}),
     case Message of
         {_,_,_,{reply,place_ant,sucsess}} ->
@@ -157,7 +157,7 @@ moveAntTest() ->
     
     %move ant to the east
     Move_Ref1 = make_ref(), 
-    Center_Cell ! {Ant1,Move_Ref1,{move_ant,east}},
+    Center_Cell ! {Ant1,Move_Ref1,{move_ant,{east,idling}}},
     {Message1,_} = message_buffer:receiver(Move_Ref1,Center_Cell,{0,[]}),
     case Message1 of
         {_,_,_,{reply,move_ant,{sucsess,Pid}}} when Pid == Next->
@@ -170,7 +170,7 @@ moveAntTest() ->
     
     %place second ant in the center
     Place_Ref2 = make_ref(), 
-    Center_Cell ! {Ant2,Place_Ref2,{place_ant,Ant2}},
+    Center_Cell ! {Ant2,Place_Ref2,{place_ant,{Ant2,idling}}},
     {Message2,_} = message_buffer:receiver(Place_Ref2,Center_Cell,{0,[]}),
     case Message2 of
         {_,_,_,{reply,place_ant,sucsess}} ->
@@ -182,7 +182,7 @@ moveAntTest() ->
     
     %try to move second ant to the east. which should not be allowed.
     Move_Ref2 = make_ref(), 
-    Center_Cell ! {Ant2,Move_Ref2,{move_ant,east}},
+    Center_Cell ! {Ant2,Move_Ref2,{move_ant ,{east,idling}}},
     {Message3,_} = message_buffer:receiver(Move_Ref2,Center_Cell,{0,[]}),
     case Message3 of
         {_,_,_,{reply,move_ant,fail}} ->
@@ -194,7 +194,7 @@ moveAntTest() ->
     
     %try to move second ant "from" the east wich should not be allowed due to wrong ant
     Move_Ref3 = make_ref(), 
-    Next ! {Ant2,Move_Ref3,{move_ant,east}},
+    Next ! {Ant2,Move_Ref3,{move_ant,{east,idling}}},
     {Message4,_} = message_buffer:receiver(Move_Ref3,Next,{0,[]}),
     case Message4 of
         {_,_,_,{reply,move_ant,fail}} ->
@@ -375,7 +375,7 @@ testGuiUpdater()->
 	Center_Cell ! {self(),0,{set_cell_attribute,{gui_module,Gui_Thing}}},
 	ignoreMessages(1),
 	receive
-		{attr,Attributes} ->
+		{attr,{_,Attributes}} ->
 			%?debugFmt("Received attributes ~p from GUI",[Attributes]),
 			Type = maps:get(type,Attributes,none),
 			?assertEqual(Type,nest);
@@ -419,8 +419,8 @@ setAttribute_test()->
 takeFood_test()->
     [?assert(takeFoodTest())].
 
-automaticDecay_test()->
-    [?assert(automaticDecayTest())].
+%automaticDecay_test()->
+%    [?assert(automaticDecayTest())].
 
 draw_test()->
     [?assert(drawTest())].

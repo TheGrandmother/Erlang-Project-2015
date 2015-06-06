@@ -8,7 +8,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 
--export([initGrid/1,buildAndStartSimpleWorld/1]).
+-export([initGrid/1,buildAndStartSimpleWorld/1,getGridElement/3]).
 
 %% =====================================================================================
 %% Exported functions
@@ -142,7 +142,7 @@ fillGrid({Width, Height}, Array) ->
     fillGridAux({0,0}, {Width,Height}, Array).
 
 
-
+%%@private
 -spec getGridElement({X::integer(), Y::integer()},{Width::integer(),Height::integer()}, Array::array:array()) -> _A.
 %% Gets the value in a given coordinate in given two-dimensional array, if given coordinate exists
 getGridElement({X,Y},{Width,Height},Array) when X < Width, X >= 0, Y < Height, Y >= 0 ->
