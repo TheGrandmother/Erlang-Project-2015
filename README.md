@@ -33,6 +33,9 @@ För att starta ascii gui:t så räcker det mad att skriva `make run_ascii`.
 För att starta Python gui:t så måste man manuelt gå in i `ebin/` mappen. Starta `erl` och skriva `gui:initGui().`.
 Detta då Pythonmodulerna inte laddas korrekt annars.
 
+## Dokumentation
+För att gerera lite basic dokumentation skriv `make doc`. Dokumentationen kommer då att finans i `doc/` mappen
+
 ## Git policy
 
 ### Branches
