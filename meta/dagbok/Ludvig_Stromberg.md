@@ -11,95 +11,99 @@ varje gång du arbetat på projektet.
 ## Vecka 16
 
 ##### Måndag
-
-##### Tisdag
+2 timmar möte/planering
 
 ##### Onsdag
+3h förberedelse inför presentationen
 
-##### Torsdag
-
-##### Fredag
+##### Söndag
+Jobb med projektförslag 
 
 ## Vecka 17
 
 ##### Måndag
+30 minuter möte med handledning
 
 ##### Tisdag
+2 timmar möte med grupp
 
 ##### Onsdag
+Jobbat med ErlPort biblioteket
 
 ##### Torsdag
+konfigurering av ErlPort, testande
 
 ##### Fredag
+1 timma möte
+
+##### Lördag
+jobb med erlport och pygame
+
+##### Söndag
+fortsatt jobb med erlport och pygame
 
 ## Vecka 18
 
 ##### Måndag
-
-##### Tisdag
+Möte med gruppen
 
 ##### Onsdag
+2,5h möte
 
-##### Torsdag
-
-##### Fredag
+##### Lördag
+jobb med pygame
 
 ## Vecka 19
 
 ##### Måndag
+Möte med gruppen
 
 ##### Tisdag
+Möte med gruppen
 
 ##### Onsdag
+Kodning i python
 
 ##### Torsdag
 
 ##### Fredag
+Körning av python från erlang via erlport
+
+##### Lördag
+Kort jobb med python
 
 ## Vecka 20
 
 ##### Måndag
+Gruppmöte i skolan
 
 ##### Tisdag
+Bytte version av Python efter strul med konfiguration och pygame
 
 ##### Onsdag
+Kodning i python, implementering av grid och visuell grafik
 
 ##### Torsdag
-
-##### Fredag
+Fortsatt jobb i python
 
 ## Vecka 21
 
-##### Måndag
-
 ##### Tisdag
-
-##### Onsdag
+Sammanlänkning med GUI-modulen i Erlang
 
 ##### Torsdag
+Jobb med presentation
 
-##### Fredag
+##### Söndag
+Skrev på rapporten
 
 ## Vecka 22
 
-##### Måndag
-
-##### Tisdag
-
-##### Onsdag
-
-##### Torsdag
-
-##### Fredag
+##### Lördag
+Skrev på rapporten
 
 ## Vecka 23
 
-##### Måndag
-
-##### Tisdag
-
 ##### Onsdag
+Möte och jobb med rapporten
 
-##### Torsdag
-
-##### Fredag
