@@ -142,4 +142,4 @@ Nu upstår det **INGA** deadlocks om man kör med flera myror!
 2h Arbete Med rapporten
 
 ##### Söndag
-2h Arbete med rapporten
+2h Arbete med rapporten and all is done!
