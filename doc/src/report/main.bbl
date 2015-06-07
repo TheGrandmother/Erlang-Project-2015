@@ -1,0 +1,34 @@
+\begin{thebibliography}{4}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Dorigo and Gambardella(1997)]{Reference4}
+Marco Dorigo and Luca~Maria Gambardella.
+\newblock Ant colonies for the traveling salesman problem.
+\newblock \emph{BioSystems}, 1997.
+\newblock URL \url{http://people.idsia.ch/~luca/acs-bio97.pdf}.
+
+\bibitem[Wiger(2010)]{Reference5}
+Ulf Wiger.
+\newblock Death by accidental complexity.
+\newblock \emph{InfoQ}, 2010.
+\newblock URL
+  \url{http://www.infoq.com/presentations/Death-by-Accidental-Complexity}.
+
+\bibitem[Krzyzanowski(2012)]{Reference6}
+Paul Krzyzanowski.
+\newblock Distributed deadlock.
+\newblock 2012.
+\newblock URL \url{https://www.cs.rutgers.edu/~pxk/417/notes/deadlock.html}.
+
+\bibitem[Chandy and Misra(1983)]{Reference7}
+K.~Mani Chandy and Jayadev Misra.
+\newblock Distributed deadlock detection.
+\newblock 1983.
+\newblock URL
+  \url{http://www.cs.utexas.edu/users/misra/scannedPdf.dir/DistrDeadlockDetection.pdf}.
+
+\end{thebibliography}

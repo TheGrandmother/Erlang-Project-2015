@@ -1,0 +1,135 @@
+\chapter{Implementation}
+
+\label{ch:Implementation} 
+
+\lhead{Kapitel 3. \emph{Implementation}}
+
+\section{Programmeringsspråk}
+
+Vi hade under den inledande fasen utav projektet livliga diskussioner om vilket programmeringsspråk vi skulle använda. Vi hade bestämt att projektet skulle kretsa kring actor-modellen så det satte begränsningar på vilka språk vi skulle använda. Vi funderade mycket på att använda något nyare experimentell språk och det stod mellan Nim och Rust. Efter mycket diskussion så skrotade vi denna ide då Nim\footnote{\url{http://nim-lang.org/}} är mycket nytt och instabilt och Rust\footnote{\url{http://www.rust-lang.org/}} är ett för strikt, och invecklat språk. Att använda Rust skulle leda till att vi skulle ha blivit tvungna att spendera mycket tid med att krångla med detaljerna kring Rust istället för att fokusera på de faktiska aspekterna utav projektet. Så vi valde att använda Erlang då det är ett väletablerat och stabilt språk byggt kring actor-modellen och message passing. Vi har även använt Python för den grafiska delen och använt ErlPort\footnote{\url{http://erlport.org/}} för att kommunicera med Erlang och Python. ErlPort har fungerat mycket bra och har gett oss ett mycket smidigt interface mellan Erlang och Python.
+
+
+\section{GUI}
+
+GUI-modulen initieras med att skapa en lista lika stor som hela griden, den fylls med tomma atomer som python modulen inte ritar ut. Sedan ligger GUI-modulen i en main loop som tar emot meddelanden från cell modulerna och hanterar dessa meddelanden och fyller på listan som redan initierats. Algoritmen är att den delar listan på den plats som X och Y koordinaten vars cell som har skickat meddelandet anger. Sedan läggs listorna ihop med det nya elementen i mitten av dessa två listor, därefter skickas hela listan vidare till Python där det ritas ut. Python tar emot listan och matchar den med vad som ska ritas ut.
+
+\subsection{Erlport}
+
+Erlport är ett bibliotek som gör det möjligt för Erlang att kommunicera med andra programmeringsspråk. I dagsläget har Erlport stöd för Python och Ruby. Erlport är fortfarande i alpha-stadiet, dock har vi inte stött på några buggar som skapat problem för oss. 
+
+För att Erlport ska kunna kommunicera med Python så skapar man först en instans, en Python instans är i princip en OS-process som representeras i Erlang av en Erlang process. Man kan sedan skicka och ta emot medelanden mellan Erlang och python som man skickar meddelanden mellan vanliga processer i Erlang.
+
+\subsection{Pygame}
+
+För den grafiska renderingen i projektet har vi använt oss av det community-utvecklade Pythonbiblioteket Pygame. Pygame är ett bibliotek av färdigutvecklade moduler till Python designade för att enkelt skapa spel med fokus på enkel grafisk implementation Pygames design gör att det är enkelt att använda på alla plattformar som har stöd för Python.
+
+\section{Ants and Cells}
+
+Ant modulen och Cell modulen är väldigt lika varandra i sin implementation. Båda modulerna består utav en initialiserings funktion som används för att starta processer, denna funktion kommer sedan att invänta de meddelanden som är nödvändiga för att starta processerna. Detta är till exempel meddelanden om att myran har placerats korrekt för myrorna, och att cellerna har fått sitt grannskap definierat.
+
+Cellerna och myrorna kommer sedan att gå till sin mainfunktion där de inväntar nya förfrågningar.  Myrorna kommer att agera spontant om det inte finns några obehandlade meddelanden. Cellerna och myrorna kommer att då de får ett inkommande meddelande att drivas till diverse funktioner som hanterar den typen utav meddelande. Dessa funktioner kan skicka och ta emot meddelanden själva med hjälp utav meddelande filtreringen. Då en förfrågan eller annat meddelande har behandlats kommer processen att återgå till sin mainfunktion. Om ett felaktigt/otillåtet meddelande inkommer under någon del utav exekveringen så kommer hela systemet att krasha.
+
+Cellerna kommer vid varje inkommen förfrågan, som beror på cellens tillstånd, att automatiskt genomföra en uppdatering utav dess feromonnivåer. Detta sker som en funktion utav den faktiska tiden(wall-time) som har gått sedan cellen senast uppdaterades.
+
+Om en cell har attributet  \emph{block} så kan en myra inte gå dit och alla \verb+place_ant+ förfrågningar kommer att misslyckas.
+
+\subsection{Myrans algoritm}
+
+Myran kommer att fatta sina beslut baserat på en väldigt enkel algoritm. Myran kan vara i två olika tillstånd \verb+searching_for_food+ och \verb+returning_with_food+. Då myran är i tillståndet då den letar efter mat så kommer den att undersöka den cellen där den står på och om det finns mat där så kommer myran att försöka plocka upp maten. Om detta lyckas så kommer myran att byta tillstånd till \verb+returning_with_food+ om myran misslyckas med att plocka upp maten så kommer den att fortsätta leta efter maten. När myran letar efter maten så kommer den att be cellen den står på att skicka tillbaka information om alla celler i dess grannskap. Myran kommer sedan att studera sitt grannskap och ordna sortera cellerna efter hur mycket \verb+food_feremone+ varje cell innehåller och sedan genom så kallad \emph{rank-selection} att välja den riktingen den skall gå i. Rank-selection innebär att den med en förutbestämd sannolikhet $p$ kommer att gå till den cellen med det högsta antalet feromoner, om den väljer den riktningen så kommer den att gå till den cellen med näst högst riktning med samma sannolikhet $p$ osv. Myran kommer efter varje genomförd förflyttning att släppa feromoner på den cellen där den tidigare var. Då myran letar efter mat kommer den att släppa \verb+base_feremone+ och då den går tillbaka med maten så kommer den att släppa \verb+food_feremone+.
+
+Algoritmen då myran går tillbaka med maten så kommer den att följa en snarlik algoritm men leta efter den högsta koncentrationen utav \verb+base_feremone+.
+
+I figur \ref{fig:myralgo} finns en flow-chart om hur algoritmen ser ut.
+
+
+\begin{figure}
+\includegraphics[scale=0.6]{Figures/myralgo.png}
+\caption{Flowchart över myrans algoritm}
+\label{fig:myralgo}
+\end{figure}
+
+\subsection{Grid\_Init}
+
+Grid\_init är den modul som bygger upp världen. Det första som den modulen gör är att den startar alla cell processer. Gui modulen måste vara startad och dess PID kommer att skickas med till alla celler. Den kommer sedan att skicka ut \verb+set_cell_attribute+ medelanden till alla dessa celler med cellernas attribut t.ex om de är block eller innehåller mat. Grid\_init kommer sedan att initiera en \emph{Queen}\footnote{Queen processen samlar in statistik från myrorna och används endast för debugging och testning.} process och starta alla myror och försöka placera ut dem på de celler där de skall starta. När alla myror har blivit utplacerade så kommer Grid\_init modulen att skicka \verb+start_ant+ medelanden till myrorna vilket kommer att starta simuleringen.
+
+\section{Concurrency}
+
+Då concurrencyn i vårat program uteslutande bygger på actor-modellen och message passing så har vi definierat tre klasser utav meddelanden.
+
+\begin{itemize}
+
+\item One-way meddelanden är på formen \verb+{Pid,{Type,Payload}}+ eller \verb+{Pid,Type}+
+	One-way meddelanden är meddelanden som inte kommer att resultera i att något svar inkommer.
+
+\item	Request (förfrågningar) meddelanden är på formen \verb+{Pid,Reference,Payload}+
+	Alla Request meddelanden resulterar i att processen blockerar och inväntar Reply meddelanden.
+
+\item	Reply meddelanden är på formen \verb+{Pid,Refernce,Request_Reference,{Type,Reply_Payload}}+
+	Reply meddelanden är de meddelanden som skickas som svar på requests.
+
+\end{itemize}
+
+
+I alla meddelanden så är \verb+Pid+ att vara process id:t hos processen som skickar meddelandet \verb+Payload+ är vad meddelandet faktiskt innehåller  \verb+Reference+ är den referens som den skickade processen ger meddelandet \verb+Request_Reference+ är den referensen från ett request meddelande till vilket detta är ett svar.
+
+Då system faller under \emph{ asynchronous event-driven programming} så kan vissa problem uppstå om vi inte är försiktiga med hur vi implementerar systemet. Det naiva tillvägagångssättet hade varit en så kallad \emph{Fifo, run to completion} metod. Detta innebär att man accepterar varje meddelande, hanterar det och låter det köra tills det att det är klart innan man hanterar nästa meddelande. Detta leder dock  till problem med att man måste hålla explicit koll på vilket tillstånd processen är i och ha en plan för hur man ska hantera alla meddelande-tillstånd kombinationer . Detta skulle ha lett till extremt komplicerad och svårhanterlig kod.\citep{Reference5}
+
+Lösningen på detta är att använda vad vi kallar för \emph{stade-driven message handling}, vilket är att vi låter en process tillstånd diktera vilka meddelanden som den kommer att hantera. Det vi gör är att vi implementerar ett meddelande filter som bara returnerar rätt meddelande(baserat på meddelandets unika tag/referens) alla andra meddelanden som inkommer kommer att läggas på en buffer så att de senare kan hanteras.
+
+Detta leder till att koden blir kortare och lättare att underhålla då vi på ett lätt sätt kan hantera hur systemet beter sig. Det finns dock ett krav på att alla processer måste ha ett eller flera tillstånd då de accepterar nya meddelanden. I detta tillstånd kommer meddelanden som ligger på buffern att hanteras först och när buffern är tom  kommer de nya meddelandena att hanteras.
+
+
+\subsection{Deadlocks}
+
+Vår simulering är full av deadlocks och de uppstår ofta. Vi är därför tvungna att ha något system för att upptäcka och lösa alla deadlocks.
+
+Vi kan för enklare deadlocks lösa detta effektivt och deterministiskt Vi vet att om en process väntar på  svar på en förfrågan så kommer den att blockera. Om en process väntar på ett svar från en annan process med får en förfrågan från den processen innan den har fått svar så vet vi att ett deadlock har uppstått. Processen som upptäcker att ett deadlock har uppstått kommer direkt att svar om misslyckande till den förfrågan som orsakade deadlocken, vilket leder till att den andra processen kommer att sluta blocka och förfrågan kan därefter hanteras. Detta förutsätter att det alltid är tillåtet att en förfrågan misslyckas och att en process alltid kommer att efter en finit tid kunna hantera nya förfrågningar efter det att en förfrågan har misslyckats.
+Den här metoden kan bara lösa deadlocks som uppstår mellan mellan endast två processer men vi får ständigt mer komplicerade deadlocks i systemet.
+
+Vi har konstruerat en metod för att lösa mer komplicerade distribuerade deadlocks som är väldigt simpel men mycket effektiv. Vår metod löser alla deadlocks helt automatiskt och kräver inte att några rollbacks \footnote{Att systemet återställs till ett tidigare tillstånd} måste genomföras eller att analysera det globala tillståndet med en Wait-For-Graph.\citep{Reference6} Vår metod kräver inte heller att några \emph{probe} meddelanden skickas mellan processerana som i Chandy-Misra-Haas algoritmen.\citep{Reference7}
+
+Dock så predikeras vår metod på en uppsättning krav på systemet.
+
+\begin{itemize}
+\item Alla förfrågningar kan misslyckas på ett väldefinierat sätt.
+
+\item Alla processer kommer att invänta ett svar efter en förfrågan har skickats. 
+
+\item Från det att ett svar på en förfrågan har inkommit kommer processen alltid att inom en finit tid drivas till ett tillstånd där den accepterar inkommande förfrågningar.
+\end{itemize}
+
+Dessa är en uppsättning preliminära predikat. Det kan finnas ytterligare begränsningar som vi har missat då de inte är applicerbara på vårt system. Även då dessa predikat kan förefalla vara hårda så innebär inte det att funktionaliteten drabbas signifikant. De tillåter att en process som väntar på ett svar fortfarande kan hantera vissa meddelanden och skicka nya förfrågningar till processer. De tillåter även att man implementerar en prioritering utav olika typer av förfrågningar eller olika typer av processer.
+
+När en process väntar på svar från en process så kommer den att efter en viss förutbestämd tid (timeout) att automatiskt skicka automatiska fail svar till alla inkomna förfrågningar som ligger på dess meddelande-buffer. Detta kommer att repeteras tills dess att ett svar har inkommit. Ni kan se en schematisk beskrivning utav algoritmen i figur \ref{fig:receiver}.
+
+\begin{figure}
+\includegraphics[scale=0.8]{Figures/receiver.png}
+\caption{En shematisk överblick över hur meddelande filtreringen och deadlock hanteringen fungerar. \textbf{Refs} är en lista med de referenser från de förfrågningar meddelanden som har skickats.  \textbf{Pids} är en lista med de Pids som förfrågningarna har skickats till.}
+\label{fig:receiver}
+\end{figure}
+
+Vår metod har dock den nackdelen att den ofta kommer att upptäcka \emph{falska deadlocks}, det vill säga att den kommer att tro att det finns ett deadlock när det inte gör det och i onödan avvisa vissa förfrågningar. Detta leder till att \textbf{Timeout} parametern måste finjusteras. En för lång timeout kommer att innebära att deadlocks kommer att ligga kvar för länge innan de upptäcks och delar utav simuleringen kommer att  \emph{lagga}. En för kort timeout kommer att leda till att väldigt många förfrågningar kommer att avisas i onödan vilket också kan påverka systemets prestanda.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

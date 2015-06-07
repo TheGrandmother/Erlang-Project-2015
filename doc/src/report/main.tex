@@ -1,0 +1,155 @@
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[11pt, oneside]{Thesis} % The default font size and one-sided printing (no margin offsets)
+
+\graphicspath{{Pictures/}} % Specifies the directory where pictures are stored
+
+\usepackage{titlesec}
+\usepackage[square, numbers, comma, sort&compress]{natbib} % Use the natbib reference package - read up on this to edit the reference style; if you want text (e.g. Smith et al., 2012) for the in-text references (instead of numbers), remove 'numbers' 
+\hypersetup{urlcolor=blue, colorlinks=true} % Colors hyperlinks in blue - change to black if annoying
+\title{\ttitle} % Defines the thesis title - don't touch this
+
+\begin{document}
+
+\frontmatter % Use roman page numbering style (i, ii, iii, iv...) for the pre-content pages
+
+\setstretch{1.3} % Line spacing of 1.3
+
+% Define the page headers using the FancyHdr package and set up for one-sided printing
+\fancyhead{} % Clears all page headers and footers
+\rhead{\thepage} % Sets the right side header to show the page number
+\lhead{} % Clears the left side page header
+
+\pagestyle{fancy} 
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} 
+% PDF meta-data
+\hypersetup{pdftitle={\ttitle}}
+\hypersetup{pdfauthor=\authornames}
+
+
+
+
+\titleformat
+{\chapter} % command
+[display] % shape
+{\bfseries\Large\itshape} % format
+{Kapitel \ \thechapter} % label
+{0.5ex} % sep
+{
+    \vspace{1ex}
+    \centering
+} % before-code
+[
+\vspace{-0.5ex}%
+]
+
+\renewcommand{\bibname}{Referenser}
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\begin{titlepage}
+\begin{center}
+
+\textsc{\LARGE Uppsala universitet}\\[1.5cm] 
+\textsc{\Large Operativsystem och Processorienterad Programmering}\\[0.5cm] 
+
+\HRule \\[0.4cm] 
+{\huge \bfseries \ttitle}\\[0.4cm] 
+{\large 2015-06-07}\\[0.1cm] 
+\HRule \\[1.5cm] 
+ 
+\begin{minipage}{1.2\textwidth}
+\begin{flushleft} \large
+\emph{Projektrapport grupp 5: }\\
+
+{\authornames} 
+\end{flushleft}
+\end{minipage}
+ 
+\vfill
+\end{center}
+
+\end{titlepage}
+
+
+%----------------------------------------------------------------------------------------
+%	LIST OF CONTENTS/FIGURES/TABLES PAGES
+%----------------------------------------------------------------------------------------
+
+\pagestyle{fancy} % The page style headers have been "empty" all this time, now use the "fancy" headers as defined before to bring them back
+
+\lhead{\emph{Innehåll}} % Set the left side page header to "Contents"
+\tableofcontents % Write out the Table of Contents
+
+%----------------------------------------------------------------------------------------
+%	REPORT CONTENT - CHAPTERS
+%----------------------------------------------------------------------------------------
+
+\mainmatter % Begin numeric (1,2,3...) page numbering
+
+\pagestyle{fancy} % Return the page headers back to the "fancy" style
+
+% Include the chapters of the thesis as separate files from the Chapters folder
+% Uncomment the lines as you write the chapters
+
+
+\input{Chapters/Inledning} 
+\input{Chapters/Systemet}
+\input{Chapters/Implementation} 
+\input{Chapters/Slutsats} 
+
+
+%----------------------------------------------------------------------------------------
+%	REPORT CONTENT - APPENDICES
+%----------------------------------------------------------------------------------------
+
+\titleformat
+{\chapter} % command
+[display] % shape
+{\bfseries\Large\itshape} % format
+{Appendix \ \thechapter} % label
+{0.5ex} % sep
+{
+    \vspace{1ex}
+    \centering
+} % before-code
+[
+\vspace{-0.5ex}%
+]
+
+\addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
+
+\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+
+% Include the appendices of the thesis as separate files from the Appendices folder
+% Uncomment the lines as you write the Appendices
+
+\input{Appendices/Utveckling}
+\input{Appendices/Katalogstruktur}
+\input{Appendices/Installation}
+\input{Appendices/Reflektioner}
+
+\addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
+
+\backmatter
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\label{Bibliography}
+
+\lhead{\emph{Referenser}} % Change the page header to say "Bibliography"
+
+\bibliographystyle{unsrtnat} % Use the "unsrtnat" BibTeX style for formatting the Bibliography
+
+\bibliography{Bibliography} % The references (bibliography) information are stored in the file named "Bibliography.bib"
+
+\end{document}

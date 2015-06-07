@@ -1,0 +1,12 @@
+\chapter{Inledning} 
+
+\label{Inledning} 
+
+\lhead{Kapitel 1. \emph{Inledning}} 
+
+\emph{Swarm intelligence} är ett koncept som innebär att en grupp av organismer, helt utan en ledare i centrum och endast med begränsad individuell intelligens, i grupp kan lösa komplexa problem. Swarm intelligence har fått relevans inom datavetenskapen vid lösning av shortest path och travelling salesman-problemet\citep{Reference4}. I projektets inledande stadie så var tanken att simulera ett fält med två myrkolonier som konkurrerar med varandra. Det visade sig dock att det var en för invecklad och tidskrävande implementation med två myrstackar så fokus lades istället på att simulera endast en myrkoloni. I vår simulering kan myrorna hitta utplacerad mat och sedan ta tillbaka den till sitt bo. Myrorna hittar vägen till maten och tillbaka med hjälp utav att lämna och följa olika feromoner.
+
+Vi har konstruerat ett system som är fullständigt concurrent och arbetar helt utan någon supervisor eller tidssynkronisering. Detta har åstadkommits genom att låta varje objekt i simuleringen vara en egen process där all kommunikation mellan processerna sker via \emph{message passing}.
+
+Vi har i detta projekt utnyttjat \emph{actor-modellen} kraftigt och genom att använda en del oortodoxa metoder lyckats få koden lätthanterlig och även lyckats göra systemet fritt från deadlocks.
+

@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2014)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: main.aux
+The style file: unsrtnat.bst
+Database file #1: Bibliography.bib
+Warning--empty journal in Reference6
+Warning--empty journal in Reference7
+You've used 4 entries,
+            2481 wiz_defined-function locations,
+            577 strings with 4999 characters,
+and the built_in function-call counts, 1202 in all, are:
+= -- 104
+> -- 44
+< -- 4
++ -- 20
+- -- 12
+* -- 66
+:= -- 205
+add.period$ -- 16
+call.type$ -- 4
+change.case$ -- 8
+chr.to.int$ -- 4
+cite$ -- 6
+duplicate$ -- 72
+empty$ -- 113
+format.name$ -- 20
+if$ -- 249
+int.to.chr$ -- 1
+int.to.str$ -- 5
+missing$ -- 4
+newline$ -- 32
+num.names$ -- 12
+pop$ -- 36
+preamble$ -- 1
+purify$ -- 4
+quote$ -- 0
+skip$ -- 47
+stack$ -- 0
+substring$ -- 8
+swap$ -- 6
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 28
+warning$ -- 2
+while$ -- 8
+width$ -- 0
+write$ -- 61
+(There were 2 warnings)
