@@ -4,7 +4,7 @@ OSPP (1DT096) 2015 - Grupp 05
 
 
 
-<img src="../images/oscar.png" width="200">
+<img src="../images/oscar.jpg" width="200">
 
 
 Gör en kort anteckning i dagboken under aktuell vecka och dag nedan
