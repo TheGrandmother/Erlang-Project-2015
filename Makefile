@@ -117,8 +117,8 @@ space:= $(empty) $(empty)
 THINGS1 = $(foreach lol,src/cell/cell.erl $(SOURCES) src/types.erl ,"$(lol)")
 SOURCE_LIST = $(subst $(space),$(comma),$(THINGS1))
 doc: .FORCE
-	-rm doc/*.html doc/*.css doc/*.png doc/edoc-info
-	erl -noshell -run edoc_run files '[$(SOURCE_LIST)]' '[{dir, "doc"},{new, true}]'
+	-rm doc/html/*.html doc/html/*.css doc/html/*.png doc/html/edoc-info
+	erl -noshell -run edoc_run files '[$(SOURCE_LIST)]' '[{dir, "doc/html/"},{new, true}]'
 
 .FORCE:
 
