@@ -181,7 +181,7 @@
 %	defined as \examname above so you cite it as \examname
 %----------------------------------------------------------------------------------------
 
-\thesistitle{A Bug's Life} % Your thesis title - this is used in the title and abstract
+\thesistitle{A Bug's Life \\ \normalsize Operativsystem och processorienterad programmering(1DT096) våren 2015. Slutrapport för grupp 5} % Your thesis title - this is used in the title and abstract
 %-------------------------------------------------  
 \authors{Oliver Eriksson Edholm (930615-5210) \\ Aleksander Lundqvist (900728-0317) \\ Henrik Sommerland (890618-4950) \\ Ludvig Strömberg (900220-5632) \\ Edvin Wahlberg (910721-3176) \\ Oscar Wallster(910615-1096)} % Your name - this is used in the title page and abstract
 
