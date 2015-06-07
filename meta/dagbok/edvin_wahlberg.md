@@ -94,8 +94,6 @@ Började sitta med Features/GUI, processen då vi ska skicka alla cellernas info
 
 ##### Onsdag
 
- Milstolpe, jag och oskar satt efteråt och snackade om hur vi skulle göra med GUI-biten.
-
 
 ##### Torsdag
 
@@ -104,6 +102,8 @@ Började sitta med Features/GUI, processen då vi ska skicka alla cellernas info
 ## Vecka 20
 
 ##### Måndag
+
+ Milstolpe, jag och oskar satt efteråt och snackade om hur vi skulle göra med GUI-biten.
 
 ##### Tisdag
 
