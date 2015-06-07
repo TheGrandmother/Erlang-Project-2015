@@ -115,3 +115,5 @@ varje gång du arbetat på projektet.
 ##### Torsdag
 
 ##### Fredag
+
+##### Söndag rapport, rättat och korrekturläst 3h
