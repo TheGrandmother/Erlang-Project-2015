@@ -132,9 +132,14 @@ Nu upstår det **INGA** deadlocks om man kör med flera myror!
 ##### Måndag
 
 ##### Tisdag
+4h arbete med Guit
 
 ##### Onsdag
-
+3h arbete med presentation
 ##### Torsdag
 
 ##### Fredag
+2h Arbete Med rapporten
+
+##### Söndag
+2h Arbete med rapporten
