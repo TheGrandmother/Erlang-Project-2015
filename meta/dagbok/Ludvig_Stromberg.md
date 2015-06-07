@@ -107,3 +107,6 @@ Skrev på rapporten
 ##### Onsdag
 Möte och jobb med rapporten
 
+##### Söndag
+Korrekturläst och rättat till i rapporten.
+
