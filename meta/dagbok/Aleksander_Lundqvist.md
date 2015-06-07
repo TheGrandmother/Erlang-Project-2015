@@ -85,7 +85,11 @@ en stund - möte med Karl
 
 ##### Måndag
 
+6h - Arbete med Ant
+
 ##### Tisdag
+
+4h - Ant
 
 ##### Onsdag
 
@@ -101,7 +105,11 @@ en stund - möte med Karl
 
 ##### Onsdag
 
+4h - Test med Ant
+
 ##### Torsdag
+
+5h - Arbete med presentation
 
 ##### Fredag
 
@@ -114,6 +122,8 @@ en stund - möte med Karl
 ##### Onsdag
 
 ##### Torsdag
+
+5h - Testat tusentals parametrar till myran
 
 ##### Fredag
 
@@ -128,3 +138,7 @@ en stund - möte med Karl
 ##### Torsdag
 
 ##### Fredag
+
+##### Söndag
+
+4h - Rapport
