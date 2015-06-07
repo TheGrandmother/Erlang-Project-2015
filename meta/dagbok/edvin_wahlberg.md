@@ -1,3 +1,5 @@
+https://github.com/uu-it-teaching/ospp-2015-group-05/blob/master/meta/images/edvin.jpg?raw=true
+
 (13/4/2015)
 Vi hade möte i gruppen och bestämde att vi skulle göra en liten tolkning och implementation av shortest path algoritmen. Inspirerat av ACO(Ant Colony Optimization).
 Den första planen är att ha en simpel 2D grafikrepresentation av vad som händer i programmet. Visa hur myrorna samlar mat och sedan hittar den kortaste vägen tillbaka till stacken med hjälp av feromon. 
