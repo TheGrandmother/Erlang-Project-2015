@@ -124,6 +124,7 @@ Var bortrest över kristerhimmelfärd så idag var första dagen sedan hemkomste
 Idag var första gången vi körde GUI i Python med input från våran modul i erlang. Det gick bra.
 
 ##### Onsdag
+Skrev på presentationen.
 
 ##### Torsdag
 
@@ -131,27 +132,38 @@ satt och pillade med GUI med Oscar
 
 ##### Fredag
 
-Möte angående vad som är viktigast att göra innan den stundande presentationen, jag tog på mig det främsta ansvaret för rapporten.
+Möte angående vad som är viktigast att göra innan den stundande presentationen. 
+Sedan inviduellt arbete på sina delar av presentationen.
 ## Vecka 22
 
 ##### Måndag
+Presentation. 
+Skrev på rapporten.
 
 ##### Tisdag
 
+Korrekturläste rapporten
 ##### Onsdag
 
 ##### Torsdag
-
+Skrev på rapporten. 
 ##### Fredag
 
+##### Lördag
+
+Skrev på rapporten.
 ## Vecka 23
 
 ##### Måndag
 
 ##### Tisdag
-
+Skrev peer-reviews
 ##### Onsdag
-
+Avslutade jobbet på peer-reviews, korrekturläste rapporten och förberedde manus till presentationen.
 ##### Torsdag
-
+Slutpresentation
 ##### Fredag
+
+##### Lördag
+
+##### Söndag
