@@ -167,3 +167,4 @@ Slutpresentation
 ##### Lördag
 
 ##### Söndag
+Korrekturläste rapporten, pillade med referenser och finslipade dagboken; Jagg hade missat att använda mallen för att jag är en virrpanna.
