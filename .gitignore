@@ -19,4 +19,4 @@ lextab.py
 *.beam
 *.dump
 log/
-doc/
+doc/html/
